@@ -463,7 +463,7 @@ export const AssistantChatButton = styled.button<{
   border-radius: 50%;
   width: 56px;
   height: 56px;
-  background: #1976d2;
+  background: transparent;
   color: #fff;
   border: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);

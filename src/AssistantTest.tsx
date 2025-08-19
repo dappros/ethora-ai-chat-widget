@@ -7,7 +7,6 @@ const assistantChatConfig: IConfig = {
   colors: { primary: '#1976d2', secondary: '#E1E4FE' },
   assistantButton: {
     position: { right: 24, bottom: 24 },
-    style: { background: '#1976d2', color: '#fff' },
     ariaLabel: 'Open assistant chat',
   },
   assistantPopup: {

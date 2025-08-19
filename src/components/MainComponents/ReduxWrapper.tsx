@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store, persistor } from '../../roomStore';
 import { ConfigUser, IConfig, MessageProps } from '../../types/types';
@@ -8,10 +8,7 @@ import LoginWrapper from './LoginWrapper.tsx';
 import { PersistGate } from 'redux-persist/integration/react';
 import Loader from '../styled/Loader.tsx';
 import { ToastProvider } from '../../context/ToastContext.tsx';
-import {
-  AssistantChatButton,
-  AssistantChatPopup,
-} from '../styled/StyledComponents';
+import { FullScreenPopup, PopupHeaderButton } from './AssistantPopupStyles';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { AssistantChatWrapper } from './AssistantComponents.tsx/AssistantChatWrapper.tsx';
 import {
@@ -19,6 +16,12 @@ import {
   ETHO_ASSISTANT_USER,
 } from '../../helpers/constants/ASSISTANT_LOCAL_STORAGE';
 import { createAnonymousXmppCredentials } from '../../utils/createAnonymousXmppCredentials';
+import {
+  CloseSquareIcon,
+  MaximizeSquareIcon,
+  MinimizeSquareIcon,
+} from '../../assets/icons.tsx';
+import AssistantClosedButton from './AssistantComponents.tsx/AssistantClosedButton.tsx';
 
 const ETHO_ASSISTANT_TIMESTAMP = 'ethora-assistant-timestamp';
 const ASSISTANT_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
@@ -80,54 +83,85 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
       }, [open]);
 
       const btnCfg = memoizedConfig.assistantButton || {};
-
       const popupCfg = memoizedConfig.assistantPopup || {};
+
+      // Maximize state
+
+      const [fullscreen, setFullscreen] = useState(false);
+      // Animation state for mounting/unmounting
+      const [showPopup, setShowPopup] = useState(open);
+
+      React.useEffect(() => {
+        if (open) {
+          setShowPopup(true);
+        } else {
+          // Wait for animation before unmount
+          const timeout = setTimeout(() => setShowPopup(false), 250);
+          return () => clearTimeout(timeout);
+        }
+      }, [open]);
 
       return (
         <Provider store={store}>
           <ToastProvider>
             {!open && (
-              <AssistantChatButton
-                position={btnCfg.position}
-                customStyle={btnCfg.style}
-                aria-label={btnCfg.ariaLabel || 'Open chat'}
-                onClick={() => setOpen(true)}
-              >
-                {btnCfg.icon || <span>💬</span>}
-              </AssistantChatButton>
+              <AssistantClosedButton icon={btnCfg.icon} onOpen={setOpen} />
             )}
-            {open && (
-              <AssistantChatPopup
+            {showPopup && (
+              <FullScreenPopup
                 width={popupCfg.width || 300}
                 height={popupCfg.height || 600}
                 customStyle={popupCfg.style}
                 style={btnCfg.position}
+                fullscreen={fullscreen}
+                data-open={open}
               >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 12px',
+                    padding: '16px',
                     borderBottom: '1px solid #eee',
                     background: '#1976d2',
                     color: '#fff',
                   }}
                 >
                   <span>{memoizedConfig.chatLabel || 'AI Assistant'}</span>
-                  <button
-                    onClick={() => setOpen(false)}
-                    aria-label={popupCfg.closeButtonAriaLabel || 'Close chat'}
+                  <div
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#fff',
-                      fontSize: 20,
-                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                     }}
                   >
-                    {/* <CloseIcon /> */}×
-                  </button>
+                    <PopupHeaderButton
+                      onClick={() => setFullscreen((f) => !f)}
+                      aria-label={
+                        fullscreen ? 'Minimize chat' : 'Maximize chat'
+                      }
+                      title={fullscreen ? 'Minimize' : 'Maximize'}
+                    >
+                      {fullscreen ? (
+                        <MinimizeSquareIcon
+                          style={{ width: '24px', height: '24px' }}
+                        />
+                      ) : (
+                        <MaximizeSquareIcon
+                          style={{ width: '24px', height: '24px' }}
+                        />
+                      )}
+                    </PopupHeaderButton>
+                    <PopupHeaderButton
+                      onClick={() => setOpen(false)}
+                      aria-label={popupCfg.closeButtonAriaLabel || 'Close chat'}
+                      title="Close"
+                    >
+                      <CloseSquareIcon
+                        style={{ width: '24px', height: '24px' }}
+                      />
+                    </PopupHeaderButton>
+                  </div>
                 </div>
                 <div
                   style={{
@@ -142,7 +176,7 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
                     roomJID={props.roomJID}
                   />
                 </div>
-              </AssistantChatPopup>
+              </FullScreenPopup>
             )}
           </ToastProvider>
         </Provider>
