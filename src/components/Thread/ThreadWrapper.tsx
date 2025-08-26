@@ -42,7 +42,11 @@ const ThreadWrapper: FC<ThreadWrapperProps> = ({
 
   const { loading, roomsList, editAction, activeRoomJID } = useRoomState();
   const { config } = useChatSettingState();
-  const { sendMessage: sendMs } = useSendMessage();
+  const {
+    sendMessage: sendMs,
+    sendMedia: sendMessageMedia,
+    sendEditMessage,
+  } = useSendMessage();
 
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [isChecked, setIsChecked] = useState<boolean>(false);
@@ -67,7 +71,37 @@ const ThreadWrapper: FC<ThreadWrapperProps> = ({
     [client?.client?.jid]
   );
 
+  const sendMessage = useCallback(
+    (message: string) => {
+      sendMs(
+        message,
+        activeMessage.roomJid,
+        true,
+        isChecked,
+        createMainMessageForThread(activeMessage)
+      );
+    },
+    [activeMessage, isChecked]
+  );
+
+  const sendMedia = useCallback(
+    (data: any, type: string) => {
+      sendMessageMedia(
+        data,
+        type,
+        activeMessage.roomJid,
+        true,
+        true,
+        createMainMessageForThread(activeMessage)
+      );
+    },
+    [activeMessage]
+  );
+
   const sendStartComposing = useCallback(() => {
+    if (config?.disableTypingIndicator) {
+      return;
+    }
     client.sendTypingRequestStanza(
       activeMessage.roomJid,
       `${user.firstName} ${user.lastName}`,
@@ -76,6 +110,9 @@ const ThreadWrapper: FC<ThreadWrapperProps> = ({
   }, []);
 
   const sendEndComposing = useCallback(() => {
+    if (config?.disableTypingIndicator) {
+      return;
+    }
     client.sendTypingRequestStanza(
       activeMessage.roomJid,
       `${user.firstName} ${user.lastName}`,
@@ -139,6 +176,15 @@ const ThreadWrapper: FC<ThreadWrapperProps> = ({
       {editAction.isEdit && (
         <EditWrapper text={editAction.text} onClose={onCloseEdit} />
       )}
+      <SendInput
+        editMessage={editAction.text}
+        sendMedia={sendMedia}
+        sendMessage={editAction.isEdit ? sendEditMessage : sendMessage}
+        config={config}
+        onFocus={sendStartComposing}
+        onBlur={sendEndComposing}
+        isLoading={loading}
+      />
     </ChatContainer>
   );
 };

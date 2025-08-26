@@ -3,9 +3,11 @@ import { Client, xml } from '@xmpp/client';
 export const sendTextMessageAssistant = (
   client: Client,
   roomJID: string,
-  userMessage: string
+  userMessage: string,
+  customId?: string
 ) => {
-  const id = `send-text-message-to-assistant-${Date.now().toString()}`;
+  const id =
+    customId || `send-text-message-to-assistant-${Date.now().toString()}`;
 
   try {
     const message = xml(

@@ -11,6 +11,7 @@ const NoMessagesPlaceholder = () => {
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <NoMessages />
         <div
           style={{
             display: 'flex',

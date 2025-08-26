@@ -35,7 +35,7 @@ export const MessageContainer: FC<MessageContainerProps> = ({
   isReply,
   className,
 }) => {
-  const isUser = message.user.xmppUsername === xmppUsername;
+  const isUser = message.user.id === xmppUsername;
 
   const messageDate = new Date(message.date);
 

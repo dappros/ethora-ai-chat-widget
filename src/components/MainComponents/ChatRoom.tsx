@@ -57,7 +57,7 @@ const ChatRoom: React.FC<ChatRoomProps> = React.memo(
         );
         sendMs(message, activeRoomJID, user);
       },
-      [activeRoomJID, user]
+      [activeRoomJID]
     );
 
     const loadMoreMessages = useCallback(

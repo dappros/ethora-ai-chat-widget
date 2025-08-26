@@ -1,15 +1,16 @@
 import { configureStore, combineReducers, Reducer } from '@reduxjs/toolkit';
 import chatSettingsReducer from './chatSettingsSlice';
 import roomsSlice from './roomsSlice';
+import roomHeapSlice from './roomHeapSlice';
 import { IRoom } from '../types/types';
 import { unreadMiddleware } from './Middleware/unreadMidlleware';
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import { createTransform } from 'redux-persist';
 import { AnyAction } from 'redux-saga';
-import { newMessageMidlleware } from './Middleware/newMessageMidlleware';
 import { logoutMiddleware } from './Middleware/logoutMiddleware';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
+import { ETHORA_CHAT_COMPONENT_VERSION } from '../version';
 import { assistanRoomSlice } from './assistantMessageSlice';
 
 const limitMessagesTransform = createTransform(
@@ -62,6 +63,10 @@ const roomsPersistConfig = {
   transforms: [limitMessagesTransform],
 };
 
+const roomHeapSliceConfig = {
+  key: 'roomHeapSlice',
+  storage,
+};
 const assistantMessageSlicePersistConfig = {
   key: 'assistanRoomSlice',
   storage,
@@ -86,6 +91,7 @@ const rootReducer = combineReducers({
     assistantMessageSlicePersistConfig,
     assistanRoomSlice.reducer
   ),
+  roomHeapSlice: persistReducer(roomHeapSliceConfig, roomHeapSlice),
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
@@ -95,10 +101,18 @@ const persistedReducer: Reducer<RootState, AnyAction> = persistReducer(
   rootReducer
 ) as Reducer<RootState, AnyAction>;
 
+export const getActiveRoom = (state: RootState): IRoom | null => {
+  const roomMessagesState = state.rooms;
+  return roomMessagesState.activeRoomJID
+    ? roomMessagesState.rooms[roomMessagesState.activeRoomJID]
+    : null;
+};
+
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
+      thunk: true,
       serializableCheck: {
         ignoredActions: [
           'chat/addMessage',
@@ -112,8 +126,15 @@ export const store = configureStore({
         ],
       },
     }).concat(logoutMiddleware),
+  // .concat(testMiddleware)
+  // .concat(debugMiddleware)
+  // .concat(actionLoggerMiddleware),
 });
 
 export type AppDispatch = typeof store.dispatch;
 
 export const persistor = persistStore(store);
+
+try {
+  console.log('[EthoraChatComponent] version:', ETHORA_CHAT_COMPONENT_VERSION);
+} catch (e) {}

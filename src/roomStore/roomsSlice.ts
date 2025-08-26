@@ -56,6 +56,7 @@ export const addRoomViaApi = createAsyncThunk(
     if (!isRoomAlreadyAdded) {
       if (room.jid) {
         xmpp.presenceInRoomStanza(room.jid);
+        xmpp?.getHistoryStanza(room.jid, 10);
       }
       dispatch(roomsStore.actions.addRoomFromApi({ room }));
     }
@@ -187,24 +188,31 @@ export const roomsStore = createSlice({
         state.rooms[roomJID].messages = [];
       }
 
-      if (roomMessages.some((msg) => msg.id === message.id)) {
+      const existingIndex = roomMessages.findIndex(
+        (msg) =>
+          msg.id === message.id ||
+          (message.xmppId && msg.id === message.xmppId) ||
+          (msg.xmppId && msg.xmppId === message.id)
+      );
+      if (existingIndex !== -1) {
+        roomMessages[existingIndex] = deepMerge(
+          { ...roomMessages[existingIndex] },
+          { ...message, pending: false }
+        );
         return;
       }
 
       const updMessage = {
         ...message,
         user: {
-          name: createUserNameFromSetUser(
-            state.usersSet,
-            message.user.xmppUsername
-          ),
+          name: createUserNameFromSetUser(state.usersSet, message.user.id),
           ...message.user,
         },
       };
 
       if (roomMessages.length === 0 || start) {
         const index = roomMessages.findIndex(
-          (msg) => msg.id === message.xmppId
+          (msg) => msg.id === message.xmppId || msg.id === message.id
         );
         if (index !== -1) {
           roomMessages[index] = {
@@ -219,6 +227,8 @@ export const roomsStore = createSlice({
         const lastViewedTimestamp = state.rooms[roomJID].lastViewedTimestamp
           ? new Date(state.rooms[roomJID].lastViewedTimestamp)
           : null;
+
+        insertMessageWithDelimiter(roomMessages, updMessage);
       }
     },
     deleteAllRooms(state) {
@@ -349,6 +359,21 @@ export const roomsStore = createSlice({
     },
   },
 });
+
+function deepMerge(target: any, source: any): any {
+  for (const key in source) {
+    if (
+      source[key] &&
+      typeof source[key] === 'object' &&
+      !Array.isArray(source[key])
+    ) {
+      target[key] = deepMerge(target[key] || {}, source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
 
 const countNewerMessages = (
   messages: IMessage[],

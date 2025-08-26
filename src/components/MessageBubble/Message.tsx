@@ -32,6 +32,7 @@ import { useChatSettingState } from '../../hooks/useChatSettingState';
 import { DoubleTick } from '../../assets/icons';
 import { parseMessageBody } from '../../helpers/parseMessageBody';
 import URLPreviewCard from './URLPreviewCard';
+import { useMessageHeapState } from '../../hooks/useMessageHeapState';
 
 const firstUrlRegex =
   /(https?:\/\/[\w.-]+(?:\.[\w.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+)/;
@@ -42,6 +43,7 @@ const Message: React.FC<MessageProps> = forwardRef<
 >(({ message, isUser, isReply }, ref) => {
   const { client } = useXmppClient();
   const { user, config, langSource } = useChatSettingState();
+  const { idSet } = useMessageHeapState();
 
   const dispatch = useDispatch();
 
@@ -188,6 +190,8 @@ const Message: React.FC<MessageProps> = forwardRef<
   const messageText = config?.messageTextFilter?.enabled
     ? parseMessageBody(config?.messageTextFilter.filterFunction(message.body))
     : parseMessageBody(message.body);
+
+  const isPending = idSet.has(message.id) || message?.pending || false;
 
   return (
     <>

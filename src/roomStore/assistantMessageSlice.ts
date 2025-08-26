@@ -2,11 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AddRoomMessageAction, IMessage } from '../types/types';
 import { insertMessageWithDelimiter } from '../helpers/insertMessageWithDelimiter';
 import { ETHO_ASSISTANT_MESSAGES } from '../helpers/constants/ASSISTANT_LOCAL_STORAGE';
+import { addMessageToHeap } from './roomHeapSlice';
 
 interface RoomMessagesState {
   isLoading: boolean;
-  loadingText?: string;
   messages: { [roomJID: string]: IMessage[] };
+  jid: string;
+  loadingText?: string;
   composing?: { [roomJID: string]: boolean };
 }
 
@@ -15,6 +17,7 @@ const initialState: RoomMessagesState = {
   loadingText: undefined,
   messages: {},
   composing: {},
+  jid: '',
 };
 
 const saveMessagesToLocalStorage = (messages: {
@@ -49,6 +52,10 @@ export const assistanRoomSlice = createSlice({
         state.messages = JSON.parse(savedMessages);
       }
     },
+    setJid(state, action: PayloadAction<{ roomJID: string }>) {
+      const { roomJID } = action.payload;
+      state.jid = roomJID;
+    },
     setRoomMessages(
       state,
       action: PayloadAction<{ roomJID: string; messages: IMessage[] }>
@@ -72,11 +79,28 @@ export const assistanRoomSlice = createSlice({
     addRoomMessage(state, action: PayloadAction<AddRoomMessageAction>) {
       const { roomJID, message, start } = action.payload;
       if (!message?.body) return;
+
       if (!state.messages[roomJID]) {
         state.messages[roomJID] = [];
       }
+
       const roomMessages = state.messages[roomJID];
-      if (roomMessages.some((msg) => msg.id === message.id)) {
+
+      const existingIndex = roomMessages.findIndex(
+        (msg) =>
+          msg.id === message.id ||
+          (message.xmppId && msg.id === message.xmppId) ||
+          (msg.xmppId && msg.xmppId === message.id)
+      );
+
+      if (existingIndex !== -1) {
+        roomMessages[existingIndex] = {
+          ...roomMessages[existingIndex],
+          ...message,
+          pending: false,
+          timestamp: message.timestamp || Date.now(),
+        };
+        saveMessagesToLocalStorage(state.messages);
         return;
       }
 
@@ -84,7 +108,7 @@ export const assistanRoomSlice = createSlice({
 
       if (roomMessages.length === 0 || start) {
         const index = roomMessages.findIndex(
-          (msg) => msg.id === message.xmppId
+          (msg) => msg.id === message.xmppId || msg.id === message.id
         );
         if (index !== -1) {
           roomMessages[index] = {
@@ -98,6 +122,7 @@ export const assistanRoomSlice = createSlice({
       } else {
         insertMessageWithDelimiter(roomMessages, messageWithTimestamp);
       }
+
       saveMessagesToLocalStorage(state.messages);
     },
     setComposing(
@@ -141,6 +166,7 @@ export const {
   deleteRoomMessage,
   setComposing,
   setIsLoading,
+  setJid,
 } = assistanRoomSlice.actions;
 
 export default assistanRoomSlice.reducer;
