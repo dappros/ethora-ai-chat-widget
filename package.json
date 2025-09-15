@@ -1,6 +1,6 @@
 {
   "name": "@ethora/ai-chat-widget",
-  "version": "25.08.28",
+  "version": "25.08.30",
   "type": "module",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",

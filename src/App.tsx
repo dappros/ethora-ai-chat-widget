@@ -4,7 +4,6 @@ import { ReduxWrapper } from './components/MainComponents/ReduxWrapper';
 import { XmppProvider } from './context/xmppProvider';
 import { useUnreadMessagesCounter } from './hooks/useUnreadMessagesCounter';
 import { IConfig } from './types/types';
-import { logoutService, handleQRChatId } from './main';
 import { handleCopyClick } from './helpers/handleCopyClick';
 
 const Apps = () => {
@@ -47,7 +46,6 @@ const ChatComponent = React.memo(() => {
   );
 
   useEffect(() => {
-    handleQRChatId();
     return () => {};
   }, [window.location.pathname]);
 
@@ -99,9 +97,7 @@ ChatComponent.displayName = 'ChatComponent';
 
 export default function App() {
   const { totalCount } = useUnreadMessagesCounter();
-  const handleLogoutClick = () => {
-    logoutService.performLogout();
-  };
+  const handleLogoutClick = () => {};
 
   const navigation = useMemo(
     () => (
