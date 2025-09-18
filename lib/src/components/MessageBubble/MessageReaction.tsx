@@ -1,5 +1,4 @@
 import { FC, useMemo } from 'react';
-import emojiData from '@emoji-mart/data';
 import { styled } from 'styled-components';
 import { ReactionMessage } from '../../types/types';
 
@@ -62,11 +61,6 @@ export const MessageReaction: FC<MessageReactionProps> = ({
   changeReaction,
   userName,
 }) => {
-  const memoEmoji = (id: string) => {
-    const emoji = (emojiData as any).emojis[id];
-    return emoji ? emoji.skins[0].native : '';
-  };
-
   if (!reaction) return null;
 
   const reactionDetails = useMemo(() => {
@@ -101,7 +95,6 @@ export const MessageReaction: FC<MessageReactionProps> = ({
               : color,
           }}
         >
-          {memoEmoji(emoji)} {details.count}
           <Tooltip className="tooltip">{details.users.join(', ')}</Tooltip>
         </ReactionBox>
       ))}

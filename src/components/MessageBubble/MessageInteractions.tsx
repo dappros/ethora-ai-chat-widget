@@ -17,8 +17,6 @@ import {
 } from '../../helpers/constants/MESSAGE_INTERACTIONS';
 import { IMessage } from '../../types/types';
 import { DownArrowIcon } from '../../assets/icons';
-import Picker from '@emoji-mart/react';
-import emojiData, { Emoji as EmojiData } from '@emoji-mart/data';
 
 import '../../index.css';
 
@@ -90,19 +88,6 @@ const MessageInteractions: React.FC<MessageInteractionsProps> = ({
     }
   };
 
-  const handleReactionClick = (reaction: string, e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      const emoji: EmojiData = (emojiData as any).emojis[reaction];
-      handleReactionMessage(reaction);
-      closeMenu();
-    }
-  };
-
-  const getEmojiById = (id: string) => {
-    const emoji = (emojiData as any).emojis[id];
-    return emoji ? emoji.skins[0].native : '';
-  };
-
   const calculatePickerPosition = (x: number, y: number) => {
     const pickerWidth = 320;
     const pickerHeight = 435;
@@ -152,15 +137,6 @@ const MessageInteractions: React.FC<MessageInteractionsProps> = ({
             style={{ top: contextMenu.y, left: contextMenu.x }}
           >
             <ReactionContainer>
-              {fixedEmojiIds.map((id) => (
-                <ReactionBadge
-                  key={id}
-                  className="apple-emoji"
-                  onClick={(e) => handleReactionClick(id, e)}
-                >
-                  {getEmojiById(id)}
-                </ReactionBadge>
-              ))}
               <ArrowButton
                 isRotated={showPicker}
                 onClick={(e) => {
@@ -180,35 +156,7 @@ const MessageInteractions: React.FC<MessageInteractionsProps> = ({
                 <DownArrowIcon />
               </ArrowButton>
             </ReactionContainer>
-
-            {showPicker && (
-              <Picker
-                skinTonePosition="none"
-                searchPosition="static"
-                onEmojiSelect={(emoji, e) => handleEmojiSelect(emoji, e)}
-                title="Pick emoji"
-                emoji="point_up"
-                theme="light"
-                previewPosition="none"
-                style={{
-                  maxWidth: '320px',
-                  maxHeight: '360px',
-                  overflowY: 'auto',
-                }}
-              />
-            )}
-
             <ContextMenu onClick={closeContextMenu}>
-              {/* <MenuItem onClick={() => console.log(MESSAGE_INTERACTIONS.SEND_COINS)}>
-            {MESSAGE_INTERACTIONS.SEND_COINS}
-            <MESSAGE_INTERACTIONS_ICONS.SEND_COINS />{' '}
-          </MenuItem>
-          <Delimeter />
-          <MenuItem onClick={() => console.log(MESSAGE_INTERACTIONS.SEND_ITEM)}>
-            {MESSAGE_INTERACTIONS.SEND_ITEM}
-            <MESSAGE_INTERACTIONS_ICONS.SEND_ITEM />{' '}
-          </MenuItem> */}
-              {/* <Delimeter /> */}
               {!isReply && (
                 <>
                   <MenuItem onClick={handleReplyMessage}>

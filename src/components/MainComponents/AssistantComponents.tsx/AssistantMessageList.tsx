@@ -14,6 +14,7 @@ import { AsisstantUserType, IConfig, IMessage } from '../../../types/types';
 import { DownArrowIcon } from '../../../assets/icons';
 import NewMessageLabel from '../../styled/NewMessageLabel';
 import { MessageContainer } from '../MessageContainer';
+import CustomTypingIndicator from '../../styled/CustomTypingIndicator';
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../roomStore';
@@ -283,12 +284,16 @@ const AssistantMessageList = <TMessage extends IMessage>({
             />
           );
         })}
-        {isComposing && (
+        {isUserMessage && isComposing && (
           <div
             className="message-container"
             style={{ textAlign: 'center', padding: '8px' }}
           >
-            <span>Assistant is typing...</span>
+            <CustomTypingIndicator
+              usersTyping={['Assistant']}
+              position="bottom"
+              isVisible={true}
+            />
           </div>
         )}
       </MessagesScroll>

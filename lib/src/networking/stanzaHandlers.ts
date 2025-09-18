@@ -1,7 +1,10 @@
 import { Element } from 'ltx';
 import { store } from '../roomStore';
-import { setComposing, setRoomRole } from '../roomStore/roomsSlice';
-import { addRoomMessage as addAssistantRoomMessage } from '../roomStore/assistantMessageSlice';
+import { setRoomRole } from '../roomStore/roomsSlice';
+import {
+  addRoomMessage as addAssistantRoomMessage,
+  setComposing,
+} from '../roomStore/assistantMessageSlice';
 import { createMessageFromXml } from '../helpers/createMessageFromXml';
 import { getDataFromXml } from '../helpers/getDataFromXml';
 // TO DO: we are thinking to refactor this code in the following way:
