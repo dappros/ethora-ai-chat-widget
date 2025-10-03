@@ -22,7 +22,7 @@ import {
 import { useXmppClient } from '../../context/xmppProvider';
 import { setActiveModal } from '../../roomStore/chatSettingsSlice';
 import { MODAL_TYPES } from '../../helpers/constants/MODAL_TYPES';
-import { RoomMenu } from '../MenuRoom/MenuRoom';
+// Removed RoomMenu
 import { useRoomState } from '../../hooks/useRoomState';
 import { useChatSettingState } from '../../hooks/useChatSettingState';
 import { formatNumberWithCommas } from '../../helpers/formatNumberWithCommas';
@@ -122,10 +122,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
       <div style={{ display: 'flex', gap: 16 }}>
         {/* <SearchInput animated icon={<SearchIcon />} /> */}
-        <RoomMenu
-          handleLeaveClick={handleLeaveClick}
-          handleReportClick={handleReportClick}
-        />
+        {/* RoomMenu removed */}
       </div>
     </ChatContainerHeader>
   );

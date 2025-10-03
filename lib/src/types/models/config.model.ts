@@ -5,23 +5,13 @@ import { MessageBubble } from './message.model';
 import { Iso639_1Codes } from './language.model';
 import React from 'react'; // Assuming React types are globally available or managed by the project's tsconfig
 
-export interface FBConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-}
+// Removed Firebase config
 
 export interface IConfig {
   disableHeader?: boolean;
   disableMedia?: boolean;
   colors?: { primary: string; secondary: string };
-  googleLogin?: {
-    enabled: boolean;
-    firebaseConfig: FBConfig;
-  };
+  // googleLogin removed
   jwtLogin?: {
     token: string;
     enabled: boolean;
@@ -117,4 +107,6 @@ export interface IConfig {
   };
   assistantOpenStateKey?: string;
   chatLabel?: string;
+  botAvatar?: string;
+  botDisplayName?: string;
 }

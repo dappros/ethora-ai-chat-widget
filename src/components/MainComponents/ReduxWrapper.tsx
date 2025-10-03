@@ -1,12 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Provider } from 'react-redux';
-import { store, persistor } from '../../roomStore';
+import { store } from '../../roomStore';
 import { ConfigUser, IConfig, MessageProps } from '../../types/types';
 import '../../index.css';
 import '../../helpers/storeConsole';
-import LoginWrapper from './LoginWrapper.tsx';
-import { PersistGate } from 'redux-persist/integration/react';
-import Loader from '../styled/Loader.tsx';
 import { ToastProvider } from '../../context/ToastContext.tsx';
 import { FullScreenPopup, PopupHeaderButton } from './AssistantPopupStyles';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -85,17 +82,13 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
       const btnCfg = memoizedConfig.assistantButton || {};
       const popupCfg = memoizedConfig.assistantPopup || {};
 
-      // Maximize state
-
       const [fullscreen, setFullscreen] = useState(false);
-      // Animation state for mounting/unmounting
       const [showPopup, setShowPopup] = useState(open);
 
       React.useEffect(() => {
         if (open) {
           setShowPopup(true);
         } else {
-          // Wait for animation before unmount
           const timeout = setTimeout(() => setShowPopup(false), 250);
           return () => clearTimeout(timeout);
         }
@@ -127,7 +120,9 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
                     color: '#fff',
                   }}
                 >
-                  <span>{memoizedConfig.chatLabel || 'AI Assistant'}</span>
+                  <span>
+                    {memoizedConfig?.botDisplayName || 'AI Assistant'}
+                  </span>
                   <div
                     style={{
                       display: 'flex',
@@ -182,15 +177,5 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
         </Provider>
       );
     }
-
-    return (
-      <Provider store={store}>
-        <PersistGate loading={<Loader />} persistor={persistor}>
-          <ToastProvider>
-            <LoginWrapper config={memoizedConfig} {...props} />
-          </ToastProvider>
-        </PersistGate>
-      </Provider>
-    );
   }
 );

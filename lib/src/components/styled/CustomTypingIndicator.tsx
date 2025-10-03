@@ -2,7 +2,6 @@ import React, { FC, useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 interface CustomTypingIndicatorProps {
-  usersTyping: string[];
   position?: 'bottom' | 'top' | 'overlay' | 'floating';
   styles?: React.CSSProperties;
   isVisible: boolean;
@@ -105,7 +104,6 @@ const GradientText = styled.span`
 const states = ['Thinking', 'Processing', 'Generating', 'Finalizing'];
 
 const CustomTypingIndicator: FC<CustomTypingIndicatorProps> = ({
-  usersTyping = [],
   position = 'bottom',
   styles = {},
   isVisible = true,
@@ -113,13 +111,14 @@ const CustomTypingIndicator: FC<CustomTypingIndicatorProps> = ({
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (index >= states.length - 1) return;
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % states.length);
-    }, 2500); // 2.5 sec per word
+      setIndex((prev) => prev + 1);
+    }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [index]);
 
-  if (!isVisible || usersTyping.length === 0) return null;
+  if (!isVisible) return null;
 
   return (
     <BaseWrapper position={position} style={styles}>

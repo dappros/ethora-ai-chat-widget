@@ -9,8 +9,8 @@ export interface XmppState {
 }
 
 export interface xmppSettingsInterface {
-  devServer: string;
-  host: string;
+  devServer?: string;
+  host?: string;
   conference?: string;
   xmppPingOnSendEnabled?: boolean;
 }

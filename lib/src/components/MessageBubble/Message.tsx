@@ -6,30 +6,23 @@ import {
   CustomMessageBubble,
   CustomMessageText,
   CustomUserName,
-  CustomMessagePhoto,
   CustomMessagePhotoContainer,
-  MessageFooter,
 } from '../styled/StyledComponents';
-import MediaMessage from '../MainComponents/MediaMessage';
 import { useDispatch } from 'react-redux';
 
 import { Avatar } from './Avatar';
-import MessageInteractions from './MessageInteractions';
 import {
   setActiveModal,
   setDeleteModal,
   setSelectedUser,
 } from '../../roomStore/chatSettingsSlice';
 import { MODAL_TYPES } from '../../helpers/constants/MODAL_TYPES';
-import { BottomReplyContainer } from './BottomReplyContainer';
 import { setActiveMessage, setEditAction } from '../../roomStore/roomsSlice';
 import { MessageReply } from './MessageReply';
 import { DeletedMessage } from './DeletedMessage';
 import { useXmppClient } from '../../context/xmppProvider';
-import { MessageReaction } from './MessageReaction';
 import MessageTranslations from './MessageTranslations';
 import { useChatSettingState } from '../../hooks/useChatSettingState';
-import { DoubleTick } from '../../assets/icons';
 import { parseMessageBody } from '../../helpers/parseMessageBody';
 import URLPreviewCard from './URLPreviewCard';
 import { useMessageHeapState } from '../../hooks/useMessageHeapState';
@@ -204,7 +197,10 @@ const Message: React.FC<MessageProps> = forwardRef<
       >
         {!isUser && (
           <CustomMessagePhotoContainer>
-            <Avatar username={'Helper Ai'} />
+            <Avatar
+              username={config?.botDisplayName || 'Helper Ai'}
+              avatarUrl={config?.botAvatar}
+            />
           </CustomMessagePhotoContainer>
         )}
         <CustomMessageBubble
@@ -216,7 +212,7 @@ const Message: React.FC<MessageProps> = forwardRef<
         >
           {!isUser && (
             <CustomUserName isUser={isUser} color={config?.colors?.primary}>
-              {'Helper Ai'}
+              {config?.botDisplayName || 'Helper Ai'}
             </CustomUserName>
           )}
           {!isReply && message.mainMessage && (
@@ -227,22 +223,13 @@ const Message: React.FC<MessageProps> = forwardRef<
               color={config?.colors?.primary}
             />
           )}
-          {message?.isMediafile === 'true' && !message?.isDeleted ? (
-            <MediaMessage
-              mimeType={message.mimetype}
-              locationPreview={message.locationPreview}
-              location={message?.location}
-              message={message}
-            />
-          ) : (
-            <CustomMessageText>
-              {message.isDeleted && message.id !== 'delimiter-new' ? (
-                <DeletedMessage />
-              ) : (
-                <span>{messageText}</span>
-              )}
-            </CustomMessageText>
-          )}
+          <CustomMessageText>
+            {message.isDeleted && message.id !== 'delimiter-new' ? (
+              <DeletedMessage />
+            ) : (
+              <span>{messageText}</span>
+            )}
+          </CustomMessageText>
 
           {!isUser && config?.translates?.enabled && (
             <MessageTranslations

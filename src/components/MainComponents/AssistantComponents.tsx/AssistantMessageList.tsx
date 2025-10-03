@@ -14,12 +14,11 @@ import { AsisstantUserType, IConfig, IMessage } from '../../../types/types';
 import { DownArrowIcon } from '../../../assets/icons';
 import NewMessageLabel from '../../styled/NewMessageLabel';
 import { MessageContainer } from '../MessageContainer';
-import CustomTypingIndicator from '../../styled/CustomTypingIndicator';
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../roomStore';
-import { addRoomMessage } from '../../../roomStore/assistantMessageSlice';
 import NoMessagesPlaceholder from '../NoMessagesPlaceholder';
+import CustomTypingIndicator from '../../styled/CustomTypingIndicator';
 
 interface AssistantMessageListProps<TMessage extends IMessage> {
   CustomMessage?: React.ComponentType<{
@@ -46,7 +45,7 @@ const AssistantMessageList = <TMessage extends IMessage>({
     (state: RootState) => state.assistantMessageSlicePersistConfig
   );
   const messages = assistantState.messages[roomJID] || [];
-  const isComposing = assistantState.composing?.[roomJID];
+  const isComposing = Boolean(assistantState.composing?.[roomJID]);
 
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [newMessagesCount, setNewMessagesCount] = useState(0);
@@ -58,7 +57,7 @@ const AssistantMessageList = <TMessage extends IMessage>({
 
   const isUserMessage = useMemo(
     () =>
-      messages.length &&
+      !!messages.length &&
       messages[messages.length - 1].user.xmppUsername === user.xmppUsername,
     [messages.length, user.xmppUsername, messages]
   );
@@ -249,8 +248,8 @@ const AssistantMessageList = <TMessage extends IMessage>({
         color={config?.colors?.primary}
       >
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'red', padding: '16px' }}>
-            <NoMessagesPlaceholder />
+          <div style={{ textAlign: 'center', padding: '16px' }}>
+            <NoMessagesPlaceholder assistantName={''} />
           </div>
         )}
         {messages.map((message) => {
@@ -289,11 +288,7 @@ const AssistantMessageList = <TMessage extends IMessage>({
             className="message-container"
             style={{ textAlign: 'center', padding: '8px' }}
           >
-            <CustomTypingIndicator
-              usersTyping={['Assistant']}
-              position="bottom"
-              isVisible={true}
-            />
+            <CustomTypingIndicator isVisible={true} />
           </div>
         )}
       </MessagesScroll>

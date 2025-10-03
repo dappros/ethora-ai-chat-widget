@@ -1,14 +1,62 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ArrowButton,
-  ContainerInteractions,
-  ContextMenu,
-  Delimeter,
-  MenuItem,
-  Overlay,
-  ReactionBadge,
-  ReactionContainer,
-} from '../ContextMenu/ContextMenuComponents';
+// Removed ContextMenuComponents; reimplement minimal inline elements
+const Overlay: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => (
+  <div {...props} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
+);
+const ContainerInteractions: React.FC<React.HTMLAttributes<HTMLDivElement>> = (
+  props
+) => (
+  <div
+    {...props}
+    style={{
+      position: 'fixed',
+      zIndex: 1000,
+      background: '#fff',
+      borderRadius: 8,
+    }}
+  />
+);
+const ContextMenu: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => (
+  <div
+    {...props}
+    style={{
+      padding: 8,
+      minWidth: 160,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    }}
+  />
+);
+const MenuItem: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => (
+  <div
+    {...props}
+    style={{
+      padding: '6px 10px',
+      display: 'flex',
+      gap: 6,
+      alignItems: 'center',
+      cursor: 'pointer',
+    }}
+  />
+);
+const Delimeter: React.FC = () => (
+  <div style={{ height: 1, background: '#eaeaea', margin: '4px 0' }} />
+);
+const ReactionContainer: React.FC<React.HTMLAttributes<HTMLDivElement>> = (
+  props
+) => <div {...props} style={{ display: 'flex', padding: 6 }} />;
+const ArrowButton: React.FC<
+  { isRotated?: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>
+> = ({ isRotated, ...rest }) => (
+  <button
+    {...rest}
+    style={{
+      transform: isRotated ? 'rotate(180deg)' : 'none',
+      border: 'none',
+      background: 'transparent',
+      cursor: 'pointer',
+    }}
+  />
+);
 import { useSelector } from 'react-redux';
 import { RootState } from '../../roomStore';
 import {

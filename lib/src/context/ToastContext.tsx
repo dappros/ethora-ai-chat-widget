@@ -1,6 +1,31 @@
 // src/context/ToastContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ToastType, Toast } from '../components/Toast';
+// Inline minimal Toast to remove dependency on deleted components
+export type ToastType = {
+  id: string;
+  message: string;
+  type?: 'info' | 'success' | 'error';
+  duration?: number;
+};
+const Toast: React.FC<ToastType> = ({ message, type = 'info' }) => (
+  <div
+    style={{
+      marginTop: 10,
+      padding: '10px 12px',
+      borderRadius: 8,
+      color: '#141414',
+      background:
+        type === 'success'
+          ? '#C8F7C5'
+          : type === 'error'
+            ? '#FADBD8'
+            : '#EAF2FD',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    }}
+  >
+    {message}
+  </div>
+);
 
 interface ToastContextType {
   showToast: (toast: ToastType) => void;

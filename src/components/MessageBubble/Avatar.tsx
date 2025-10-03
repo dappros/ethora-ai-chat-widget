@@ -7,13 +7,24 @@ interface AvatarProps {
   firstName?: string;
   lastName?: string;
   style?: CSSProperties;
+  avatarUrl?: string;
 }
 
-const AvatarCircle = styled.div<{ bgColor: string; textColor?: string }>`
+const AvatarCircle = styled.div<{
+  bgColor: string;
+  textColor?: string;
+  avatarUrl?: string;
+}>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: ${({ bgColor }) => bgColor};
+  background-color: ${({ bgColor, avatarUrl }) =>
+    avatarUrl ? 'transparent' : bgColor};
+  background-image: ${({ avatarUrl }) =>
+    avatarUrl ? `url(${avatarUrl})` : 'none'};
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,6 +44,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   firstName,
   lastName,
   style,
+  avatarUrl,
 }) => {
   const { backgroundColor } = nameToColor(username ? username : firstName);
 
@@ -68,8 +80,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   };
 
   return (
-    <AvatarCircle style={style} bgColor={backgroundColor}>
-      {getInitials()}
+    <AvatarCircle style={style} bgColor={backgroundColor} avatarUrl={avatarUrl}>
+      {!avatarUrl && getInitials()}
     </AvatarCircle>
   );
 };

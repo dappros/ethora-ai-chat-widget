@@ -4,7 +4,7 @@ export const CustomDivider = styled.div<{
   configColorUser: string;
   isUser: boolean;
 }>`
-  margin: 1px 0;
+  margin: 1px 0px;
   height: 1px;
   width: 100%;
   background-color: ${(props) =>

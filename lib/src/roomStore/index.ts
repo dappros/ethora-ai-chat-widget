@@ -3,7 +3,6 @@ import chatSettingsReducer from './chatSettingsSlice';
 import roomsSlice from './roomsSlice';
 import roomHeapSlice from './roomHeapSlice';
 import { IRoom } from '../types/types';
-import { unreadMiddleware } from './Middleware/unreadMidlleware';
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import { createTransform } from 'redux-persist';

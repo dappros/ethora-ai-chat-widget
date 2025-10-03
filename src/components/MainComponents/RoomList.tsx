@@ -10,9 +10,9 @@ import { SearchInput } from '../InputComponents/Search';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../roomStore';
 import { SearchIcon } from '../../assets/icons';
-import DropdownMenu from '../DropdownMenu/DropdownMenu';
+// Removed DropdownMenu
 import { logout, setActiveModal } from '../../roomStore/chatSettingsSlice';
-import NewChatModal from '../Modals/NewChatModal/NewChatModal';
+// Removed NewChatModal
 import { setLogoutState } from '../../roomStore/roomsSlice';
 import {
   BurgerButton,
@@ -23,7 +23,7 @@ import {
 } from '../styled/RoomListComponents';
 import { MODAL_TYPES } from '../../helpers/constants/MODAL_TYPES';
 import { useXmppClient } from '../../context/xmppProvider';
-import ChatRoomItem from '../RoomComponents/ChatRoomItem';
+// Removed ChatRoomItem
 import { useChatSettingState } from '../../hooks/useChatSettingState';
 
 interface RoomListProps {
@@ -68,7 +68,6 @@ const RoomList: React.FC<RoomListProps> = ({
 
       onRoomClick?.(chat);
       setOpen(false);
-      
     },
     [onRoomClick]
   );
@@ -194,12 +193,7 @@ const RoomList: React.FC<RoomListProps> = ({
         {(open || !burgerMenu) && (
           <ScollableContainer>
             <SearchContainer>
-              {!config?.disableRoomMenu && (
-                <DropdownMenu
-                  options={menuOptions}
-                  // onClose={dispatch(setActiveModal())}
-                />
-              )}
+              {/* Room menu removed */}
               <SearchInput
                 icon={<SearchIcon height={'20px'} />}
                 value={searchTerm}
@@ -208,20 +202,56 @@ const RoomList: React.FC<RoomListProps> = ({
                 // animated={true}
               />
 
-              <NewChatModal />
+              {/* NewChatModal removed */}
             </SearchContainer>
             <div
               style={{ flexGrow: 1, overflowY: 'auto', padding: '16px 0px' }}
             >
               {filteredChats.map((chat: IRoom, index: number) => (
                 <React.Fragment key={`${chat.id}-${index}`}>
-                  <ChatRoomItem
-                    chat={chat}
-                    index={index}
-                    isChatActive={isChatActive(chat)}
-                    performClick={performClick}
-                    config={config}
-                  />
+                  <div
+                    onClick={() => performClick(chat)}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      background: isChatActive(chat)
+                        ? '#F5F5F5'
+                        : 'transparent',
+                      borderRadius: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: 600 }}>
+                        {chat.title || chat.name}
+                      </span>
+                      {chat.lastMessage && (
+                        <span style={{ color: '#8C8C8C', fontSize: 12 }}>
+                          {chat.lastMessage?.body?.slice(0, 40)}
+                        </span>
+                      )}
+                    </div>
+                    {chat.unreadMessages ? (
+                      <span
+                        style={{
+                          minWidth: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          background: '#0052CD',
+                          color: 'white',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                          padding: '0px 6px',
+                        }}
+                      >
+                        {chat.unreadMessages}
+                      </span>
+                    ) : null}
+                  </div>
                   {index < filteredChats.length - 1 && <Divider />}
                 </React.Fragment>
               ))}

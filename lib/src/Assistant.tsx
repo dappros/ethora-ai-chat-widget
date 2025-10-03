@@ -26,7 +26,15 @@ const assistantChatConfig: IConfig = {
   },
 };
 
-export default function AssistantTest({ botId }: { botId?: string }) {
+export default function Assistant({
+  botId,
+  botAvatar,
+  botDisplayName,
+}: {
+  botId?: string;
+  botAvatar?: string;
+  botDisplayName?: string;
+}) {
   const user = createAnonymousXmppCredentials();
   return (
     <XmppProvider>
@@ -35,13 +43,15 @@ export default function AssistantTest({ botId }: { botId?: string }) {
         config={{
           ...assistantChatConfig,
           assistantMode: { enabled: true, user },
+          botAvatar,
+          botDisplayName,
         }}
       />
     </XmppProvider>
   );
 }
 
-// export default function AssistantTest() {
+// export default function Assistant() {
 //   const user = createAnonymousXmppCredentials();
 //   return (
 //     <XmppProvider>

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AssistantTest from './AssistantTest.tsx';
-import './index.css';
+import { StyleSheetManager } from 'styled-components';
+import Assistant from './Assistant.tsx';
 
 const BOT_ID_STORAGE_KEY = 'ethora-assistant-bot-id';
 const PERSIST_ROOT_KEY = 'persist:root';
@@ -35,8 +35,24 @@ function clearStorageForNewBot(newBotId?: string) {
   window.localStorage.setItem(BOT_ID_STORAGE_KEY, newBotId);
 }
 
-function mountChatAssistant(container: HTMLElement, botId?: string) {
-  ReactDOM.createRoot(container).render(<AssistantTest botId={botId} />);
+function mountChatAssistant(
+  container: HTMLElement,
+  botId?: string,
+  botAvatar?: string,
+  botDisplayName?: string,
+  styleTarget?: HTMLStyleElement
+) {
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <StyleSheetManager target={styleTarget}>
+        <Assistant
+          botId={botId}
+          botAvatar={botAvatar}
+          botDisplayName={botDisplayName}
+        />
+      </StyleSheetManager>
+    </React.StrictMode>
+  );
 }
 
 function createChatWidgetDiv(): HTMLDivElement {
@@ -56,12 +72,29 @@ function waitForBodyAndMount() {
 
   const scriptTag = document.getElementById('chat-content-assistant');
   const botId = scriptTag?.getAttribute('data-bot-id') || undefined;
+  const botAvatar = scriptTag?.getAttribute('data-bot-avatar') || undefined;
+  const botDisplayName =
+    scriptTag?.getAttribute('data-bot-display-name') || undefined;
 
   clearStorageForNewBot(botId);
 
   const chatWidgetContainer = createChatWidgetDiv();
   document.body.appendChild(chatWidgetContainer);
-  mountChatAssistant(chatWidgetContainer, botId);
+  const shadow = chatWidgetContainer.attachShadow({ mode: 'open' });
+
+  const styleTarget = document.createElement('style');
+  shadow.appendChild(styleTarget);
+
+  const shadowAppRoot = document.createElement('div');
+  shadow.appendChild(shadowAppRoot);
+
+  mountChatAssistant(
+    shadowAppRoot,
+    botId,
+    botAvatar,
+    botDisplayName,
+    styleTarget
+  );
 }
 
 waitForBodyAndMount();

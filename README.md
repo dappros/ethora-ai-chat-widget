@@ -17,12 +17,12 @@ npm install @ethora/ai-chat-widget
 yarn add @ethora/ai-chat-widget
 ```
 
-## Quick start (React)
+## Quick start (React via npm)
 
 ```tsx
 import React from 'react';
 import {
-  ChatComponent,
+  AiAssistant,
   XmppProvider,
   createAnonymousXmppCredentials,
 } from '@ethora/ai-chat-widget';
@@ -30,57 +30,50 @@ import '@ethora/ai-chat-widget/dist/ai-chat-widget.css';
 
 export default function App() {
   const user = createAnonymousXmppCredentials();
+  const botId = import.meta.env.VITE_ASSISTANT_BOT_ID as string; // e.g. "xxxxx-bot@xmpp.example.com"
 
   return (
     <XmppProvider>
-      <ChatComponent
-        roomJID={process.env.REACT_APP_ASSISTANT_BOT_ID}
-        config={{
-          assistantMode: { enabled: true, user },
-          assistantOpenStateKey: 'EthoraAssistantOpen',
-          colors: { primary: '#1976d2', secondary: '#E1E4FE' },
-          xmppSettings: {
-            devServer: 'wss://xmpp.ethoradev.com:5443/ws',
-            host: 'xmpp.ethoradev.com',
-            conference: 'conference.xmpp.ethoradev.com',
-          },
-          assistantButton: {
-            position: { right: 24, bottom: 24 },
-            ariaLabel: 'Open assistant chat',
-          },
-          assistantPopup: {
-            width: 320,
-            height: 520,
-            closeButtonAriaLabel: 'Close assistant chat',
-          },
-        }}
+      <AiAssistant
+        botId={botId}
+        botAvatar={'https://example.com/path/to/avatar.png'}
+        botDisplayName={'My Custom Bot'}
       />
     </XmppProvider>
   );
 }
 ```
 
-- `roomJID` is the assistant/bot JID, e.g. `xxxxx-bot@xmpp.example.com`.
-- `createAnonymousXmppCredentials()` generates ephemeral user credentials for quick bootstrap.
+- `botId` is the assistant/bot JID, e.g. `xxxxx-bot@xmpp.example.com`.
+- `botAvatar` sets the avatar URL displayed for the assistant.
+- `botDisplayName` sets the human-friendly assistant name.
+- `createAnonymousXmppCredentials()` is used internally by the assistant mode to bootstrap an ephemeral user.
+
+Reference docs and examples: see the Ethora Chat Component on npm [(readme)](https://www.npmjs.com/package/@ethora/chat-component?activeTab=readme).
+
+<img src="https://github.com/dappros/ethora-chat-component/blob/main/img/readme02.png" width="500" />
 
 ## Quick start (Script embed)
 
-Use this when you want a drop-in widget without React. Ensure your bundler or server serves the built assets (`dist`).
+Use this when you want a drop-in widget without React. Ensure your server serves the built assets from `dist`.
 
 ```html
 <link rel="stylesheet" href="/dist/ai-chat-widget.css" />
 <script
   id="chat-content-assistant"
   data-bot-id="YOUR_BOT_JID"
-  src="/dist/main.js"
+  data-bot-avatar="https://example.com/path/to/avatar.png"
+  data-bot-display-name="My Custom Bot"
+  src="/dist/ethora_assistant.js"
   defer
 ></script>
 ```
 
 Notes:
 
-- The script auto-injects a `<div id="chat-widget">` and mounts the assistant.
-- You can dynamically change the `data-bot-id`; storage is cleared on change to avoid state leakage.
+- The script auto-injects a `<div id="chat-widget">` and mounts the assistant into a Shadow DOM for safe styling isolation.
+- You can dynamically change `data-bot-id`; relevant storage is cleared on change to avoid state leakage.
+- Supported data attributes: `data-bot-id`, `data-bot-avatar`, `data-bot-display-name`.
 
 ## Configuration reference (essentials)
 
@@ -103,12 +96,14 @@ interface IConfig {
   disableMedia?: boolean;
   disableInteractions?: boolean;
   disableRooms?: boolean;
-  xmppSettings: {
-    devServer: string; // wss URL
-    host: string; // XMPP domain
-    conference: string; // MUC domain
+  xmppSettings?: {
+    devServer?: string; // wss URL
+    host?: string; // XMPP domain
+    conference?: string; // MUC domain
   };
   assistantMode?: { enabled: boolean; user: { jid: string; password: string } };
+  botAvatar?: string;
+  botDisplayName?: string;
 }
 ```
 
@@ -121,9 +116,9 @@ Recommended assistant defaults:
 
 ```ts
 import {
-  ChatComponent, // React component (Redux-backed)
-  XmppProvider, // Context provider for XMPP
-  createAnonymousXmppCredentials, // Helper to generate ephemeral credentials
+  ChatComponent,
+  XmppProvider,
+  createAnonymousXmppCredentials,
 } from '@ethora/ai-chat-widget';
 ```
 
@@ -167,12 +162,6 @@ npm run lint:fix  # Auto-fix lint and format
 
 - Buttons and popups include ARIA labels; provide meaningful labels in config for your locale.
 - Colors should meet contrast guidelines; customize `colors` accordingly.
-
-## Troubleshooting
-
-- Nothing renders: ensure `dist/main.js` and `dist/ai-chat-widget.css` are served and reachable.
-- Connection issues: double-check `xmppSettings` (`devServer`, `host`, `conference`).
-- State glitches after switching bots: confirm the `data-bot-id` changes; the widget clears storage automatically.
 
 ## License
 

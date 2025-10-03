@@ -1,6 +1,13 @@
+import React from 'react';
 import { NoMessages } from '../../assets/icons';
 
-const NoMessagesPlaceholder = () => {
+interface NoMessagesPlaceholderProps {
+  assistantName?: string;
+}
+
+const NoMessagesPlaceholder: React.FC<NoMessagesPlaceholderProps> = ({
+  assistantName,
+}) => {
   return (
     <div
       style={{
@@ -27,7 +34,7 @@ const NoMessagesPlaceholder = () => {
             Write a question
           </div>
           <div style={{ fontSize: '14px', fontWeight: 400 }}>
-            Our AI Assistant will be happy to help
+            {assistantName ?? 'Our AI Assistant'} will be happy to help
           </div>
         </div>
       </div>

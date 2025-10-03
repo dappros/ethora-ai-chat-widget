@@ -103,6 +103,7 @@ const AssisstantChatRoom: React.FC<AssisstantChatRoomProps> = React.memo(
           onFocus={sendStartComposing}
           onBlur={sendEndComposing}
           isLoading={false}
+          multiline={true}
         />
       </ChatContainer>
     );
