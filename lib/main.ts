@@ -1,5 +1,5 @@
-import { Chat, XmppProvider, createAnonymousXmppCredentials } from '../src/main';
+import { AiAssistant, XmppProvider, createAnonymousXmppCredentials } from '../src/main';
 
-export { Chat as AiAssistant };
+export { AiAssistant };
 export {XmppProvider};
 export {createAnonymousXmppCredentials}

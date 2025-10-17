@@ -51,8 +51,6 @@ export default function App() {
 
 Reference docs and examples: see the Ethora Chat Component on npm [(readme)](https://www.npmjs.com/package/@ethora/chat-component?activeTab=readme).
 
-<img src="https://github.com/dappros/ethora-chat-component/blob/main/img/readme02.png" width="500" />
-
 ## Quick start (Script embed)
 
 Use this when you want a drop-in widget without React. Ensure your server serves the built assets from `dist`.
@@ -97,9 +95,9 @@ interface IConfig {
   disableInteractions?: boolean;
   disableRooms?: boolean;
   xmppSettings?: {
-    devServer?: string; // wss URL
-    host?: string; // XMPP domain
-    conference?: string; // MUC domain
+    devServer?: string;
+    host?: string;
+    conference?: string;
   };
   assistantMode?: { enabled: boolean; user: { jid: string; password: string } };
   botAvatar?: string;

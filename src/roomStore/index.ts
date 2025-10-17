@@ -9,7 +9,7 @@ import { createTransform } from 'redux-persist';
 import { AnyAction } from 'redux-saga';
 import { logoutMiddleware } from './Middleware/logoutMiddleware';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
-import { ETHORA_CHAT_COMPONENT_VERSION } from '../version';
+import { ETHORA_CHAT_ASSISTANT_VERSION } from '../version';
 import { assistanRoomSlice } from './assistantMessageSlice';
 
 const limitMessagesTransform = createTransform(
@@ -135,5 +135,5 @@ export type AppDispatch = typeof store.dispatch;
 export const persistor = persistStore(store);
 
 try {
-  console.log('[EthoraChatComponent] version:', ETHORA_CHAT_COMPONENT_VERSION);
+  console.log('[EthoraChatComponent] version:', ETHORA_CHAT_ASSISTANT_VERSION);
 } catch (e) {}
