@@ -336,7 +336,11 @@ const SendInput: React.FC<SendInputProps> = ({
             color: '#141414',
           }}
         >
-          {(previewParser || parseMessageBody)(message) as any}
+          {
+            (previewParser || ((text: string) => parseMessageBody({ text })))(
+              message
+            ) as React.ReactNode
+          }
         </div>
       )}
 
