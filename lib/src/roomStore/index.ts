@@ -11,7 +11,11 @@ import { AnyAction } from 'redux-saga';
 import { logoutMiddleware } from './Middleware/logoutMiddleware';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { ETHORA_CHAT_COMPONENT_VERSION } from '../version';
-import { assistanRoomSlice } from './assistantMessageSlice';
+import {
+  assistanRoomSlice,
+  normalizeAssistantMessages,
+  RoomMessagesState,
+} from './assistantMessageSlice';
 
 const limitMessagesTransform = createTransform(
   (inboundState: { [jid: string]: IRoom }) => {
@@ -67,10 +71,22 @@ const roomHeapSliceConfig = {
   key: 'roomHeapSlice',
   storage,
 };
+
+const sanitizeAssistantMessagesTransform = createTransform(
+  (inboundState: RoomMessagesState) => ({
+    ...inboundState,
+    messages: normalizeAssistantMessages(inboundState?.messages),
+  }),
+  (outboundState: RoomMessagesState) => ({
+    ...outboundState,
+    messages: normalizeAssistantMessages(outboundState?.messages),
+  })
+);
+
 const assistantMessageSlicePersistConfig = {
   key: 'assistanRoomSlice',
   storage,
-  transforms: [limitMessagesTransform],
+  transforms: [sanitizeAssistantMessagesTransform, limitMessagesTransform],
 };
 
 const persistConfig = {

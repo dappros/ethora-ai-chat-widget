@@ -1,6 +1,6 @@
 {
   "name": "@ethora/ai-chat-widget",
-  "version": "25.9.1",
+  "version": "25.10.1",
   "type": "module",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -11,6 +11,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:lib": "tsc --p ./tsconfig-build.json && vite build",
+    "build:package": "vite build --config vite.lib.config.ts",
+    "prepare": "npm run build:package",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "lint:fix": "npx eslint --fix && prettier . --write"

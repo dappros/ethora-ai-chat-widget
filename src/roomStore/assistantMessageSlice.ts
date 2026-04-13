@@ -4,7 +4,7 @@ import { insertMessageWithDelimiter } from '../helpers/insertMessageWithDelimite
 import { ETHO_ASSISTANT_MESSAGES } from '../helpers/constants/ASSISTANT_LOCAL_STORAGE';
 import { addMessageToHeap } from './roomHeapSlice';
 
-interface RoomMessagesState {
+export interface RoomMessagesState {
   isLoading: boolean;
   messages: { [roomJID: string]: IMessage[] };
   jid: string;
@@ -20,15 +20,40 @@ const initialState: RoomMessagesState = {
   jid: '',
 };
 
+export const normalizeAssistantMessages = (
+  messages: unknown
+): { [roomJID: string]: IMessage[] } => {
+  if (!messages || typeof messages !== 'object' || Array.isArray(messages)) {
+    return {};
+  }
+
+  const normalizedMessages: { [roomJID: string]: IMessage[] } = {};
+
+  Object.entries(messages as Record<string, unknown>).forEach(
+    ([roomJID, roomMessages]) => {
+      if (Array.isArray(roomMessages)) {
+        normalizedMessages[roomJID] = roomMessages.filter(
+          (message): message is IMessage =>
+            Boolean(message) && typeof message === 'object'
+        );
+      }
+    }
+  );
+
+  return normalizedMessages;
+};
+
 const saveMessagesToLocalStorage = (messages: {
   [roomJID: string]: IMessage[];
 }) => {
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const filteredMessages: { [roomJID: string]: IMessage[] } = {};
 
-  for (const roomJID in messages) {
-    if (messages.hasOwnProperty(roomJID)) {
-      filteredMessages[roomJID] = messages[roomJID].filter(
+  const normalizedMessages = normalizeAssistantMessages(messages);
+
+  for (const roomJID in normalizedMessages) {
+    if (Object.prototype.hasOwnProperty.call(normalizedMessages, roomJID)) {
+      filteredMessages[roomJID] = normalizedMessages[roomJID].filter(
         (message) => (message.timestamp || 0) > thirtyDaysAgo
       );
     }
@@ -49,7 +74,12 @@ export const assistanRoomSlice = createSlice({
         ETHO_ASSISTANT_MESSAGES
       );
       if (savedMessages) {
-        state.messages = JSON.parse(savedMessages);
+        try {
+          state.messages = normalizeAssistantMessages(JSON.parse(savedMessages));
+        } catch (error) {
+          state.messages = {};
+          window.localStorage.removeItem(ETHO_ASSISTANT_MESSAGES);
+        }
       }
     },
     setJid(state, action: PayloadAction<{ roomJID: string }>) {
@@ -61,7 +91,7 @@ export const assistanRoomSlice = createSlice({
       action: PayloadAction<{ roomJID: string; messages: IMessage[] }>
     ) {
       const { roomJID, messages } = action.payload;
-      state.messages[roomJID] = messages;
+      state.messages[roomJID] = Array.isArray(messages) ? messages : [];
       saveMessagesToLocalStorage(state.messages);
     },
     deleteRoomMessage(

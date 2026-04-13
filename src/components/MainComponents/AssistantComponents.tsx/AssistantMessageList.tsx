@@ -16,9 +16,8 @@ import NewMessageLabel from '../../styled/NewMessageLabel';
 import { MessageContainer } from '../MessageContainer';
 import CustomTypingIndicator from '../../styled/CustomTypingIndicator';
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../roomStore';
-import { addRoomMessage } from '../../../roomStore/assistantMessageSlice';
 import NoMessagesPlaceholder from '../NoMessagesPlaceholder';
 
 interface AssistantMessageListProps<TMessage extends IMessage> {
@@ -45,7 +44,8 @@ const AssistantMessageList = <TMessage extends IMessage>({
   const assistantState = useSelector(
     (state: RootState) => state.assistantMessageSlicePersistConfig
   );
-  const messages = assistantState.messages[roomJID] || [];
+  const roomMessages = assistantState.messages?.[roomJID];
+  const messages = Array.isArray(roomMessages) ? roomMessages : [];
   const isComposing = assistantState.composing?.[roomJID];
 
   const [showScrollButton, setShowScrollButton] = useState(false);
