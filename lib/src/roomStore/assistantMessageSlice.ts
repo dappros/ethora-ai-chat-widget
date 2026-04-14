@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AddRoomMessageAction, IMessage } from '../types/types';
 import { insertMessageWithDelimiter } from '../helpers/insertMessageWithDelimiter';
 import { ETHO_ASSISTANT_MESSAGES } from '../helpers/constants/ASSISTANT_LOCAL_STORAGE';
-import { addMessageToHeap } from './roomHeapSlice';
 
 export interface RoomMessagesState {
   isLoading: boolean;
@@ -41,6 +40,17 @@ export const normalizeAssistantMessages = (
   );
 
   return normalizedMessages;
+};
+
+const normalizeAssistantRoomMessages = (roomMessages: unknown): IMessage[] => {
+  if (!Array.isArray(roomMessages)) {
+    return [];
+  }
+
+  return roomMessages.filter(
+    (message): message is IMessage =>
+      Boolean(message) && typeof message === 'object'
+  );
 };
 
 const saveMessagesToLocalStorage = (messages: {
@@ -91,7 +101,7 @@ export const assistanRoomSlice = createSlice({
       action: PayloadAction<{ roomJID: string; messages: IMessage[] }>
     ) {
       const { roomJID, messages } = action.payload;
-      state.messages[roomJID] = Array.isArray(messages) ? messages : [];
+      state.messages[roomJID] = normalizeAssistantRoomMessages(messages);
       saveMessagesToLocalStorage(state.messages);
     },
     deleteRoomMessage(
@@ -114,7 +124,8 @@ export const assistanRoomSlice = createSlice({
         state.messages[roomJID] = [];
       }
 
-      const roomMessages = state.messages[roomJID];
+      const roomMessages = normalizeAssistantRoomMessages(state.messages[roomJID]);
+      state.messages[roomJID] = roomMessages;
 
       const existingIndex = roomMessages.findIndex(
         (msg) =>
