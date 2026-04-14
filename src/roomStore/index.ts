@@ -89,14 +89,6 @@ const assistantMessageSlicePersistConfig = {
   transforms: [sanitizeAssistantMessagesTransform, limitMessagesTransform],
 };
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  whitelist: ['chatSettingStore', 'roomMessages'],
-  blacklist: ['routing'],
-  transforms: [encryptor],
-};
-
 const rootReducer = combineReducers({
   chatSettingStore: persistReducer(
     chatSettingPersistConfig,
@@ -112,10 +104,11 @@ const rootReducer = combineReducers({
 
 export type RootState = ReturnType<typeof rootReducer>;
 
-const persistedReducer: Reducer<RootState, AnyAction> = persistReducer(
-  persistConfig,
-  rootReducer
-) as Reducer<RootState, AnyAction>;
+// Keep persistence scoped to the slices that actually need it. Persisting the
+// already-persisted root state again can rehydrate stale nested data and breaks
+// the encrypt transform because it receives objects instead of strings.
+const persistedReducer: Reducer<RootState, AnyAction> =
+  rootReducer as Reducer<RootState, AnyAction>;
 
 export const getActiveRoom = (state: RootState): IRoom | null => {
   const roomMessagesState = state.rooms;
