@@ -42,6 +42,17 @@ const initialState: RoomMessagesState = {
   loadingText: undefined,
 };
 
+const normalizeRoomMessages = (messages: unknown): IMessage[] => {
+  if (!Array.isArray(messages)) {
+    return [];
+  }
+
+  return messages.filter(
+    (message): message is IMessage =>
+      Boolean(message) && typeof message === 'object'
+  );
+};
+
 export const addRoomViaApi = createAsyncThunk(
   'roomMessages/addRoomViaApi',
   async (
@@ -69,7 +80,10 @@ export const roomsStore = createSlice({
   reducers: {
     addRoom(state, action: PayloadAction<{ roomData: IRoom }>) {
       const { roomData } = action.payload;
-      state.rooms[roomData.jid] = roomData;
+      state.rooms[roomData.jid] = {
+        ...roomData,
+        messages: normalizeRoomMessages(roomData.messages),
+      };
     },
     deleteRoom(state, action: PayloadAction<{ jid: string }>) {
       const { jid } = action.payload;
@@ -88,6 +102,7 @@ export const roomsStore = createSlice({
         state.rooms[jid] = {
           ...existingRoom,
           ...updates,
+          messages: normalizeRoomMessages(updates.messages ?? existingRoom.messages),
         };
       }
     },
@@ -97,7 +112,7 @@ export const roomsStore = createSlice({
     ) {
       const { roomJID, messages } = action.payload;
       if (state.rooms[roomJID]) {
-        state.rooms[roomJID].messages = messages;
+        state.rooms[roomJID].messages = normalizeRoomMessages(messages);
       }
     },
     deleteRoomMessage(
@@ -106,7 +121,8 @@ export const roomsStore = createSlice({
     ) {
       const { roomJID, messageId } = action.payload;
       if (state.rooms[roomJID]) {
-        state.rooms[roomJID].messages = state.rooms[roomJID].messages.filter(
+        const roomMessages = normalizeRoomMessages(state.rooms[roomJID].messages);
+        state.rooms[roomJID].messages = roomMessages.filter(
           (message) => message.id !== messageId
         );
       }
@@ -118,7 +134,9 @@ export const roomsStore = createSlice({
       const { roomJID, messageId, reactions, from, data } = action.payload;
 
       if (state.rooms[roomJID]) {
-        state.rooms[roomJID].messages.map((message) => {
+        const roomMessages = normalizeRoomMessages(state.rooms[roomJID].messages);
+        state.rooms[roomJID].messages = roomMessages;
+        roomMessages.forEach((message) => {
           if (message.id === messageId) {
             if (from) {
               if (!message.reaction) {
@@ -162,7 +180,9 @@ export const roomsStore = createSlice({
     ) {
       const { roomJID, messageId, text } = action.payload;
       if (state.rooms[roomJID]) {
-        state.rooms[roomJID].messages.map((message) => {
+        const roomMessages = normalizeRoomMessages(state.rooms[roomJID].messages);
+        state.rooms[roomJID].messages = roomMessages;
+        roomMessages.forEach((message) => {
           if (message.id === messageId) {
             message.body = text;
           }
@@ -174,8 +194,6 @@ export const roomsStore = createSlice({
 
       if (!message?.body) return;
 
-      const roomMessages = state.rooms[roomJID]?.messages;
-
       const roomsExist =
         Object.keys(JSON.parse(JSON.stringify(state.rooms))).length > 0;
 
@@ -184,9 +202,8 @@ export const roomsStore = createSlice({
         return;
       }
 
-      if (!roomMessages) {
-        state.rooms[roomJID].messages = [];
-      }
+      const roomMessages = normalizeRoomMessages(state.rooms[roomJID]?.messages);
+      state.rooms[roomJID].messages = roomMessages;
 
       const existingIndex = roomMessages.findIndex(
         (msg) =>
@@ -284,8 +301,10 @@ export const roomsStore = createSlice({
       if (state.rooms[chatJID]) {
         state.rooms[chatJID].lastViewedTimestamp = timestamp;
         if (timestamp) {
+          const roomMessages = normalizeRoomMessages(state.rooms[chatJID].messages);
+          state.rooms[chatJID].messages = roomMessages;
           state.rooms[chatJID].unreadMessages = countNewerMessages(
-            state.rooms[chatJID].messages,
+            roomMessages,
             timestamp
           );
         }
@@ -328,7 +347,9 @@ export const roomsStore = createSlice({
     ) => {
       const { id, chatJID } = action.payload;
 
-      state.rooms[chatJID].messages.map((message) => {
+      const roomMessages = normalizeRoomMessages(state.rooms[chatJID]?.messages);
+      state.rooms[chatJID].messages = roomMessages;
+      roomMessages.forEach((message) => {
         if (message.id === id) {
           message.activeMessage = true;
         } else {
@@ -342,13 +363,18 @@ export const roomsStore = createSlice({
     ) => {
       const { chatJID } = action.payload;
 
-      state.rooms[chatJID].messages.map((message) => {
+      const roomMessages = normalizeRoomMessages(state.rooms[chatJID]?.messages);
+      state.rooms[chatJID].messages = roomMessages;
+      roomMessages.forEach((message) => {
         message.activeMessage = false;
       });
     },
     addRoomFromApi: (state, action: PayloadAction<{ room: IRoom }>) => {
       const { room } = action.payload;
-      state.rooms[room.jid] = room;
+      state.rooms[room.jid] = {
+        ...room,
+        messages: normalizeRoomMessages(room.messages),
+      };
     },
     updateUsersSet: (state, action: PayloadAction<{ rooms: ApiRoom[] }>) => {
       const { rooms } = action.payload;
@@ -376,11 +402,13 @@ function deepMerge(target: any, source: any): any {
 }
 
 const countNewerMessages = (
-  messages: IMessage[],
+  messages: unknown,
   timestamp: number
 ): number => {
+  const normalizedMessages = normalizeRoomMessages(messages);
+
   if (timestamp !== 0) {
-    return messages.filter((message) => {
+    return normalizedMessages.filter((message) => {
       return Number(message.id) < timestamp;
     }).length;
   } else return 0;
@@ -391,10 +419,12 @@ export const getLastMessageTimestamp = (
   jid: string
 ): string | null => {
   const room = state.rooms[jid];
-  if (!room || room.messages.length === 0) {
+  const roomMessages = normalizeRoomMessages(room?.messages);
+
+  if (!room || roomMessages.length === 0) {
     return null;
   }
-  const lastMessage = room.messages[room.messages.length - 1];
+  const lastMessage = roomMessages[roomMessages.length - 1];
   return lastMessage.id;
 };
 
