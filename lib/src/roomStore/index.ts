@@ -67,11 +67,6 @@ const roomsPersistConfig = {
   transforms: [limitMessagesTransform],
 };
 
-const roomHeapSliceConfig = {
-  key: 'roomHeapSlice',
-  storage,
-};
-
 const sanitizeAssistantMessagesTransform = createTransform(
   (inboundState: RoomMessagesState) => ({
     ...inboundState,
@@ -99,7 +94,7 @@ const rootReducer = combineReducers({
     assistantMessageSlicePersistConfig,
     assistanRoomSlice.reducer
   ),
-  roomHeapSlice: persistReducer(roomHeapSliceConfig, roomHeapSlice),
+  roomHeapSlice,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
