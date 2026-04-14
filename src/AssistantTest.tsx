@@ -3,7 +3,18 @@ import { XmppProvider } from './main';
 import { IConfig } from './types/types';
 import { createAnonymousXmppCredentials } from './utils/createAnonymousXmppCredentials';
 
-const assistantChatConfig: IConfig = {
+const getXmppDomainFromJid = (jid?: string): string => {
+  if (!jid || !jid.includes('@')) {
+    return '';
+  }
+
+  return jid.split('@')[1] || '';
+};
+
+const buildAssistantChatConfig = (botId?: string): IConfig => {
+  const xmppHost = getXmppDomainFromJid(botId) || 'xmpp.chat.ethora.com';
+
+  return {
   colors: { primary: '#1976d2', secondary: '#E1E4FE' },
   assistantButton: {
     position: { right: 24, bottom: 24 },
@@ -20,14 +31,16 @@ const assistantChatConfig: IConfig = {
   disableInteractions: true,
   disableRooms: true,
   xmppSettings: {
-    devServer: 'wss://xmpp.ethoradev.com:5443/ws',
-    host: 'xmpp.ethoradev.com',
-    conference: 'conference.xmpp.ethoradev.com',
-  },
+      devServer: `wss://${xmppHost}:5443/ws`,
+      host: xmppHost,
+      conference: `conference.${xmppHost}`,
+    },
+  };
 };
 
 export default function AssistantTest({ botId }: { botId?: string }) {
   const user = createAnonymousXmppCredentials();
+  const assistantChatConfig = buildAssistantChatConfig(botId);
   return (
     <XmppProvider>
       <ReduxWrapper
