@@ -49,7 +49,17 @@ const MessageList = <TMessage extends IMessage>({
   isReply,
   activeMessage,
 }: MessageListProps<TMessage>) => {
-  const { composing, messages, composingList } = useRoomState(roomJID).room;
+  const roomState = useRoomState(roomJID).room;
+  const messages = Array.isArray(roomState?.messages)
+    ? roomState.messages.filter(
+        (message): message is IMessage =>
+          Boolean(message) && typeof message === 'object'
+      )
+    : [];
+  const composing = Boolean(roomState?.composing);
+  const composingList = Array.isArray(roomState?.composingList)
+    ? roomState.composingList
+    : [];
   const { user } = useChatSettingState();
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [newMessagesCount, setNewMessagesCount] = useState(0);
@@ -58,14 +68,29 @@ const MessageList = <TMessage extends IMessage>({
   const lastUserMessageId = useRef<string | null>(null);
   const scrollPositions = useRef<{ [key: string]: number }>({});
   const isFirstLoad = useRef<boolean>(true);
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+
+  const getMainMessageId = (message: IMessage): string | null => {
+    if (!message.mainMessage) {
+      return null;
+    }
+
+    try {
+      const parsedMainMessage = JSON.parse(message.mainMessage);
+      return typeof parsedMainMessage?.id === 'string'
+        ? parsedMainMessage.id
+        : null;
+    } catch {
+      return null;
+    }
+  };
 
   const addReplyMessages = useMemo(() => {
     return messages.map((message) => {
       const newMessage = {
         ...message,
         reply: messages.filter(
-          (mess) =>
-            !!mess.mainMessage && JSON.parse(mess.mainMessage).id === message.id
+          (mess) => getMainMessageId(mess) === message.id
         ),
       };
 
@@ -80,8 +105,7 @@ const MessageList = <TMessage extends IMessage>({
           item.roomJid === roomJID &&
           item.isReply &&
           item.isReply === 'true' &&
-          item.mainMessage &&
-          JSON.parse(item.mainMessage).id === activeMessage.id
+          getMainMessageId(item) === activeMessage?.id
       );
     } else {
       return addReplyMessages.filter(
@@ -94,9 +118,12 @@ const MessageList = <TMessage extends IMessage>({
 
   const isUserMessage = useMemo(
     () =>
-      messages.length &&
-      messages[messages.length - 1].user.id === user.xmppUsername,
-    [messages.length, user.xmppUsername]
+      Boolean(
+        lastMessage &&
+          typeof lastMessage.user === 'object' &&
+          lastMessage.user.id === user.xmppUsername
+      ),
+    [lastMessage, user.xmppUsername]
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,27 +208,30 @@ const MessageList = <TMessage extends IMessage>({
   }, [roomJID, memoizedMessages, waitForImagesLoaded]);
 
   useEffect(() => {
-    if (memoizedMessages.length > 0) {
+    if (lastMessage) {
       setLastMessageDate(
-        new Date(memoizedMessages[memoizedMessages.length - 1].date).getTime()
+        new Date(lastMessage.date).getTime()
       );
     }
-  }, []);
+  }, [lastMessage]);
 
   useEffect(() => {
     if (isUserMessage) return;
 
-    const newMessageDate = new Date(
-      memoizedMessages[memoizedMessages.length - 1]?.date
-    )?.getTime();
-    if (newMessageDate > lastMessageDate) {
+    const newMessageDate = new Date(lastMessage?.date || '').getTime();
+    if (
+      lastMessage &&
+      lastMessageDate !== null &&
+      !Number.isNaN(newMessageDate) &&
+      newMessageDate > lastMessageDate
+    ) {
       setNewMessagesCount((prev) => (prev += 1));
     }
-  }, [memoizedMessages.length]);
+  }, [isUserMessage, lastMessage, lastMessageDate]);
 
   useEffect(() => {
     restoreScrollPosition();
-  }, [roomJID]);
+  }, [roomJID, restoreScrollPosition]);
 
   const checkIfLoadMoreMessages = useCallback(() => {
     const params = getScrollParams();
@@ -228,7 +258,7 @@ const MessageList = <TMessage extends IMessage>({
         lastMessageRef.current = memoizedMessages[memoizedMessages.length - 1];
       }
     );
-  }, [loadMoreMessages, memoizedMessages.length]);
+  }, [loadMoreMessages, memoizedMessages]);
 
   const scrollToBottom = useCallback((): void => {
     const content = containerRef.current;

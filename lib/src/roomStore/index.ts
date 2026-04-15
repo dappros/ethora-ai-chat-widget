@@ -11,7 +11,11 @@ import { AnyAction } from 'redux-saga';
 import { logoutMiddleware } from './Middleware/logoutMiddleware';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { ETHORA_CHAT_COMPONENT_VERSION } from '../version';
-import { assistanRoomSlice } from './assistantMessageSlice';
+import {
+  assistanRoomSlice,
+  normalizeAssistantMessages,
+  RoomMessagesState,
+} from './assistantMessageSlice';
 
 const limitMessagesTransform = createTransform(
   (inboundState: { [jid: string]: IRoom }) => {
@@ -63,22 +67,21 @@ const roomsPersistConfig = {
   transforms: [limitMessagesTransform],
 };
 
-const roomHeapSliceConfig = {
-  key: 'roomHeapSlice',
-  storage,
-};
+const sanitizeAssistantMessagesTransform = createTransform(
+  (inboundState: RoomMessagesState) => ({
+    ...inboundState,
+    messages: normalizeAssistantMessages(inboundState?.messages),
+  }),
+  (outboundState: RoomMessagesState) => ({
+    ...outboundState,
+    messages: normalizeAssistantMessages(outboundState?.messages),
+  })
+);
+
 const assistantMessageSlicePersistConfig = {
   key: 'assistanRoomSlice',
   storage,
-  transforms: [limitMessagesTransform],
-};
-
-const persistConfig = {
-  key: 'root',
-  storage,
-  whitelist: ['chatSettingStore', 'roomMessages'],
-  blacklist: ['routing'],
-  transforms: [encryptor],
+  transforms: [sanitizeAssistantMessagesTransform, limitMessagesTransform],
 };
 
 const rootReducer = combineReducers({
@@ -91,15 +94,16 @@ const rootReducer = combineReducers({
     assistantMessageSlicePersistConfig,
     assistanRoomSlice.reducer
   ),
-  roomHeapSlice: persistReducer(roomHeapSliceConfig, roomHeapSlice),
+  roomHeapSlice,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
 
-const persistedReducer: Reducer<RootState, AnyAction> = persistReducer(
-  persistConfig,
-  rootReducer
-) as Reducer<RootState, AnyAction>;
+// Keep persistence scoped to the slices that actually need it. Persisting the
+// already-persisted root state again can rehydrate stale nested data and breaks
+// the encrypt transform because it receives objects instead of strings.
+const persistedReducer: Reducer<RootState, AnyAction> =
+  rootReducer as Reducer<RootState, AnyAction>;
 
 export const getActiveRoom = (state: RootState): IRoom | null => {
   const roomMessagesState = state.rooms;

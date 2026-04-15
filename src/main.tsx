@@ -5,9 +5,10 @@ import './index.css';
 
 const BOT_ID_STORAGE_KEY = 'ethora-assistant-bot-id';
 const PERSIST_ROOT_KEY = 'persist:root';
-const PERSIST_CHAT_SETTINGS_KEY = 'chatSettingStore';
-const PERSIST_ROOMS_KEY = 'roomMessages';
-const PERSIST_ASSISTANT_SLICE_KEY = 'assistanRoomSlice';
+const PERSIST_CHAT_SETTINGS_KEY = 'persist:chatSettingStore';
+const PERSIST_ROOMS_KEY = 'persist:roomMessages';
+const PERSIST_ASSISTANT_SLICE_KEY = 'persist:assistanRoomSlice';
+const PERSIST_ROOM_HEAP_KEY = 'persist:roomHeapSlice';
 const ASSISTANT_USER_KEY = 'ethora-assistant-user';
 const ASSISTANT_MESSAGES_KEY = 'ethora-assistant-messages';
 const ASSISTANT_TIMESTAMP_KEY = 'ethora-assistant-timestamp';
@@ -28,6 +29,7 @@ function clearStorageForNewBot(newBotId?: string) {
     window.localStorage.removeItem(PERSIST_CHAT_SETTINGS_KEY);
     window.localStorage.removeItem(PERSIST_ROOMS_KEY);
     window.localStorage.removeItem(PERSIST_ASSISTANT_SLICE_KEY);
+    window.localStorage.removeItem(PERSIST_ROOM_HEAP_KEY);
   } catch (e) {
     console.warn('Failed to clear storage on bot change', e);
   }

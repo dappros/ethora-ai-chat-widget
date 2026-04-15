@@ -16,9 +16,8 @@ import NewMessageLabel from '../../styled/NewMessageLabel';
 import { MessageContainer } from '../MessageContainer';
 import CustomTypingIndicator from '../../styled/CustomTypingIndicator';
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../roomStore';
-import { addRoomMessage } from '../../../roomStore/assistantMessageSlice';
 import NoMessagesPlaceholder from '../NoMessagesPlaceholder';
 
 interface AssistantMessageListProps<TMessage extends IMessage> {
@@ -45,7 +44,13 @@ const AssistantMessageList = <TMessage extends IMessage>({
   const assistantState = useSelector(
     (state: RootState) => state.assistantMessageSlicePersistConfig
   );
-  const messages = assistantState.messages[roomJID] || [];
+  const roomMessages = assistantState.messages?.[roomJID];
+  const messages = Array.isArray(roomMessages)
+    ? roomMessages.filter(
+        (message): message is IMessage =>
+          Boolean(message) && typeof message === 'object'
+      )
+    : [];
   const isComposing = assistantState.composing?.[roomJID];
 
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -55,12 +60,17 @@ const AssistantMessageList = <TMessage extends IMessage>({
   const lastUserMessageId = useRef<string | null>(null);
   const scrollPositions = useRef<{ [key: string]: number }>({});
   const isFirstLoad = useRef<boolean>(true);
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
   const isUserMessage = useMemo(
     () =>
-      messages.length &&
-      messages[messages.length - 1].user.xmppUsername === user.xmppUsername,
-    [messages.length, user.xmppUsername, messages]
+      Boolean(
+        lastMessage &&
+          typeof lastMessage.user === 'object' &&
+          'xmppUsername' in lastMessage.user &&
+          lastMessage.user.xmppUsername === user.xmppUsername
+      ),
+    [lastMessage, user.xmppUsername]
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,23 +138,19 @@ const AssistantMessageList = <TMessage extends IMessage>({
   }, [roomJID, messages, waitForImagesLoaded]);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      setLastMessageDate(
-        new Date(messages[messages.length - 1].date).getTime()
-      );
+    if (lastMessage) {
+      setLastMessageDate(new Date(lastMessage.date).getTime());
     }
-  }, [messages]);
+  }, [lastMessage]);
 
   useEffect(() => {
-    if (isUserMessage) return;
+    if (isUserMessage || !lastMessage || lastMessageDate === null) return;
 
-    const newMessageDate = new Date(
-      messages[messages.length - 1]?.date
-    )?.getTime();
-    if (newMessageDate > lastMessageDate) {
+    const newMessageDate = new Date(lastMessage.date).getTime();
+    if (!Number.isNaN(newMessageDate) && newMessageDate > lastMessageDate) {
       setNewMessagesCount((prev) => (prev += 1));
     }
-  }, [messages.length, messages, isUserMessage, lastMessageDate]);
+  }, [isUserMessage, lastMessage, lastMessageDate]);
 
   useEffect(() => {
     restoreScrollPosition();
@@ -206,12 +212,10 @@ const AssistantMessageList = <TMessage extends IMessage>({
   }, []);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const isLastMessageFromUser = lastMessage && isUserMessage;
+    if (lastMessage) {
+      const isLastMessageFromUser = isUserMessage;
 
       if (
-        lastMessage &&
         lastMessage.id !== lastUserMessageId.current &&
         isLastMessageFromUser
       ) {
@@ -219,7 +223,7 @@ const AssistantMessageList = <TMessage extends IMessage>({
         scrollToBottom();
       }
     }
-  }, [messages, isUserMessage, scrollToBottom]);
+  }, [lastMessage, isUserMessage, scrollToBottom]);
 
   useEffect(() => {
     const shouldAutoScroll = config?.botMessageAutoScroll;
