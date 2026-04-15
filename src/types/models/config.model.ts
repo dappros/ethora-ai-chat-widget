@@ -117,4 +117,6 @@ export interface IConfig {
   };
   assistantOpenStateKey?: string;
   chatLabel?: string;
+  botDisplayName?: string;
+  botAvatar?: string;
 }
