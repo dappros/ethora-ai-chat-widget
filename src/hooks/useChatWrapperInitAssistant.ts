@@ -85,12 +85,27 @@ const useChatWrapperInitAssistant = ({
               user.xmppUsername,
               user?.xmppPassword,
               config?.xmppSettings
-            ).then((client) => {
-              client.presenceInRoomStanza(roomJID);
-              setInited(true);
-              dispatch(setCurrentRoom({ roomJID: roomJID }));
-              return client;
-            });
+            );
+            // Await the MUC presence join BEFORE flipping `inited` to true.
+            // Without this await, the SendInput renders, the user types,
+            // and the resulting `<message type="groupchat">` lands at the
+            // room before the visitor has been registered as an occupant
+            // — ejabberd then rejects with
+            // `Only occupants are allowed to send messages to the conference`.
+            // The presence promise has its own 2s timeout fallback, so a
+            // mis-configured / unreachable room won't hang the UI forever.
+            try {
+              await newClient.presenceInRoomStanza(roomJID);
+              console.log('[assistant] presence joined room:', roomJID);
+            } catch (e) {
+              console.warn(
+                '[assistant] presence join failed (non-fatal; user can retry):',
+                roomJID,
+                e
+              );
+            }
+            setInited(true);
+            dispatch(setCurrentRoom({ roomJID: roomJID }));
           } else {
             setInited(true);
           }
