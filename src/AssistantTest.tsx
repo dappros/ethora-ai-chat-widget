@@ -1,50 +1,99 @@
 import { ReduxWrapper } from './components/MainComponents/ReduxWrapper';
 import { XmppProvider } from './main';
 import { IConfig } from './types/types';
-import { createAnonymousXmppCredentials } from './utils/createAnonymousXmppCredentials';
+import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 
+// Derive the XMPP host from a JID's domain part. Used to bootstrap the
+// XMPP client config from server-issued visitor / room JIDs.
 const getXmppDomainFromJid = (jid?: string): string => {
   if (!jid || !jid.includes('@')) {
     return '';
   }
-
   return jid.split('@')[1] || '';
 };
 
-const buildAssistantChatConfig = (botId?: string): IConfig => {
-  const xmppHost = getXmppDomainFromJid(botId) || 'xmpp.chat.ethora.com';
+// Derive the XMPP MUC service ("conference.<host>") for a given visitor JID
+// host. The server-side widget session response gives us a room *name* like
+// `${appId}_<roomUuid>`; we attach this conference suffix client-side so the
+// embed only needs the appId / API base from the script tag.
+const conferenceServiceFor = (host: string): string => {
+  if (!host) return '';
+  return `conference.${host}`;
+};
 
+interface AssistantTestProps {
+  envelope: WidgetSessionEnvelope;
+  // apiBase is consumed by main.tsx for the session-provisioning POST and
+  // is currently not needed inside the React tree itself. Kept on the prop
+  // surface so future features (history fetch, RAG re-ranking calls, etc.)
+  // can opt in without re-plumbing.
+  apiBase?: string;
+}
+
+const buildAssistantChatConfig = (
+  xmppHost: string,
+  conferenceService: string
+): IConfig => {
   return {
-  colors: { primary: '#1976d2', secondary: '#E1E4FE' },
-  assistantButton: {
-    position: { right: 24, bottom: 24 },
-    ariaLabel: 'Open assistant chat',
-  },
-  assistantPopup: {
-    width: 320,
-    height: 520,
-    style: { boxShadow: '0 8px 32px rgba(0,0,0,0.18)' },
-    closeButtonAriaLabel: 'Close assistant chat',
-  },
-  assistantOpenStateKey: 'EthoraAssistantOpen',
-  disableMedia: true,
-  disableInteractions: true,
-  disableRooms: true,
-  xmppSettings: {
+    colors: { primary: '#1976d2', secondary: '#E1E4FE' },
+    assistantButton: {
+      position: { right: 24, bottom: 24 },
+      ariaLabel: 'Open assistant chat',
+    },
+    assistantPopup: {
+      width: 320,
+      height: 520,
+      style: { boxShadow: '0 8px 32px rgba(0,0,0,0.18)' },
+      closeButtonAriaLabel: 'Close assistant chat',
+    },
+    assistantOpenStateKey: 'EthoraAssistantOpen',
+    disableMedia: true,
+    disableInteractions: true,
+    disableRooms: true,
+    xmppSettings: {
       devServer: `wss://${xmppHost}:5443/ws`,
       host: xmppHost,
-      conference: `conference.${xmppHost}`,
+      conference: conferenceService,
     },
   };
 };
 
-export default function AssistantTest({ botId }: { botId?: string }) {
-  const user = createAnonymousXmppCredentials();
-  const assistantChatConfig = buildAssistantChatConfig(botId);
+export default function AssistantTest({ envelope }: AssistantTestProps) {
+  // The visitor user object is what useChatWrapperInitAssistant consumes
+  // for SASL bind. xmppUsername + xmppPassword come from the server-issued
+  // session envelope — these are appId-prefixed (`${appId}_widget-<uuid>`)
+  // so mod_ethora's per-app guard accepts presence into the room below.
+  const user = {
+    id: envelope.visitor.xmppUsername,
+    name: envelope.visitor.xmppUsername,
+    xmppUsername: envelope.visitor.xmppUsername,
+    xmppPassword: envelope.visitor.xmppPassword,
+  };
+
+  // Prefer fully-qualified host from the server response; fall back to
+  // deriving it from any JID in the envelope so the widget keeps working
+  // against older API versions (or unit-test envelopes) that don't surface
+  // the xmpp block. The server attaches conference.<host> for us, which
+  // means we don't have to hardcode the conference subdomain shape here.
+  const xmppHost =
+    envelope.xmpp?.host ||
+    getXmppDomainFromJid(envelope.bot.jid) ||
+    getXmppDomainFromJid(envelope.visitor.jid) ||
+    getXmppDomainFromJid(envelope.bot.xmppUsername);
+  const conferenceService =
+    envelope.xmpp?.service || conferenceServiceFor(xmppHost);
+  const roomJID =
+    envelope.room.jid || `${envelope.room.name}@${conferenceService}`;
+
+  const assistantChatConfig = buildAssistantChatConfig(
+    xmppHost,
+    conferenceService
+  );
+
   return (
     <XmppProvider>
       <ReduxWrapper
-        roomJID={botId}
+        roomJID={roomJID}
         config={{
           ...assistantChatConfig,
           assistantMode: { enabled: true, user },
@@ -53,21 +102,3 @@ export default function AssistantTest({ botId }: { botId?: string }) {
     </XmppProvider>
   );
 }
-
-// export default function AssistantTest() {
-//   const user = createAnonymousXmppCredentials();
-//   return (
-//     <XmppProvider>
-//       <ReduxWrapper
-//         roomJID={
-//           '685a6b13db443b01282ab755_685a6b13db443b01282ab763-bot@xmpp.ethoradev.com'
-//         }
-//         config={{
-//           ...assistantChatConfig,
-//           assistantMode: { enabled: true, user },
-//         }}
-//       />
-//     </XmppProvider>
-//   );
-// }
-// uncomment to test with npm run dev

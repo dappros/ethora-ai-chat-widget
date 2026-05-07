@@ -17,7 +17,14 @@ import { getDataFromXml } from '../helpers/getDataFromXml';
 
 //core default
 const onRealtimeMessage = async (stanza: Element) => {
-  const isAssistantMessage = stanza.attrs.type === 'chat';
+  // Accept both legacy 1:1 ('chat') and the MUC variant ('groupchat'). The
+  // assistantMessageSlice keys messages by roomJID (the bare-JID part of
+  // `from`), so groupchat from `${room}@conf/<nick>` and chat from a bot
+  // user JID both segment correctly per conversation. Drop everything else
+  // — chat-state, error, etc. shouldn't go into the transcript.
+  const stanzaType = stanza.attrs.type;
+  const isAssistantMessage =
+    stanzaType === 'chat' || stanzaType === 'groupchat';
 
   if (isAssistantMessage) {
     const { data, id, body, ...rest } = await getDataFromXml(stanza);

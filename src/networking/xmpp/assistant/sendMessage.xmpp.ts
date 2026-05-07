@@ -1,5 +1,12 @@
 import { Client, xml } from '@xmpp/client';
 
+// AI Widget MUC variant: visitor + bot share a persistent MUC room
+// (`${appId}_<roomUuid>@conference.<host>`) provisioned on session start
+// by the platform. Messages flow as `groupchat` to the room JID, which
+// also makes the conversation visible in the standard Ethora chat history
+// stores (mod_mam + the platform-side `chats` collection) for operator
+// review later — unlike the legacy `type:'chat'` 1:1 path, where only
+// mod_mam saw the messages.
 export const sendTextMessageAssistant = (
   client: Client,
   roomJID: string,
@@ -14,7 +21,7 @@ export const sendTextMessageAssistant = (
       'message',
       {
         to: roomJID,
-        type: 'chat',
+        type: 'groupchat',
         id: id,
       },
       xml('body', {}, userMessage)
