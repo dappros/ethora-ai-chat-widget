@@ -40,6 +40,11 @@ export interface WidgetBot {
 export interface WidgetSessionXmpp {
   host: string;
   service: string;
+  // Canonical websocket URL, e.g. `wss://xmpp.example.com/ws`. Server
+  // surfaces it so the widget client doesn't have to guess at the port
+  // (`:5443/ws` works on dev-style installs but production deploys
+  // terminate WSS at nginx on standard 443).
+  wsUrl?: string;
 }
 
 export interface WidgetSessionEnvelope {

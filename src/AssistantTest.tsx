@@ -32,8 +32,18 @@ interface AssistantTestProps {
 
 const buildAssistantChatConfig = (
   xmppHost: string,
-  conferenceService: string
+  conferenceService: string,
+  wsUrl?: string
 ): IConfig => {
+  // Default to the production-canonical `wss://<host>/ws` (nginx-proxied,
+  // standard 443). The legacy `:5443/ws` pattern only works on dev-style
+  // installs where ejabberd's host is reachable on a non-standard port —
+  // production deploys terminate WSS at nginx and reverse-proxy to ejabberd
+  // internally, so requests to `:5443` from a third-party browser fail
+  // with `WebSocket ECONNERROR`. The server-side widget session response
+  // surfaces the canonical URL via `envelope.xmpp.wsUrl` when present;
+  // fall back to deriving it from the host otherwise.
+  const devServer = wsUrl || (xmppHost ? `wss://${xmppHost}/ws` : '');
   return {
     colors: { primary: '#1976d2', secondary: '#E1E4FE' },
     assistantButton: {
@@ -51,7 +61,7 @@ const buildAssistantChatConfig = (
     disableInteractions: true,
     disableRooms: true,
     xmppSettings: {
-      devServer: `wss://${xmppHost}:5443/ws`,
+      devServer,
       host: xmppHost,
       conference: conferenceService,
     },
@@ -87,7 +97,8 @@ export default function AssistantTest({ envelope }: AssistantTestProps) {
 
   const assistantChatConfig = buildAssistantChatConfig(
     xmppHost,
-    conferenceService
+    conferenceService,
+    envelope.xmpp?.wsUrl
   );
 
   return (
