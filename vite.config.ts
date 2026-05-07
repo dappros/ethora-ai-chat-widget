@@ -1,7 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 import dts from 'vite-plugin-dts';
+
+// Read package.json once at config load so the bundle's logged version
+// always matches the published version, instead of drifting against a
+// hardcoded src/version.ts string.
+const pkgJson = JSON.parse(
+  readFileSync(resolve(__dirname, 'package.json'), 'utf8')
+);
 
 export default defineConfig(({ mode }) => {
   const isLibraryBuild = mode === 'library';
@@ -10,6 +18,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), ...(isLibraryBuild ? [dts({ include: ['src'] })] : [])],
     define: {
       'process.env': {},
+      __ETHORA_AI_CHAT_WIDGET_VERSION__: JSON.stringify(pkgJson.version || ''),
     },
     build: isLibraryBuild
       ? {

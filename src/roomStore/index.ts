@@ -10,7 +10,7 @@ import { createTransform } from 'redux-persist';
 import { AnyAction } from 'redux-saga';
 import { logoutMiddleware } from './Middleware/logoutMiddleware';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
-import { ETHORA_CHAT_COMPONENT_VERSION } from '../version';
+import { ETHORA_AI_CHAT_WIDGET_VERSION } from '../version';
 import {
   assistanRoomSlice,
   normalizeAssistantMessages,
@@ -140,5 +140,8 @@ export type AppDispatch = typeof store.dispatch;
 export const persistor = persistStore(store);
 
 try {
-  console.log('[EthoraChatComponent] version:', ETHORA_CHAT_COMPONENT_VERSION);
+  console.log(
+    '[EthoraAiChatWidget] version:',
+    ETHORA_AI_CHAT_WIDGET_VERSION
+  );
 } catch (e) {}
