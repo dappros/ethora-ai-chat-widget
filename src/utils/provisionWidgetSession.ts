@@ -110,7 +110,16 @@ function clearPersistedVisitor(): void {
 
 function joinUrl(base: string, path: string): string {
   if (!base) return path;
-  const trimmedBase = base.replace(/\/+$/, '');
+  // Strip any trailing /vN (or /vN/) so the caller's apiBase can be
+  // either a clean host (`https://api.example.com`) or one already
+  // suffixed with the legacy v1 prefix (`https://api.example.com/v1`,
+  // which is the conventional VITE_API value in Ethora frontends).
+  // Without this strip, a `data-api-base="https://api.example.com/v1"`
+  // on the embed `<script>` produces the wrong URL when joined with
+  // `/v2/widget/sessions` — `https://api.example.com/v1/v2/widget/sessions`
+  // — which 404s.
+  const cleanBase = base.replace(/\/v\d+\/?$/, '');
+  const trimmedBase = cleanBase.replace(/\/+$/, '');
   const trimmedPath = path.startsWith('/') ? path : `/${path}`;
   return `${trimmedBase}${trimmedPath}`;
 }
