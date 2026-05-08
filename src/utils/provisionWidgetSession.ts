@@ -35,6 +35,13 @@ export interface WidgetRoom {
 export interface WidgetBot {
   xmppUsername: string;
   jid?: string;
+  // Persona fields surfaced from the active Agent (when one is bound
+  // via App.defaultBotInstanceId on the server). Empty strings when
+  // the install is on the legacy aiBot path; bundle then falls back
+  // to platform-default copy ("AI Assistant" etc.).
+  displayName?: string;
+  avatarUrl?: string;
+  greetingMessage?: string;
 }
 
 export interface WidgetSessionXmpp {

@@ -119,4 +119,12 @@ export interface IConfig {
   chatLabel?: string;
   botDisplayName?: string;
   botAvatar?: string;
+  // Greeting copy shown on the empty-state placeholder before any
+  // messages arrive. greetingTitle = the bold heading (default
+  // "Write a question"); greetingMessage = the body line below it
+  // (default "Our <bot-name> will be happy to help"). Both are
+  // overridable via data-greeting-title / data-greeting on the
+  // embed script tag.
+  greetingTitle?: string;
+  greetingMessage?: string;
 }

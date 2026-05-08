@@ -21,6 +21,19 @@ const conferenceServiceFor = (host: string): string => {
   return `conference.${host}`;
 };
 
+// Per-embed overrides sourced from <script> tag attributes (main.tsx
+// reads them; AssistantTest applies them as defaults below). Every
+// field is optional — when missing we fall through the resolution
+// chain: override -> envelope.bot persona (active Agent) -> platform
+// default.
+export interface AssistantTestOverrides {
+  botName?: string;
+  botAvatar?: string;
+  title?: string;
+  greetingTitle?: string;
+  greeting?: string;
+}
+
 interface AssistantTestProps {
   envelope: WidgetSessionEnvelope;
   // apiBase is consumed by main.tsx for the session-provisioning POST and
@@ -28,6 +41,7 @@ interface AssistantTestProps {
   // surface so future features (history fetch, RAG re-ranking calls, etc.)
   // can opt in without re-plumbing.
   apiBase?: string;
+  overrides?: AssistantTestOverrides;
 }
 
 const buildAssistantChatConfig = (
@@ -68,7 +82,7 @@ const buildAssistantChatConfig = (
   };
 };
 
-export default function AssistantTest({ envelope }: AssistantTestProps) {
+export default function AssistantTest({ envelope, overrides }: AssistantTestProps) {
   // The visitor user object is what useChatWrapperInitAssistant consumes
   // for SASL bind. xmppUsername + xmppPassword come from the server-issued
   // session envelope — these are appId-prefixed (`${appId}_widget-<uuid>`)
@@ -101,6 +115,22 @@ export default function AssistantTest({ envelope }: AssistantTestProps) {
     envelope.xmpp?.wsUrl
   );
 
+  // Resolution chain for persona-bearing config fields:
+  // explicit override -> active Agent (envelope.bot.*) -> platform fallback.
+  // Operators get sane defaults for free; teams that need per-embed
+  // overrides set them on the <script> tag.
+  const botName =
+    overrides?.botName || envelope.bot?.displayName || '';
+  const botAvatar =
+    overrides?.botAvatar || envelope.bot?.avatarUrl || '';
+  const chatLabel = overrides?.title || botName || 'AI Assistant';
+  const greetingTitle =
+    overrides?.greetingTitle || 'Write a question';
+  const greetingMessage =
+    overrides?.greeting ||
+    envelope.bot?.greetingMessage ||
+    `Our ${botName || 'AI Assistant'} will be happy to help`;
+
   return (
     <XmppProvider>
       <ReduxWrapper
@@ -108,6 +138,11 @@ export default function AssistantTest({ envelope }: AssistantTestProps) {
         config={{
           ...assistantChatConfig,
           assistantMode: { enabled: true, user },
+          chatLabel,
+          botDisplayName: botName,
+          botAvatar,
+          greetingTitle,
+          greetingMessage,
         }}
       />
     </XmppProvider>

@@ -49,13 +49,26 @@ function clearStorageForNewApp(newAppId?: string) {
   window.localStorage.setItem(APP_ID_STORAGE_KEY, newAppId);
 }
 
+// Per-embed overrides pulled from <script> tag attributes. Every field
+// is optional — missing means "use the default" which is either the
+// active Agent's value (for displayName/avatar/greeting) or a generic
+// platform fallback (for greetingTitle).
+interface EmbedOverrides {
+  botName?: string;
+  botAvatar?: string;
+  title?: string;
+  greetingTitle?: string;
+  greeting?: string;
+}
+
 function mountChatAssistant(
   container: HTMLElement,
   envelope: WidgetSessionEnvelope,
-  apiBase: string
+  apiBase: string,
+  overrides: EmbedOverrides
 ) {
   ReactDOM.createRoot(container).render(
-    <AssistantTest envelope={envelope} apiBase={apiBase} />
+    <AssistantTest envelope={envelope} apiBase={apiBase} overrides={overrides} />
   );
 }
 
@@ -132,6 +145,22 @@ async function bootstrap() {
     return;
   }
 
+  // Read all per-embed overrides up-front. `data-bot-display-name` is
+  // an alias for `data-bot-name` kept for back-compat with operators
+  // running snippets generated before the param rename.
+  const stripUndef = (v: string | null) => (v && v.length ? v : undefined);
+  const overrides: EmbedOverrides = {
+    botName:
+      stripUndef(scriptTag?.getAttribute('data-bot-name') || null) ||
+      stripUndef(scriptTag?.getAttribute('data-bot-display-name') || null),
+    botAvatar: stripUndef(scriptTag?.getAttribute('data-bot-avatar') || null),
+    title: stripUndef(scriptTag?.getAttribute('data-title') || null),
+    greetingTitle: stripUndef(
+      scriptTag?.getAttribute('data-greeting-title') || null
+    ),
+    greeting: stripUndef(scriptTag?.getAttribute('data-greeting') || null),
+  };
+
   clearStorageForNewApp(appId);
 
   const chatWidgetContainer = createChatWidgetDiv();
@@ -154,7 +183,7 @@ async function bootstrap() {
     return;
   }
 
-  mountChatAssistant(chatWidgetContainer, envelope, apiBase);
+  mountChatAssistant(chatWidgetContainer, envelope, apiBase, overrides);
 }
 
 bootstrap();
