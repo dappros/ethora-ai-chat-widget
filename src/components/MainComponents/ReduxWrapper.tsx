@@ -40,6 +40,18 @@ export const ReduxWrapper: React.FC<ChatWrapperProps> = React.memo(
   ({ ...props }) => {
     const memoizedConfig = useMemo(() => {
       if (props.config?.assistantMode) {
+        // MUC variant: the embed (AssistantTest.tsx) provisions a visitor
+        // via POST /v2/widget/sessions and passes the server-issued user
+        // (xmppUsername with the appId prefix) directly. We must use that
+        // user verbatim — generating a fresh `anon-*` credential here would
+        // bypass mod_ethora's per-app prefix guard and leave the widget
+        // unable to join its MUC room.
+        if (props.config.assistantMode.user?.xmppUsername) {
+          return props.config;
+        }
+        // Legacy 1:1 path: no user supplied → mint or reuse an anonymous
+        // credential in localStorage. Kept for back-compat with embeds that
+        // skip the new provisioning flow.
         const timestamp = window.localStorage.getItem(ETHO_ASSISTANT_TIMESTAMP);
         const now = Date.now();
         let expired = false;
