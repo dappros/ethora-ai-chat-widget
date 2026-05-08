@@ -191,6 +191,28 @@ const Message: React.FC<MessageProps> = forwardRef<
     ? parseMessageBody(config?.messageTextFilter.filterFunction(message.body))
     : parseMessageBody(message.body);
 
+  // Bot persona for the avatar / name strip on incoming bubbles. Bot
+  // outbound stanzas carry the active Agent's identity in their <data>
+  // element (`fullName`, `senderFirstName`, `senderLastName`, `photo`),
+  // and getDataFromXml flattens those onto `message.*` via spread.
+  // Fall back to the legacy "Helper Ai" string only when nothing was
+  // resolved — better than ever showing a blank/broken bubble.
+  const botFullName: string =
+    (message as any).fullName ||
+    [
+      (message as any).senderFirstName,
+      (message as any).senderLastName,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim() ||
+    'Helper Ai';
+  const botPhotoUrl: string | undefined =
+    (message as any).photo ||
+    (message as any).photoURL ||
+    (message?.user as any)?.photoURL ||
+    undefined;
+
   const isPending = idSet.has(message.id) || message?.pending || false;
 
   return (
@@ -204,7 +226,7 @@ const Message: React.FC<MessageProps> = forwardRef<
       >
         {!isUser && (
           <CustomMessagePhotoContainer>
-            <Avatar username={'Helper Ai'} />
+            <Avatar username={botFullName} photoUrl={botPhotoUrl} />
           </CustomMessagePhotoContainer>
         )}
         <CustomMessageBubble
@@ -216,7 +238,7 @@ const Message: React.FC<MessageProps> = forwardRef<
         >
           {!isUser && (
             <CustomUserName isUser={isUser} color={config?.colors?.primary}>
-              {'Helper Ai'}
+              {botFullName}
             </CustomUserName>
           )}
           {!isReply && message.mainMessage && (

@@ -6,6 +6,10 @@ interface AvatarProps {
   username?: string;
   firstName?: string;
   lastName?: string;
+  // Optional photo URL; when present, rendered as the avatar instead of
+  // colour-on-initials. Failed loads transparently fall back to initials
+  // so a 404 / private URL never blanks the bubble.
+  photoUrl?: string;
   style?: CSSProperties;
 }
 
@@ -20,6 +24,7 @@ const AvatarCircle = styled.div<{ bgColor: string; textColor?: string }>`
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
+  overflow: hidden;
 
   transition: box-shadow 0.2s ease-in-out;
 
@@ -28,12 +33,21 @@ const AvatarCircle = styled.div<{ bgColor: string; textColor?: string }>`
   }
 `;
 
+const AvatarImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
 export const Avatar: React.FC<AvatarProps> = ({
   username,
   firstName,
   lastName,
+  photoUrl,
   style,
 }) => {
+  const [imgFailed, setImgFailed] = React.useState(false);
   const { backgroundColor } = nameToColor(username ? username : firstName);
 
   const getInitials = () => {
@@ -69,7 +83,15 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <AvatarCircle style={style} bgColor={backgroundColor}>
-      {getInitials()}
+      {photoUrl && !imgFailed ? (
+        <AvatarImg
+          src={photoUrl}
+          alt={username || `${firstName || ''} ${lastName || ''}`.trim() || 'avatar'}
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        getInitials()
+      )}
     </AvatarCircle>
   );
 };
