@@ -24,7 +24,12 @@ export const useSendMessage = () => {
       user: AsisstantUserType,
       mainMessage?: string
     ) => {
-      const id = `send-text-message-${Date.now().toString()}`;
+      // The wire id MUST match the optimistic-add id so the reducer's
+      // dedupe (assistantMessageSlice.addRoomMessage) folds the reflected
+      // groupchat onto the optimistic row instead of inserting a duplicate.
+      // We use the same prefix that sendTextMessageAssistant generates by
+      // default, so optimistic + wire are byte-identical.
+      const id = `send-text-message-to-assistant-${Date.now().toString()}`;
 
       dispatch(
         addRoomMessage({
@@ -41,7 +46,24 @@ export const useSendMessage = () => {
         })
       );
 
-      client?.sendMessage(activeRoomJID, message, mainMessage || '', id);
+      // xmppClient.sendMessage's positional arg list keeps `customId` at the
+      // end behind several optional fields we don't use in the assistant
+      // path. Pass `undefined`s explicitly so `id` reaches `customId`;
+      // otherwise sendTextMessageAssistant generates a fresh id and dedupe
+      // fails (the visitor sees their own message twice).
+      client?.sendMessage(
+        activeRoomJID,
+        message,
+        undefined, // firstName
+        undefined, // lastName
+        undefined, // photo
+        undefined, // walletAddress
+        undefined, // notDisplayedValue
+        undefined, // isReply
+        undefined, // showInChannel
+        mainMessage || '',
+        id
+      );
     },
     []
   );

@@ -27,10 +27,18 @@ const ChatLauncher = styled.button`
   right: 24px;
   width: 56px;
   height: 56px;
+  padding: 0;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #6e72fc, #ad1deb);
   box-shadow: 0 0 12px rgba(173, 29, 235, 0.4);
+  /* Flex-center the icon. Default <button> text alignment + the SVG's
+     viewBox baseline behaviour put the icon flush-left of the circle
+     instead of centred. flex + align/justify-center fixes this for
+     both the default AiChatIcon and any caller-supplied React node. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 24px;
   color: white;
   cursor: pointer;
