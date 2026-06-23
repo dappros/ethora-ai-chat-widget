@@ -105,6 +105,26 @@ function mountErrorState(message: string) {
   document.body.appendChild(node);
 }
 
+// Resolve the appId for the widget-session call. Precedence:
+//   1. explicit data-app-id (the new-arch contract)
+//   2. data-bot-id fallback (back-compat with the existing WP plugin, which
+//      ships a bot JID): an Ethora bot JID is `${appId}_<botUser>-bot@host`,
+//      so the appId is the local-part prefix before the first underscore.
+function resolveAppId(scriptTag: HTMLElement | null): string | undefined {
+  const explicit = scriptTag?.getAttribute('data-app-id')?.trim();
+  if (explicit) return explicit;
+
+  const botId = scriptTag?.getAttribute('data-bot-id')?.trim();
+  if (botId) {
+    const localPart = botId.split('@')[0];
+    if (localPart.includes('_')) {
+      const prefix = localPart.split('_')[0];
+      if (prefix) return prefix;
+    }
+  }
+  return undefined;
+}
+
 function readOverrides(scriptTag: HTMLElement | null): EmbedOverrides {
   const get = (name: string) => {
     const v = scriptTag?.getAttribute(name);
@@ -128,13 +148,13 @@ async function bootstrap() {
   if (document.getElementById('chat-widget')) return;
 
   const scriptTag = document.getElementById('chat-content-assistant');
-  const appId = scriptTag?.getAttribute('data-app-id')?.trim() || undefined;
+  const appId = resolveAppId(scriptTag);
   const apiBase = resolveApiBase(scriptTag);
 
   if (!appId) {
     // eslint-disable-next-line no-console
     console.error(
-      '[ethora-widget] missing data-app-id on the embed <script id="chat-content-assistant">; widget cannot start.'
+      '[ethora-widget] missing data-app-id (or a data-bot-id to derive it from) on the embed <script id="chat-content-assistant">; widget cannot start.'
     );
     return;
   }
