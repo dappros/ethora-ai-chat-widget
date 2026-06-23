@@ -1,1 +1,0 @@
-export const ETHORA_CHAT_ASSISTANT_VERSION = '25.10.17';
