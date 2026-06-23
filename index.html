@@ -3,27 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat Assistant Demo</title>
+    <title>Ethora AI Assistant - Demo</title>
+    <!--
+      New-arch embed contract (single-bot widget over @ethora/chat-component):
+        data-app-id            (required) the Ethora app id
+        data-api-url           (optional) API base; default Ethora Cloud
+        data-bot-name           (optional) override the bot display name
+        data-bot-avatar         (optional) override the bot avatar URL
+        data-title / data-greeting-title / data-greeting (optional copy)
+    -->
     <script
       src="dist/ethora_assistant.js"
       id="chat-content-assistant"
-      data-bot-id="685a6b13db443b01282ab755_685a6b13db443b01282ab763-bot@xmpp.ethoradev.com"
-      data-avatar="https://www.yarrah.com/media/a9/44/d3/1645715519/yarrah-buying-a-puppy-what-to-look-for.png?ts=1645715519"
-      data-bot-display-name="My Custom Bot"
+      data-app-id="000000000000000000000000"
+      data-api-url="https://api.chat.ethora.com/v1"
+      data-bot-name="My Custom Bot"
     ></script>
   </head>
   <body>
-    <h1>Chat Assistant Demo</h1>
-    <!-- <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script> -->
+    <h1>Ethora AI Assistant - Demo</h1>
+    <p>Set a real <code>data-app-id</code> above to load a live assistant.</p>
   </body>
-  <footer></footer>
 </html>
-
-<!-- <script
-      src="dist/ethora_assistant.js"
-      id="chat-content-assistant"
-      data-bot-id="685a6b13db443b01282ab755_685a6b13db443b01282ab763-bot@xmpp.ethoradev.com"
-      data-avatar="https://www.yarrah.com/media/a9/44/d3/1645715519/yarrah-buying-a-puppy-what-to-look-for.png?ts=1645715519"
-      data-bot-display-name="My Custom Bot"
-    ></script> -->
