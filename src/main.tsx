@@ -1,15 +1,12 @@
 import ReactDOM from 'react-dom/client';
-// chat-component ships its (small) static stylesheet separately from the JS,
-// and its styled-components (bundled inside its dist) inject the rest into
-// <head> at runtime. We add the static sheet to <head> here so the chat is
-// fully styled. NOTE: this widget intentionally does NOT use a Shadow DOM in
-// this build, because @ethora/chat-component's dist bundles its own
-// styled-components instance whose <style> tags cannot be retargeted into a
-// shadow root from here. Restoring full host-page style isolation requires
-// consuming chat-component from source (so styled-components dedupes to a
-// single instance and a StyleSheetManager can target the shadow) — tracked
-// as a follow-up.
-import chatComponentCss from '@ethora/chat-component/dist/main.css?inline';
+import { StyleSheetManager } from 'styled-components';
+// chat-component's static base stylesheet, pulled in as a string and injected
+// into the widget's Shadow DOM (not the host <head>), so the host page is
+// never restyled. The component's runtime styled-components are pinned into
+// the same shadow root via <StyleSheetManager target>. Because we build
+// chat-component from SOURCE, there is ONE styled-components instance, so this
+// retarget actually captures every style the chat emits.
+import chatComponentCss from '@ethora/chat-component/index.css?inline';
 import Assistant from './Assistant';
 import {
   provisionWidgetSession,
@@ -26,11 +23,12 @@ const PERSIST_KEYS = [
   'persist:root',
   'persist:chatSettingStore',
   'persist:roomMessages',
+  'persist:rooms',
   'persist:assistanRoomSlice',
   'persist:roomHeapSlice',
+  '@ethora/chat-component-cache-scope',
 ];
 const OPEN_STATE_KEYS = ['EthoraAssistantOpen', 'assistantChatOpen'];
-const STATIC_STYLE_ID = 'ethora-widget-chat-css';
 
 function clearStorageForNewApp(newAppId?: string) {
   if (!newAppId) return;
@@ -75,12 +73,24 @@ function resolveApiBase(scriptTag: HTMLElement | null): string {
   return VITE_APP_API_URL;
 }
 
-function injectChatStyles() {
-  if (document.getElementById(STATIC_STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = STATIC_STYLE_ID;
-  style.textContent = chatComponentCss as unknown as string;
-  document.head.appendChild(style);
+// Resolve the appId for the widget-session call. Precedence:
+//   1. explicit data-app-id (the new-arch contract)
+//   2. data-bot-id fallback (back-compat with the existing WP plugin, which
+//      ships a bot JID): an Ethora bot JID is `${appId}_<botUser>-bot@host`,
+//      so the appId is the local-part prefix before the first underscore.
+function resolveAppId(scriptTag: HTMLElement | null): string | undefined {
+  const explicit = scriptTag?.getAttribute('data-app-id')?.trim();
+  if (explicit) return explicit;
+
+  const botId = scriptTag?.getAttribute('data-bot-id')?.trim();
+  if (botId) {
+    const localPart = botId.split('@')[0];
+    if (localPart.includes('_')) {
+      const prefix = localPart.split('_')[0];
+      if (prefix) return prefix;
+    }
+  }
+  return undefined;
 }
 
 function mountErrorState(message: string) {
@@ -103,26 +113,6 @@ function mountErrorState(message: string) {
   ].join(';');
   node.textContent = message;
   document.body.appendChild(node);
-}
-
-// Resolve the appId for the widget-session call. Precedence:
-//   1. explicit data-app-id (the new-arch contract)
-//   2. data-bot-id fallback (back-compat with the existing WP plugin, which
-//      ships a bot JID): an Ethora bot JID is `${appId}_<botUser>-bot@host`,
-//      so the appId is the local-part prefix before the first underscore.
-function resolveAppId(scriptTag: HTMLElement | null): string | undefined {
-  const explicit = scriptTag?.getAttribute('data-app-id')?.trim();
-  if (explicit) return explicit;
-
-  const botId = scriptTag?.getAttribute('data-bot-id')?.trim();
-  if (botId) {
-    const localPart = botId.split('@')[0];
-    if (localPart.includes('_')) {
-      const prefix = localPart.split('_')[0];
-      if (prefix) return prefix;
-    }
-  }
-  return undefined;
 }
 
 function readOverrides(scriptTag: HTMLElement | null): EmbedOverrides {
@@ -161,11 +151,23 @@ async function bootstrap() {
 
   const overrides = readOverrides(scriptTag);
   clearStorageForNewApp(appId);
-  injectChatStyles();
 
-  const container = document.createElement('div');
-  container.id = 'chat-widget';
-  document.body.appendChild(container);
+  // Host element + Shadow DOM: the entire widget renders inside the shadow
+  // root, so neither the host page's CSS reaches the chat nor the chat's CSS
+  // reaches the host page.
+  const host = document.createElement('div');
+  host.id = 'chat-widget';
+  document.body.appendChild(host);
+  const shadow = host.attachShadow({ mode: 'open' });
+
+  // chat-component's static CSS, scoped to the shadow root.
+  const staticStyle = document.createElement('style');
+  staticStyle.textContent = chatComponentCss as unknown as string;
+  shadow.appendChild(staticStyle);
+
+  // React mount point inside the shadow.
+  const appRoot = document.createElement('div');
+  shadow.appendChild(appRoot);
 
   let envelope: WidgetSessionEnvelope;
   try {
@@ -184,8 +186,11 @@ async function bootstrap() {
     return;
   }
 
-  ReactDOM.createRoot(container).render(
-    <Assistant envelope={envelope} apiBase={apiBase} overrides={overrides} />
+  ReactDOM.createRoot(appRoot).render(
+    // Pin chat-component's (single-instance) styled-components into the shadow.
+    <StyleSheetManager target={shadow as unknown as HTMLElement}>
+      <Assistant envelope={envelope} apiBase={apiBase} overrides={overrides} />
+    </StyleSheetManager>
   );
 }
 

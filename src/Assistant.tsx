@@ -80,6 +80,8 @@ export default function Assistant({
       userLogin: { enabled: true, user },
       xmppSettings,
       defaultRooms: [{ jid: roomJID, pinned: true }],
+      newArch: false,
+      useStoreConsoleEnabled: true,
       disableRooms: true,
       disableHeader: true,
       disableRoomMenu: true,
