@@ -94,6 +94,9 @@ export default function Assistant({
       disableRooms: true,
       disableHeader: true,
       disableRoomMenu: true,
+      // No message reactions / context menu in the assistant. Also lets the
+      // build stub out the emoji picker + dataset (see vite.config aliases).
+      disableInteractions: true,
       botMessageAutoScroll: true,
       colors: { primary: PRIMARY, secondary: '#E1E4FE' },
       chatHeaderSettings: { hide: true, disableCreate: true, hideSearch: true },

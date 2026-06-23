@@ -44,6 +44,15 @@ export default defineConfig({
         find: /^@ethora\/chat-component\/(.*)$/,
         replacement: `${CHAT_COMPONENT_SRC}/$1`,
       },
+      // --- Bundle trimming: stub heavy deps the single-bot assistant never
+      // uses, so they drop out of the IIFE. Firebase (push + Google sign-in)
+      // is guarded/unused; the emoji dataset + picker only power message
+      // reactions, which the assistant disables (config.disableInteractions).
+      { find: /^firebase\/app$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-app.ts') },
+      { find: /^firebase\/messaging$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-messaging.ts') },
+      { find: /^firebase\/auth$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-auth.ts') },
+      { find: /^@emoji-mart\/data$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-data.ts') },
+      { find: /^@emoji-mart\/react$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-react.tsx') },
     ],
   },
   build: {
