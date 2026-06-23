@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { XmppProvider, Chat } from '@ethora/chat-component';
 import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
+import { registerWidgetRoom } from './widget/registerWidgetRoom';
 
 // Persisted open/closed state so a page navigation keeps the panel as the
 // visitor left it. Kept as the same key the legacy widget used.
@@ -36,10 +37,11 @@ export default function Assistant({
   apiBase,
   overrides,
 }: AssistantProps) {
-  const { user, roomJID, xmppSettings, persona } = useMemo(
+  const session = useMemo(
     () => resolveSession(envelope, overrides),
     [envelope, overrides]
   );
+  const { user, roomJID, xmppSettings, persona } = session;
 
   const [open, setOpen] = useState<boolean>(() => {
     try {
@@ -59,6 +61,14 @@ export default function Assistant({
       // ignore (storage disabled)
     }
   }, [open]);
+
+  // Register the known MUC room directly in chat-component's store once the
+  // chat engine has mounted (so it runs after redux-persist rehydration and
+  // is not clobbered). The widget visitor has no API token and the room-list
+  // IQ doesn't surface widget rooms, so without this the chat shows "No room".
+  useEffect(() => {
+    if (hasMounted) registerWidgetRoom(session);
+  }, [hasMounted, session]);
 
   // appId is the prefix of the server-issued visitor username
   // (`${appId}_widget-<uuid>`); surfaced to chat-component for completeness.
@@ -81,7 +91,6 @@ export default function Assistant({
       xmppSettings,
       defaultRooms: [{ jid: roomJID, pinned: true }],
       newArch: false,
-      useStoreConsoleEnabled: true,
       disableRooms: true,
       disableHeader: true,
       disableRoomMenu: true,

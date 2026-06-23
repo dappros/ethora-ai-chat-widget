@@ -15,7 +15,7 @@
 // chat-component's normal `defaultRooms` presence + active-room history path.
 import { store } from '@ethora/chat-component/roomStore';
 import {
-  addRoomFromApi,
+  addRoom,
   setCurrentRoom,
 } from '@ethora/chat-component/roomStore/roomsSlice';
 import type { ResolvedSession } from './resolveSession';
@@ -38,6 +38,6 @@ export function registerWidgetRoom(session: ResolvedSession): void {
     historyPreloadState: 'idle',
   };
 
-  store.dispatch(addRoomFromApi({ room }));
+  store.dispatch(addRoom({ roomData: room }));
   store.dispatch(setCurrentRoom({ roomJID }));
 }
