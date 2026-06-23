@@ -14,8 +14,33 @@ const CHAT_COMPONENT_SRC = resolve(
   '../ethora-chat-component/src'
 );
 
+// chat-component's assets/icons.tsx + assets/images.tsx each embed a large
+// base64 raster (the Referrals icon ~127KB, the SendItem icon) that the
+// assistant never shows. Shrink any big embedded raster to a 1x1 transparent
+// pixel at load time, keeping every real (vector) icon export intact. This is
+// surgical: we can't stub the whole icon barrel (34 used icons live there).
+const TRANSPARENT_PIXEL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+const shrinkChatComponentRasterAssets = {
+  name: 'shrink-cc-raster-assets',
+  enforce: 'pre' as const,
+  transform(code: string, id: string) {
+    if (
+      id.includes('ethora-chat-component') &&
+      /assets\/(icons|images)\.tsx$/.test(id)
+    ) {
+      const out = code.replace(
+        /data:image\/(?:png|jpe?g);base64,[A-Za-z0-9+/=]{1000,}/g,
+        TRANSPARENT_PIXEL
+      );
+      if (out !== code) return { code: out, map: null };
+    }
+    return null;
+  },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [shrinkChatComponentRasterAssets, react()],
   define: {
     'process.env': {},
   },

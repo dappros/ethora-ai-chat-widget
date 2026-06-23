@@ -127,6 +127,10 @@ function readOverrides(scriptTag: HTMLElement | null): EmbedOverrides {
     title: get('data-title'),
     greetingTitle: get('data-greeting-title'),
     greeting: get('data-greeting'),
+    // System messages ("X has joined") are hidden by default; opt back in
+    // with data-hide-system-messages="false".
+    hideSystemMessages:
+      scriptTag?.getAttribute('data-hide-system-messages') !== 'false',
   };
 }
 

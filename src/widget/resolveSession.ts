@@ -19,6 +19,12 @@ export interface EmbedOverrides {
   title?: string;
   greetingTitle?: string;
   greeting?: string;
+  /**
+   * Hide MUC system messages (e.g. "X has joined the chat") in the assistant.
+   * Defaults to true - they are noise in a single-bot conversation. Set the
+   * embed's `data-hide-system-messages="false"` to show them.
+   */
+  hideSystemMessages?: boolean;
 }
 
 export interface ResolvedPersona {

@@ -14,6 +14,9 @@ const PANEL_WIDTH = 360;
 const PANEL_HEIGHT = 560;
 const Z = 2147483000;
 
+// Rendered in place of MUC system messages to suppress them (see config).
+const HiddenSystemMessage = () => null;
+
 interface AssistantProps {
   envelope: WidgetSessionEnvelope;
   apiBase: string;
@@ -42,6 +45,8 @@ export default function Assistant({
     [envelope, overrides]
   );
   const { user, roomJID, xmppSettings, persona } = session;
+  // System messages ("X has joined the chat") are hidden by default.
+  const hideSystemMessages = overrides?.hideSystemMessages !== false;
 
   const [open, setOpen] = useState<boolean>(() => {
     try {
@@ -97,6 +102,10 @@ export default function Assistant({
       // No message reactions / context menu in the assistant. Also lets the
       // build stub out the emoji picker + dataset (see vite.config aliases).
       disableInteractions: true,
+      // Hide MUC join/leave system messages (rendering a null component for
+      // them). chat-component shows the custom component when no whitelist is
+      // set, so this suppresses every system message.
+      ...(hideSystemMessages ? { customSystemMessage: HiddenSystemMessage } : {}),
       botMessageAutoScroll: true,
       colors: { primary: PRIMARY, secondary: '#E1E4FE' },
       chatHeaderSettings: { hide: true, disableCreate: true, hideSearch: true },
@@ -104,7 +113,7 @@ export default function Assistant({
         noUser: <div style={{ padding: 16 }} />,
       },
     }),
-    [appId, apiBase, user, xmppSettings, roomJID]
+    [appId, apiBase, user, xmppSettings, roomJID, hideSystemMessages]
   );
 
   return (
