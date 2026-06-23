@@ -8,7 +8,7 @@ export default defineConfig({
     'process.env': {},
   },
   build: {
-    sourcemap: true,
+    sourcemap: false,
     lib: {
       entry: resolve(__dirname, 'src/main.tsx'),
       name: 'ChatContentAssistant',

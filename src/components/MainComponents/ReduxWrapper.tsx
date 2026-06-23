@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../roomStore';
 import { ConfigUser, IConfig, MessageProps } from '../../types/types';
-import '../../index.css';
 import '../../helpers/storeConsole';
 import { ToastProvider } from '../../context/ToastContext.tsx';
 import { FullScreenPopup, PopupHeaderButton } from './AssistantPopupStyles';

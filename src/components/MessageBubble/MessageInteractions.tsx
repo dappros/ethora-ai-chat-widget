@@ -66,8 +66,6 @@ import {
 import { IMessage } from '../../types/types';
 import { DownArrowIcon } from '../../assets/icons';
 
-import '../../index.css';
-
 const fixedEmojiIds = ['joy', 'heart', 'fire', '+1', 'smile', 'scream'];
 import { useRoomState } from '../../hooks/useRoomState';
 

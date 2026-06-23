@@ -15,7 +15,7 @@ export const getHistory = async (
   if (typeof chatJID !== 'string') return;
   const fixedChatJid = chatJID.includes('@')
     ? chatJID
-    : `${chatJID}@conference.dev.xmpp.ethoradev.com`;
+    : `${chatJID}@conference.xmpp.chat.ethora.com`;
 
   const id = otherId ?? `get-history:${Date.now().toString()}`;
 

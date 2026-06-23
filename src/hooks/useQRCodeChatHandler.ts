@@ -41,7 +41,7 @@ export const useQRCodeChat = (
       if (qrChatId) {
         const roomJID = conferenceServer
           ? `${qrChatId}@${conferenceServer}`
-          : `${qrChatId}@conference.xmpp.ethoradev.com`;
+          : `${qrChatId}@conference.xmpp.chat.ethora.com`;
 
         setCurrentRoom({ roomJID });
 

@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { StyleSheetManager } from 'styled-components';
 import Assistant from './Assistant.tsx';
+import { setBaseURL } from './networking/apiClient';
+import { VITE_APP_API_URL } from './config';
 
 const BOT_ID_STORAGE_KEY = 'ethora-assistant-bot-id';
 const PERSIST_ROOT_KEY = 'persist:root';
@@ -40,7 +42,8 @@ function mountChatAssistant(
   botId?: string,
   botAvatar?: string,
   botDisplayName?: string,
-  styleTarget?: HTMLStyleElement
+  styleTarget?: HTMLStyleElement,
+  apiUrl?: string
 ) {
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
@@ -49,6 +52,7 @@ function mountChatAssistant(
           botId={botId}
           botAvatar={botAvatar}
           botDisplayName={botDisplayName}
+          apiUrl={apiUrl}
         />
       </StyleSheetManager>
     </React.StrictMode>
@@ -75,6 +79,15 @@ function waitForBodyAndMount() {
   const botAvatar = scriptTag?.getAttribute('data-bot-avatar') || undefined;
   const botDisplayName =
     scriptTag?.getAttribute('data-bot-display-name') || undefined;
+  // Optional override of the Ethora API base URL. Defaults to Ethora Cloud
+  // (https://api.chat.ethora.com/v1). Set data-api-url on the embed script to
+  // point the widget at a self-hosted / dedicated Ethora server.
+  const apiUrl =
+    scriptTag?.getAttribute('data-api-url')?.trim() || VITE_APP_API_URL;
+
+  // Apply the override to the shared HTTP client before the app mounts so the
+  // very first requests already use the correct base URL.
+  setBaseURL(apiUrl);
 
   clearStorageForNewBot(botId);
 
@@ -93,7 +106,8 @@ function waitForBodyAndMount() {
     botId,
     botAvatar,
     botDisplayName,
-    styleTarget
+    styleTarget,
+    apiUrl
   );
 }
 

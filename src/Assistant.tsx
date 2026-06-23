@@ -20,9 +20,9 @@ const assistantChatConfig: IConfig = {
   disableInteractions: true,
   disableRooms: true,
   xmppSettings: {
-    devServer: 'wss://xmpp.ethoradev.com:5443/ws',
-    host: 'xmpp.ethoradev.com',
-    conference: 'conference.xmpp.ethoradev.com',
+    devServer: 'wss://xmpp.chat.ethora.com/ws',
+    host: 'xmpp.chat.ethora.com',
+    conference: 'conference.xmpp.chat.ethora.com',
   },
 };
 
@@ -30,10 +30,12 @@ export default function Assistant({
   botId,
   botAvatar,
   botDisplayName,
+  apiUrl,
 }: {
   botId?: string;
   botAvatar?: string;
   botDisplayName?: string;
+  apiUrl?: string;
 }) {
   const user = createAnonymousXmppCredentials();
   return (
@@ -42,6 +44,7 @@ export default function Assistant({
         roomJID={botId}
         config={{
           ...assistantChatConfig,
+          ...(apiUrl ? { baseUrl: apiUrl } : {}),
           assistantMode: { enabled: true, user },
           botAvatar,
           botDisplayName,

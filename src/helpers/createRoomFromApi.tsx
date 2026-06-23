@@ -2,7 +2,7 @@ import { ApiRoom, IRoom } from '../types/types';
 
 export const createRoomFromApi = (
   room: ApiRoom,
-  service: string = 'conference.dev.xmpp.ethoradev.com',
+  service: string = 'conference.xmpp.chat.ethora.com',
   usersArrayLength: number = 0
 ): IRoom => {
   try {
