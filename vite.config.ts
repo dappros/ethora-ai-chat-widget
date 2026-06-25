@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // We consume @ethora/chat-component from SOURCE (the sibling repo) instead of
 // its prebuilt npm dist. Why: the dist bundles its own styled-components copy,
@@ -39,8 +40,40 @@ const shrinkChatComponentRasterAssets = {
   },
 };
 
+// Redirect chat-component's relative `VideoCalls/VideoCallOverlay` import to a
+// null-component stub. That subtree pulls in livekit-client +
+// @livekit/components-react (~200KB gz) for video/audio CALLS the assistant
+// never uses; stubbing the only importer lets Vite tree-shake LiveKit out.
+const stubChatComponentModules = {
+  name: 'stub-chat-component-modules',
+  enforce: 'pre' as const,
+  resolveId(source: string, importer?: string) {
+    if (
+      importer &&
+      importer.includes('ethora-chat-component') &&
+      /(^|\/)VideoCalls\/VideoCallOverlay$/.test(source)
+    ) {
+      return resolve(__dirname, 'src/widget/stubs/video-call-overlay.tsx');
+    }
+    return null;
+  },
+};
+
 export default defineConfig({
-  plugins: [shrinkChatComponentRasterAssets, react()],
+  plugins: [
+    shrinkChatComponentRasterAssets,
+    stubChatComponentModules,
+    react(),
+    ...(process.env.ANALYZE
+      ? [
+          visualizer({
+            filename: 'stats.json',
+            template: 'raw-data',
+            gzipSize: true,
+          }) as any,
+        ]
+      : []),
+  ],
   define: {
     'process.env': {},
   },
@@ -78,6 +111,8 @@ export default defineConfig({
       { find: /^firebase\/auth$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-auth.ts') },
       { find: /^@emoji-mart\/data$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-data.ts') },
       { find: /^@emoji-mart\/react$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-react.tsx') },
+      // rehype-raw (raw HTML in markdown) -> no-op, drops the parse5 HTML parser.
+      { find: /^rehype-raw$/, replacement: resolve(__dirname, 'src/widget/stubs/rehype-raw.ts') },
     ],
   },
   build: {
