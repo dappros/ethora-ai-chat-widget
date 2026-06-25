@@ -137,8 +137,16 @@ export default function Assistant({
           }
         : {}),
       chatHeaderSettings: { hide: true, disableCreate: true, hideSearch: true },
+      // The assistant always has a known room (we self-inject it), so the
+      // built-in "No room. Let's create one!" screen must NEVER show. Replace
+      // every empty/disconnected state with a status screen: a "connecting"
+      // spinner while it settles, or a "no internet" placard when offline.
       fallbackScreens: {
-        noUser: <div style={{ padding: 16 }} />,
+        noUser: <StatusScreen color={appearance.primaryColor} mode="connecting" />,
+        noRoom: <StatusScreen color={appearance.primaryColor} mode="connecting" />,
+        noConnection: (
+          <StatusScreen color={appearance.primaryColor} mode="reconnecting" />
+        ),
       },
     }),
     [appId, apiBase, user, xmppSettings, roomJID, hideSystemMessages, appearance, fontFamily]
@@ -306,6 +314,100 @@ const CloseGlyph = () => (
     <path
       d="M6 6l12 12M18 6 6 18"
       stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Shown instead of the built-in "No room" / "No connection" screens. Online ->
+// a "connecting"/"reconnecting" spinner; offline -> a "no internet" placard.
+function StatusScreen({
+  color,
+  mode,
+}: {
+  color: string;
+  mode: 'connecting' | 'reconnecting';
+}) {
+  const [online, setOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
+
+  const wrap: React.CSSProperties = {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    padding: 24,
+    textAlign: 'center',
+    color: '#475569',
+  };
+
+  if (!online) {
+    return (
+      <div style={wrap}>
+        <OfflineGlyph />
+        <div style={{ fontWeight: 600, fontSize: 15, color: '#0f172a' }}>
+          No internet connection
+        </div>
+        <div style={{ fontSize: 13 }}>
+          Check your connection - the chat will reconnect automatically.
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={wrap}>
+      <Spinner color={color} />
+      <div style={{ fontSize: 13 }}>
+        {mode === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}
+      </div>
+    </div>
+  );
+}
+
+const Spinner = ({ color }: { color: string }) => (
+  <svg width="34" height="34" viewBox="0 0 50 50" aria-hidden="true">
+    <circle
+      cx="25"
+      cy="25"
+      r="20"
+      fill="none"
+      stroke={color}
+      strokeWidth="5"
+      strokeLinecap="round"
+      strokeDasharray="80 50"
+    >
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 25 25"
+        to="360 25 25"
+        dur="0.9s"
+        repeatCount="indefinite"
+      />
+    </circle>
+  </svg>
+);
+
+const OfflineGlyph = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M2 2l20 20" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M5 12.5a10 10 0 0 1 4-2.6M12 5c2.6 0 5 .9 6.9 2.5M8.5 16a5 5 0 0 1 3-1.5M12 20h.01"
+      stroke="#94a3b8"
       strokeWidth="2"
       strokeLinecap="round"
     />

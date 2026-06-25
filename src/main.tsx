@@ -116,11 +116,7 @@ function mountErrorState(message: string) {
   document.body.appendChild(node);
 }
 
-function readOverrides(scriptTag: HTMLElement | null): EmbedOverrides {
-  const get = (name: string) => {
-    const v = scriptTag?.getAttribute(name);
-    return v && v.length ? v : undefined;
-  };
+function readOverrides(get: (name: string) => string | undefined): EmbedOverrides {
   return {
     // data-bot-display-name kept as a back-compat alias for data-bot-name.
     botName: get('data-bot-name') || get('data-bot-display-name'),
@@ -130,8 +126,27 @@ function readOverrides(scriptTag: HTMLElement | null): EmbedOverrides {
     greeting: get('data-greeting'),
     // System messages ("X has joined") are hidden by default; opt back in
     // with data-hide-system-messages="false".
-    hideSystemMessages:
-      scriptTag?.getAttribute('data-hide-system-messages') !== 'false',
+    hideSystemMessages: get('data-hide-system-messages') !== 'false',
+  };
+}
+
+// Cosmetic config getter: a URL query param (`ethora-<name>`) overrides the
+// embed `data-<name>` attribute, so the look can be tuned per-link without
+// editing the page. Restricted to cosmetic/appearance keys - appId / apiBase /
+// botId are intentionally NOT URL-overridable (a URL must never repoint the
+// widget at a different bot or backend).
+function makeCosmeticGetter(scriptTag: HTMLElement | null) {
+  let url: URLSearchParams;
+  try {
+    url = new URLSearchParams(window.location.search);
+  } catch {
+    url = new URLSearchParams();
+  }
+  return (dataAttr: string): string | undefined => {
+    const fromUrl = url.get('ethora-' + dataAttr.replace(/^data-/, ''));
+    if (fromUrl != null && fromUrl.length) return fromUrl;
+    const v = scriptTag?.getAttribute(dataAttr);
+    return v && v.length ? v : undefined;
   };
 }
 
@@ -154,11 +169,9 @@ async function bootstrap() {
     return;
   }
 
-  const overrides = readOverrides(scriptTag);
-  const appearance = readAppearance((name) => {
-    const v = scriptTag?.getAttribute(name);
-    return v && v.length ? v : undefined;
-  });
+  const cosmeticGet = makeCosmeticGetter(scriptTag);
+  const overrides = readOverrides(cosmeticGet);
+  const appearance = readAppearance(cosmeticGet);
   clearStorageForNewApp(appId);
 
   // Host element + Shadow DOM: the entire widget renders inside the shadow

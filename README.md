@@ -64,6 +64,25 @@ All optional - the widget theming maps onto the chat engine's config.
 ></script>
 ```
 
+### URL overrides
+
+The appearance + cosmetic keys can also be set (and override the `data-*`) via
+page URL query params, prefixed with `ethora-`. Handy for previews and
+per-link theming. A `#` in a color may be omitted.
+
+```
+https://yoursite.com/page?ethora-primary-color=059669&ethora-position=right&ethora-google-font=Inter
+```
+
+For safety, `app-id` / `api-url` / `bot-id` are **not** URL-overridable - a URL
+can never repoint the widget at a different bot or backend.
+
+### Connection states
+
+The assistant always has a known room, so it never shows a "create a room"
+screen. While it settles you see a **Connecting…** spinner, and if the browser
+is offline a **No internet connection** placard - the chat reconnects on its own.
+
 ## How it works
 
 On first open the widget calls `POST /v2/widget/sessions`, which mints an app-prefixed visitor (`<appId>_widget-<uuid>`) and a persistent MUC room. The visitor and the bot are pre-affiliated as members; messages flow as `groupchat` and are archived in `mod_mam`, so operators can review conversations later. The visitor identity is kept in `localStorage` so a returning browser resumes the same session.

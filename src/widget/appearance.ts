@@ -42,13 +42,20 @@ export function readAppearance(
     const n = v ? parseInt(v, 10) : NaN;
     return Number.isFinite(n) && n > 0 ? n : fallback;
   };
+  // Accept a bare hex ("7c3aed") and add the leading '#', so URL params don't
+  // need it percent-encoded. Other CSS color forms pass through unchanged.
+  const color = (v: string | undefined) => {
+    if (!v) return undefined;
+    const t = v.trim();
+    return /^[0-9a-fA-F]{3,8}$/.test(t) ? `#${t}` : t;
+  };
   return {
-    primaryColor: get('data-primary-color') || DEFAULT_PRIMARY,
-    secondaryColor: get('data-secondary-color') || DEFAULT_SECONDARY,
-    iconsColor: get('data-icons-color'),
-    ownBubbleBg: get('data-own-bubble-bg'),
-    otherBubbleBg: get('data-other-bubble-bg'),
-    inputBg: get('data-input-bg'),
+    primaryColor: color(get('data-primary-color')) || DEFAULT_PRIMARY,
+    secondaryColor: color(get('data-secondary-color')) || DEFAULT_SECONDARY,
+    iconsColor: color(get('data-icons-color')),
+    ownBubbleBg: color(get('data-own-bubble-bg')),
+    otherBubbleBg: color(get('data-other-bubble-bg')),
+    inputBg: color(get('data-input-bg')),
     fontFamily: get('data-font-family'),
     fontSize: get('data-font-size'),
     googleFont: get('data-google-font'),
