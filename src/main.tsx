@@ -14,6 +14,7 @@ import {
   __widgetSessionStorage,
 } from './utils/provisionWidgetSession';
 import type { EmbedOverrides } from './widget/resolveSession';
+import { readAppearance } from './widget/appearance';
 import { VITE_APP_API_URL } from './config';
 
 // Storage keys we own and clear when the embed identity changes (different
@@ -154,6 +155,10 @@ async function bootstrap() {
   }
 
   const overrides = readOverrides(scriptTag);
+  const appearance = readAppearance((name) => {
+    const v = scriptTag?.getAttribute(name);
+    return v && v.length ? v : undefined;
+  });
   clearStorageForNewApp(appId);
 
   // Host element + Shadow DOM: the entire widget renders inside the shadow
@@ -193,7 +198,12 @@ async function bootstrap() {
   ReactDOM.createRoot(appRoot).render(
     // Pin chat-component's (single-instance) styled-components into the shadow.
     <StyleSheetManager target={shadow as unknown as HTMLElement}>
-      <Assistant envelope={envelope} apiBase={apiBase} overrides={overrides} />
+      <Assistant
+        envelope={envelope}
+        apiBase={apiBase}
+        overrides={overrides}
+        appearance={appearance}
+      />
     </StyleSheetManager>
   );
 }

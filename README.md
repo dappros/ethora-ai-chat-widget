@@ -35,6 +35,35 @@ That's it - the widget provisions a visitor + room and connects on first open.
 
 \* Provide either `data-app-id` or `data-bot-id`.
 
+### Appearance attributes
+
+All optional - the widget theming maps onto the chat engine's config.
+
+| Attribute | Purpose |
+|-----------|---------|
+| `data-primary-color` | Header + launcher color, chat accent. Default `#1976d2`. |
+| `data-secondary-color` | Chat secondary color. Default `#E1E4FE`. |
+| `data-icons-color` | Color of the attach / send / mic icons. |
+| `data-own-bubble-bg` | Background of the visitor's own message bubbles. |
+| `data-other-bubble-bg` | Background of the bot's message bubbles. |
+| `data-input-bg` | Background of the message input bar. |
+| `data-font-family` | Font family applied to the chat. |
+| `data-font-size` | Base font size, e.g. `16` or `1.1rem`. |
+| `data-google-font` | Google Fonts family to auto-load + apply (e.g. `Inter`). |
+| `data-position` | `left` or `right` - which side to dock. Default `right`. |
+| `data-width` / `data-height` | Popup size in px. Default `360` / `560`. |
+
+```html
+<script
+  src="https://your-host/ethora_assistant.js"
+  id="chat-content-assistant"
+  data-app-id="YOUR_APP_ID"
+  data-primary-color="#7c3aed"
+  data-position="left"
+  data-google-font="Inter"
+></script>
+```
+
 ## How it works
 
 On first open the widget calls `POST /v2/widget/sessions`, which mints an app-prefixed visitor (`<appId>_widget-<uuid>`) and a persistent MUC room. The visitor and the bot are pre-affiliated as members; messages flow as `groupchat` and are archived in `mod_mam`, so operators can review conversations later. The visitor identity is kept in `localStorage` so a returning browser resumes the same session.

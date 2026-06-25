@@ -3,15 +3,11 @@ import { XmppProvider, Chat } from '@ethora/chat-component';
 import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
 import { registerWidgetRoom } from './widget/registerWidgetRoom';
+import { Appearance } from './widget/appearance';
 
 // Persisted open/closed state so a page navigation keeps the panel as the
 // visitor left it. Kept as the same key the legacy widget used.
 const OPEN_STATE_KEY = 'EthoraAssistantOpen';
-
-// Brand defaults. Overridable per-embed later via data-* if needed.
-const PRIMARY = '#1976d2';
-const PANEL_WIDTH = 360;
-const PANEL_HEIGHT = 560;
 const Z = 2147483000;
 
 // Rendered in place of MUC system messages to suppress them (see config).
@@ -21,6 +17,7 @@ interface AssistantProps {
   envelope: WidgetSessionEnvelope;
   apiBase: string;
   overrides?: EmbedOverrides;
+  appearance: Appearance;
 }
 
 /**
@@ -34,11 +31,16 @@ interface AssistantProps {
  * The chat tree is mounted lazily on first open and then kept mounted (the
  * panel is hidden via CSS, not unmounted) so the XMPP connection persists and
  * messages keep arriving while the panel is closed.
+ *
+ * Look & feel (colors, fonts, bubble/input backgrounds, dock side, size) come
+ * from the `appearance` prop, which the embed reads off the `<script>` data-*
+ * attributes; theme colors/fonts are forwarded into chat-component's config.
  */
 export default function Assistant({
   envelope,
   apiBase,
   overrides,
+  appearance,
 }: AssistantProps) {
   const session = useMemo(
     () => resolveSession(envelope, overrides),
@@ -82,12 +84,16 @@ export default function Assistant({
     [user.xmppUsername]
   );
 
+  // Resolve the applied font: an explicit family wins, else the Google family.
+  const fontFamily = appearance.fontFamily || appearance.googleFont;
+
   // The chat-component config. The single-room recipe for 26.5.x:
   //   userLogin.user (xmpp creds)  -> connect as visitor, no login form
   //   defaultRooms                 -> force-join the one MUC over XMPP
   //   roomJID prop                 -> select it as the active room
   //   disableRooms + chatHeaderSettings.hide -> render only the conversation
   //   fallbackScreens.noUser       -> never flash the built-in login form
+  //   colors / typography          -> per-embed theming (appearance)
   const config = useMemo(
     () => ({
       appId,
@@ -107,17 +113,81 @@ export default function Assistant({
       // set, so this suppresses every system message.
       ...(hideSystemMessages ? { customSystemMessage: HiddenSystemMessage } : {}),
       botMessageAutoScroll: true,
-      colors: { primary: PRIMARY, secondary: '#E1E4FE' },
+      colors: {
+        primary: appearance.primaryColor,
+        secondary: appearance.secondaryColor,
+        ...(appearance.iconsColor ? { icons: appearance.iconsColor } : {}),
+        ...(appearance.ownBubbleBg
+          ? { ownMessageBackground: appearance.ownBubbleBg }
+          : {}),
+        ...(appearance.otherBubbleBg
+          ? { otherMessageBackground: appearance.otherBubbleBg }
+          : {}),
+        ...(appearance.inputBg ? { inputBackground: appearance.inputBg } : {}),
+      },
+      ...(fontFamily || appearance.fontSize
+        ? {
+            typography: {
+              ...(fontFamily ? { fontFamily } : {}),
+              ...(appearance.fontSize ? { fontSize: appearance.fontSize } : {}),
+              ...(appearance.googleFont
+                ? { googleFontsFamily: appearance.googleFont }
+                : {}),
+            },
+          }
+        : {}),
       chatHeaderSettings: { hide: true, disableCreate: true, hideSearch: true },
       fallbackScreens: {
         noUser: <div style={{ padding: 16 }} />,
       },
     }),
-    [appId, apiBase, user, xmppSettings, roomJID, hideSystemMessages]
+    [appId, apiBase, user, xmppSettings, roomJID, hideSystemMessages, appearance, fontFamily]
   );
 
+  // Chrome styles (live inside the Shadow DOM). Driven by appearance.
+  const primary = appearance.primaryColor;
+  const dockSide = appearance.position === 'left' ? { left: 24 } : { right: 24 };
+
+  const launcherStyle: React.CSSProperties = {
+    width: 60,
+    height: 60,
+    borderRadius: '50%',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    overflow: 'hidden',
+    background: primary,
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 6px 24px rgba(0,0,0,0.24)',
+  };
+
+  const panelStyle: React.CSSProperties = {
+    flexDirection: 'column',
+    width: `min(${appearance.width}px, calc(100vw - 32px))`,
+    height: `min(${appearance.height}px, calc(100vh - 48px))`,
+    background: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+    ...(fontFamily ? { fontFamily } : {}),
+  };
+
+  const headerStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    padding: '12px 14px',
+    background: primary,
+    color: '#fff',
+    flex: '0 0 auto',
+  };
+
   return (
-    <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: Z }}>
+    <div style={{ position: 'fixed', bottom: 24, zIndex: Z, ...dockSide }}>
       {/* Launcher button (hidden while the panel is open) */}
       {!open && (
         <button
@@ -186,44 +256,7 @@ export default function Assistant({
   );
 }
 
-/* --- inline styles (work inside the Shadow DOM the widget mounts into) --- */
-
-const launcherStyle: React.CSSProperties = {
-  width: 60,
-  height: 60,
-  borderRadius: '50%',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-  overflow: 'hidden',
-  background: PRIMARY,
-  color: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  boxShadow: '0 6px 24px rgba(0,0,0,0.24)',
-};
-
-const panelStyle: React.CSSProperties = {
-  flexDirection: 'column',
-  width: `min(${PANEL_WIDTH}px, calc(100vw - 32px))`,
-  height: `min(${PANEL_HEIGHT}px, calc(100vh - 48px))`,
-  background: '#fff',
-  borderRadius: 16,
-  overflow: 'hidden',
-  boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
-};
-
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-  padding: '12px 14px',
-  background: PRIMARY,
-  color: '#fff',
-  flex: '0 0 auto',
-};
+/* --- static chrome styles (color-independent) --- */
 
 const avatarStyle: React.CSSProperties = {
   width: 32,
