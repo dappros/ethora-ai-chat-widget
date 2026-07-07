@@ -110,7 +110,12 @@ function createChatWidgetDiv(): HTMLDivElement {
 // explicitly.
 function deriveApiBase(scriptTag: HTMLElement | null): string | undefined {
   if (!scriptTag) return undefined;
-  const explicit = scriptTag.getAttribute('data-api-base');
+  // `data-api-url` is the legacy attribute name shipped by the WordPress
+  // plugin's bundled embed. Accepted as an alias so pre-2.0 plugin
+  // installs keep working when the rebuilt bundle is dropped in.
+  const explicit =
+    scriptTag.getAttribute('data-api-base') ||
+    scriptTag.getAttribute('data-api-url');
   if (explicit) return explicit;
   const src = (scriptTag as HTMLScriptElement).src || '';
   if (!src) return undefined;
@@ -123,6 +128,9 @@ function deriveApiBase(scriptTag: HTMLElement | null): string | undefined {
   }
 }
 
+let bootstrapAttempts = 0;
+const BOOTSTRAP_MAX_ATTEMPTS = 200; // ~2s at 10ms intervals
+
 async function bootstrap() {
   if (!document.body) {
     setTimeout(bootstrap, 10);
@@ -132,14 +140,44 @@ async function bootstrap() {
   const existing = document.getElementById('chat-widget');
   if (existing) return;
 
+  // Some embedding hosts (notably the WordPress plugin pre-v1.7.x) inject the
+  // chat-content-assistant config tag via a separate inline script that runs
+  // *after* this bundle is loaded. The bundle script tag appears earlier in
+  // document order, so on first call the config tag may not exist yet. Poll
+  // briefly before giving up.
   const scriptTag = document.getElementById('chat-content-assistant');
-  const appId = scriptTag?.getAttribute('data-app-id') || undefined;
+  if (!scriptTag) {
+    bootstrapAttempts += 1;
+    if (bootstrapAttempts < BOOTSTRAP_MAX_ATTEMPTS) {
+      setTimeout(bootstrap, 10);
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.error(
+      '[ethora-widget] no #chat-content-assistant tag found after polling; embed cannot start.'
+    );
+    return;
+  }
+
+  let appId = scriptTag?.getAttribute('data-app-id') || undefined;
   const apiBase = deriveApiBase(scriptTag);
+
+  // Legacy fallback: the WordPress plugin's settings field stores a bot
+  // JID of the form `${appId}_${userId}-bot@${xmppHost}`. The leading
+  // underscore-delimited segment is always the app ID (App IDs are
+  // 24-char Mongo ObjectId hex and never contain underscores), so
+  // parsing it out lets pre-2.0 plugin installs keep working without a
+  // PHP-side settings migration when the rebuilt bundle is dropped in.
+  if (!appId) {
+    const legacyBotId = scriptTag?.getAttribute('data-bot-id') || '';
+    const candidate = legacyBotId.split('_')[0];
+    if (candidate) appId = candidate;
+  }
 
   if (!appId || !apiBase) {
     // eslint-disable-next-line no-console
     console.error(
-      '[ethora-widget] missing data-app-id or data-api-base; embed cannot start.',
+      '[ethora-widget] missing data-app-id (or legacy data-bot-id) and/or data-api-base; embed cannot start.',
       { appId, apiBase }
     );
     return;
