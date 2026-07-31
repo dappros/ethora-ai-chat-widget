@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env
 
+
+# Deploy-script stamps and npm cache (setup-node-services.sh)
+.ethora_deploy/
