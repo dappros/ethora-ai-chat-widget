@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Ethora Assistant - LOCAL build testbed</title>
+
+    <!--
+      DEBUG HARNESS. Must run BEFORE the widget script so it can wrap
+      WebSocket/fetch before the bundle grabs a reference. Captures:
+        - every XMPP frame the widget sends/receives  -> window.__xmpp
+        - the /v2/widget/sessions envelope            -> window.__session
+      and mirrors errors into the on-page console below.
+      This is what tells you whether a failure is API, MUC join, or UI.
+    -->
+    <script>
+      window.__xmpp = [];
+      window.__session = null;
+      window.__errors = [];
+
+      (function () {
+        var NativeWS = window.WebSocket;
+        function push(dir, data) {
+          var s = typeof data === 'string' ? data : '[binary]';
+          window.__xmpp.push({ t: Date.now(), dir: dir, s: s });
+          // Surface MUC/presence failures immediately, they are the ones that
+          // produce "Conference room does not exist" with no console output.
+          if (dir === 'in' && s.indexOf("type='error'") !== -1) {
+            window.__errors.push(s);
+            if (window.__renderErr) window.__renderErr(s);
+          }
+        }
+        window.WebSocket = function (url, protocols) {
+          var ws = protocols ? new NativeWS(url, protocols) : new NativeWS(url);
+          var nativeSend = ws.send.bind(ws);
+          ws.send = function (d) { push('out', d); return nativeSend(d); };
+          ws.addEventListener('message', function (e) { push('in', e.data); });
+          return ws;
+        };
+        window.WebSocket.prototype = NativeWS.prototype;
+        ['CONNECTING','OPEN','CLOSING','CLOSED'].forEach(function (k, i) {
+          window.WebSocket[k] = i;
+        });
+
+        var nativeFetch = window.fetch;
+        window.fetch = function (input, init) {
+          var url = typeof input === 'string' ? input : (input && input.url) || '';
+          return nativeFetch(input, init).then(function (res) {
+            if (url.indexOf('/widget/sessions') !== -1) {
+              res.clone().json().then(function (j) {
+                window.__session = j;
+                if (window.__renderSession) window.__renderSession(j);
+              }).catch(function () {});
+            }
+            return res;
+          });
+        };
+      })();
+
+      // Wipe every key the widget owns. Use this before each test run: a stale
+      // visitor resumes into a room whose ejabberd MUC may already be gone,
+      // which is the classic source of "Conference room does not exist".
+      window.__resetWidget = function () {
+        [
+          'ethora-widget-visitor',
+          'ethora-widget-app-id',
+          'EthoraAssistantOpen',
+          'assistantChatOpen',
+          'persist:root',
+          'persist:chatSettingStore',
+          'persist:roomMessages',
+          'persist:rooms',
+          'persist:assistanRoomSlice',
+          'persist:roomHeapSlice',
+          '@ethora/chat-component-cache-scope',
+        ].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        location.reload();
+      };
+    </script>
+
+    <!--
+      LOCAL build. Production snippet this mirrors:
+        <script src="https://widget.chat.ethora.com/assistant.js"
+                id="chat-content-assistant"
+                data-app-id="646cc8dc96d4a4dc8f7b2f2d"
+                data-api-base="https://api.chat.ethora.com/v1"></script>
+
+      Bump ?v= after every rebuild or the browser serves the stale 3 MB bundle.
+
+      Attributes below are the ones the CURRENT source actually reads
+      (src/main.tsx readOverrides + src/widget/appearance.ts). Anything not in
+      this list is silently ignored.
+    -->
+    <script
+      src="dist/ethora_assistant.js?v=local4"
+      id="chat-content-assistant"
+      data-app-id="646cc8dc96d4a4dc8f7b2f2d"
+      data-api-base="https://api.chat.ethora.com/v1"
+      data-bot-name="Ethora Assistant"
+      data-title="Chat with Ethora"
+      data-greeting-title="Ask me anything"
+      data-greeting="I can help with SDKs, self-hosting, compliance and pricing."
+      data-greeting-message="Hi! I'm the Ethora assistant. Ask me about the SDKs, self-hosting, compliance or pricing."
+      data-primary-color="#0052CD"
+      data-width="20%"
+      data-height="40%"
+      data-position="right"
+      data-disable-media="true"
+      data-allow-fullscreen="true"
+    ></script>
+
+    <style>
+      body { margin:0; font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; color:#10233f; background:#f3f6fc; }
+      .wrap { max-width:820px; margin:0 auto; padding:40px 24px 200px; }
+      h1 { font-size:22px; margin:0 0 4px; }
+      .sub { color:#5b6b85; margin:0 0 24px; font-size:14px; }
+      .card { background:#fff; border:1px solid #e2e8f3; border-radius:12px; padding:18px 22px; margin-bottom:14px; }
+      .card h2 { font-size:12px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.06em; color:#5b6b85; }
+      code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; background:#eef2fa; padding:1px 5px; border-radius:4px; }
+      pre { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; background:#0b1a33; color:#d8e3f5; padding:12px 14px; border-radius:8px; overflow:auto; margin:0; max-height:260px; }
+      button { font:inherit; font-size:13px; padding:7px 14px; border-radius:8px; border:1px solid #0052CD; background:#0052CD; color:#fff; cursor:pointer; margin:0 6px 6px 0; }
+      button.ghost { background:#fff; color:#0052CD; }
+      table { border-collapse:collapse; width:100%; font-size:13px; }
+      td { padding:5px 8px 5px 0; vertical-align:top; border-bottom:1px solid #eef2fa; }
+      td:first-child { white-space:nowrap; width:220px; }
+      .ok { color:#1a7f37; font-weight:600; }
+      .bad { color:#c33; font-weight:600; }
+      .muted { color:#8fa0bb; }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <h1>Ethora Assistant, local build testbed</h1>
+      <p class="sub">
+        Serving <code>dist/ethora_assistant.js</code> from this working copy, against the production API.
+      </p>
+
+      <div class="card">
+        <h2>Controls</h2>
+        <button onclick="window.__resetWidget()">Reset session &amp; reload</button>
+        <button class="ghost" onclick="dumpXmpp()">Dump XMPP frames</button>
+        <button class="ghost" onclick="dumpSession()">Dump session envelope</button>
+        <button class="ghost" onclick="dumpJoin()">Show MUC join only</button>
+        <p class="sub" style="margin:10px 0 0">
+          Always hit <strong>Reset session</strong> before a test run. A resumed visitor
+          points at a room that may no longer exist on ejabberd.
+        </p>
+        <p class="sub" style="margin:6px 0 0">
+          This page runs the <strong>built</strong> bundle. To iterate on source without
+          rebuilding, run <code>npm run dev</code> and open <code>/dev.html</code>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Live status</h2>
+        <table>
+          <tr><td>Session envelope</td><td id="st-session" class="muted">waiting…</td></tr>
+          <tr><td>Room JID</td><td id="st-room" class="muted">-</td></tr>
+          <tr><td>Visitor JID</td><td id="st-visitor" class="muted">-</td></tr>
+          <tr><td>Bot</td><td id="st-bot" class="muted">-</td></tr>
+          <tr><td>XMPP frames</td><td id="st-frames" class="muted">0</td></tr>
+          <tr><td>Stanza errors</td><td id="st-err" class="muted">none</td></tr>
+          <tr><td>Bundle built</td><td id="st-build" class="muted">checking…</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Output</h2>
+        <pre id="out">Click a Dump button.</pre>
+      </div>
+
+      <div class="card">
+        <h2>Supported embed attributes (read by the current source)</h2>
+        <table>
+          <tr><td><code>data-app-id</code></td><td>required, the Ethora app id</td></tr>
+          <tr><td><code>data-api-base</code></td><td>API base. <code>data-api-url</code> is an accepted alias</td></tr>
+          <tr><td><code>data-bot-name</code></td><td>bot display name (alias <code>data-bot-display-name</code>)</td></tr>
+          <tr><td><code>data-bot-avatar</code></td><td>image URL, also replaces the launcher glyph</td></tr>
+          <tr><td><code>data-title</code></td><td>header label, defaults to the bot name</td></tr>
+          <tr><td><code>data-greeting-title</code> / <code>data-greeting</code></td><td>empty-state copy, rendered via <code>noMessagesPlaceholder</code></td></tr>
+          <tr><td><code>data-disable-media</code></td><td>hide attach + mic, text-only composer. Default false</td></tr>
+          <tr><td><code>data-allow-fullscreen</code></td><td>show the expand control in the header. Default true</td></tr>
+          <tr><td><code>data-start-fullscreen</code></td><td>open expanded. Default false</td></tr>
+          <tr><td><code>data-launcher-icon</code></td><td>custom launcher glyph URL, contained not cropped</td></tr>
+          <tr><td><code>data-launcher-gradient</code></td><td>two colours, e.g. <code>6e72fc,ad1deb</code>. Default is the original violet gradient</td></tr>
+          <tr><td><code>data-flat-launcher</code></td><td>use the flat <code>primary-color</code> instead of the gradient. Default false</td></tr>
+          <tr><td><code>data-launcher-size</code></td><td>diameter in px. Default 56</td></tr>
+          <tr><td><code>data-launcher-glow</code></td><td>pulsing glow. Default true</td></tr>
+          <tr><td><code>data-cta-text</code></td><td>teaser above the launcher. Default "Ask me anything!", empty string disables</td></tr>
+          <tr><td><code>data-cta-delay</code> / <code>data-cta-sparkle</code></td><td>ms before it appears (default 1200) and the leading ✨</td></tr>
+          <tr><td><code>data-greeting-message</code></td><td><strong>starter bubble</strong>: rendered as a bot message, never sent over XMPP. Falls back to the Agent's greeting from the server. Empty = none</td></tr>
+          <tr><td><code>data-hide-system-messages</code></td><td><code>false</code> to show "X has joined"</td></tr>
+          <tr><td><code>data-primary-color</code> / <code>data-secondary-color</code></td><td>theme, bare hex accepted</td></tr>
+          <tr><td><code>data-icons-color</code>, <code>data-own-bubble-bg</code>, <code>data-other-bubble-bg</code>, <code>data-input-bg</code></td><td>fine-grained colors</td></tr>
+          <tr><td><code>data-font-family</code>, <code>data-font-size</code>, <code>data-google-font</code></td><td>typography</td></tr>
+          <tr><td><code>data-position</code></td><td><code>left</code> or <code>right</code>, default right</td></tr>
+          <tr><td><code>data-width</code> / <code>data-height</code></td><td>docked panel size. Bare number = px; <code>px %  vw vh rem em</code> accepted, e.g. <code>40%</code>. Default 360px x 560px</td></tr>
+          <tr><td><code>data-expanded-width</code> / <code>data-expanded-height</code></td><td>size when expanded, same units. Default <code>100%</code> =true fullscreen</td></tr>
+          <tr><td><code>data-expanded-inset</code></td><td>gap around the expanded panel. Default <code>0px</code>: edge to edge, no radius, no shadow. Set <code>16px</code> to float it</td></tr>
+          <tr><td><code>data-locale</code></td><td>UI caption language. Defaults to the page's <code>&lt;html lang&gt;</code>, then the browser</td></tr>
+        </table>
+        <p class="sub" style="margin:12px 0 0">
+          Appearance keys are also overridable per-link via <code>?ethora-&lt;key&gt;=</code>,
+          e.g. <code>?ethora-primary-color=7c3aed&amp;ethora-width=520</code>.
+          <code>app-id</code>, <code>api-base</code> and <code>bot-id</code> deliberately are not.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Rebuild required</h2>
+        <p class="sub" style="margin:0 0 8px">
+          The source now implements the composer toggle, the empty-state placeholder, the
+          fullscreen control and the custom launcher icon, plus the fix for the bogus MAM
+          history requests. <code>dist/</code> in this repo predates all of that, so this page
+          will not show them until you rebuild:
+        </p>
+        <pre>cd ai-assistant-ui &amp;&amp; npx vite build --minify false</pre>
+        <p class="sub" style="margin:8px 0 0">
+          Use <code>npx vite build</code>, not <code>npm run build</code>: the latter gates on
+          <code>tsc</code>, which fails on pre-existing <code>userLogin.user</code> typing errors
+          and leaves a stale <code>dist/</code>. Bump <code>?v=</code> above afterwards.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Known issue this page detects</h2>
+        <p class="sub" style="margin:0">
+          "Conference room does not exist" in Stanza errors is <strong>not</strong> your real
+          room failing. It is five MAM <code>get-history</code> IQs sent to
+          <code>activeRoomJID@</code>, <code>rooms@</code>, <code>usersSet@</code>,
+          <code>subscribedRooms@</code> and <code>pushSubscriptionStatus@</code>: rooms-slice
+          root keys that leaked into the persisted rooms map and then had the conference domain
+          appended to them. The real room joins fine alongside. Fixed in
+          <code>ethora-chat-component</code> via <code>toRoomJid()</code>, which refuses to build
+          a JID out of a non-room value.
+        </p>
+      </div>
+
+      <p class="muted">
+        Filler so the page scrolls and you can confirm the launcher stays pinned. Ethora is a
+        chat and AI-agent SDK: 1:1 and group messaging, AI agents with RAG and MCP, push
+        notifications, video and voice calls, documents wallet. Front-end SDKs are Apache-2.0;
+        the backend engine is closed with a source-access option on Enterprise.
+      </p>
+    </div>
+
+    <script>
+      var out = document.getElementById('out');
+      function show(v) { out.textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); }
+      function dumpSession() { show(window.__session || 'no session captured yet'); }
+      function dumpXmpp() {
+        show(window.__xmpp.map(function (f) {
+          return (f.dir === 'out' ? '>> ' : '<< ') + f.s;
+        }).join('\n\n') || 'no frames');
+      }
+      function dumpJoin() {
+        var f = window.__xmpp.filter(function (x) { return x.s.indexOf('presence') !== -1; });
+        show(f.map(function (x) { return (x.dir === 'out' ? '>> ' : '<< ') + x.s; }).join('\n\n') || 'no presence frames');
+      }
+      window.__renderSession = function (j) {
+        document.getElementById('st-session').innerHTML = '<span class="ok">received</span>';
+        document.getElementById('st-room').textContent = (j.room && j.room.jid) || '-';
+        document.getElementById('st-visitor').textContent = (j.visitor && j.visitor.jid) || '-';
+        document.getElementById('st-bot').textContent =
+          ((j.bot && j.bot.displayName) || '?') + '  ' + ((j.bot && j.bot.jid) || '');
+      };
+      window.__renderErr = function (s) {
+        var el = document.getElementById('st-err');
+        var m = s.match(/<text[^>]*>([^<]+)<\/text>/);
+        el.className = 'bad';
+        el.textContent = (m ? m[1] : 'stanza error') + '  (' + window.__errors.length + ' total)';
+      };
+      setInterval(function () {
+        document.getElementById('st-frames').textContent = window.__xmpp.length;
+      }, 1000);
+
+      // Staleness check. local-test.html serves the BUILT bundle, so the single
+      // most common way to waste an hour here is to look at dist/ from a
+      // previous build and conclude a source change did not work. Read the
+      // bundle's Last-Modified and shout if it looks old.
+      (function () {
+        var el = document.getElementById('st-build');
+        fetch('dist/ethora_assistant.js', { method: 'HEAD' })
+          .then(function (r) {
+            var lm = r.headers.get('last-modified');
+            if (!lm) { el.textContent = 'unknown'; return; }
+            var built = new Date(lm);
+            var ageMin = Math.round((Date.now() - built.getTime()) / 60000);
+            var human = built.toLocaleString();
+            if (ageMin > 30) {
+              el.className = 'bad';
+              el.innerHTML = human + ' &middot; <strong>' + ageMin +
+                ' min old. Run <code>npx vite build --minify false</code>, ' +
+                'or use dev.html for live source.</strong>';
+            } else {
+              el.className = 'ok';
+              el.textContent = human + ' (' + ageMin + ' min ago)';
+            }
+          })
+          .catch(function () { el.textContent = 'could not read'; });
+      })();
+    </script>
+  </body>
+</html>

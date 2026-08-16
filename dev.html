@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Ethora Assistant - DEV (live from src/)</title>
+
+    <!--
+      Live development entry. Loads `/src/main.tsx` directly, so Vite compiles
+      the widget (and the sibling chat-component source it aliases) on every
+      request and hot-reloads on save. There is NO dist/ involved, which means
+      it is impossible to look at a stale bundle here.
+
+          npm run dev          then open the printed URL + /dev.html
+
+      Use local-test.html instead when you specifically want to test the
+      BUILT bundle (that is the artefact customers get).
+    -->
+    <script
+      type="module"
+      src="/src/main.tsx"
+      id="chat-content-assistant"
+      data-app-id="646cc8dc96d4a4dc8f7b2f2d"
+      data-api-base="https://api.chat.ethora.com/v1"
+      data-bot-name="Ethora Assistant"
+      data-title="Chat with Ethora"
+      data-greeting-title="Ask me anything"
+      data-greeting="I can help with SDKs, self-hosting, compliance and pricing."
+      data-greeting-message="Hi! I'm the Ethora assistant. Ask me about the SDKs, self-hosting, compliance or pricing."
+      data-primary-color="#0052CD"
+      data-width="20%"
+      data-height="40%"
+      data-disable-media="true"
+      data-allow-fullscreen="true"
+    ></script>
+
+    <style>
+      body { margin:0; font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; color:#10233f; background:#f3f6fc; }
+      .wrap { max-width:760px; margin:0 auto; padding:48px 24px 200px; }
+      h1 { font-size:22px; margin:0 0 6px; }
+      .sub { color:#5b6b85; font-size:14px; margin:0 0 28px; }
+      .card { background:#fff; border:1px solid #e2e8f3; border-radius:12px; padding:18px 22px; margin-bottom:14px; }
+      .card h2 { font-size:12px; margin:0 0 10px; text-transform:uppercase; letter-spacing:.06em; color:#5b6b85; }
+      code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; background:#eef2fa; padding:1px 5px; border-radius:4px; }
+      pre { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; background:#0b1a33; color:#d8e3f5; padding:12px 14px; border-radius:8px; margin:8px 0 0; overflow:auto; }
+      ul { margin:0; padding-left:20px; } li { margin-bottom:6px; }
+      .good { color:#1a7f37; font-weight:600; }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <h1>DEV entry <span class="good">(live from src/)</span></h1>
+      <p class="sub">
+        Compiled by Vite on the fly. No <code>dist/</code>, so you cannot be looking
+        at a stale bundle here. Edit a file, save, the page reloads.
+      </p>
+
+      <div class="card">
+        <h2>How to run</h2>
+        <pre>cd /Users/admin/Work/ethora/ai-assistant-ui
+npm run dev
+# then open the printed URL with /dev.html appended</pre>
+      </div>
+
+      <div class="card">
+        <h2>Which page to use when</h2>
+        <ul>
+          <li><code>dev.html</code> (this one): iterating on the UI. Always current.</li>
+          <li><code>local-test.html</code>: testing the <strong>built</strong> bundle, with the XMPP debug harness. Needs <code>npx vite build</code> first.</li>
+          <li><code>dev-cdn-reference.html</code>: the shipped production widget, for diffing against.</li>
+          <li><code>dev-launcher-preview.html</code>: static launcher mockup, no backend.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Why <code>python3 -m http.server</code> showed old code</h2>
+        <p style="margin:0" class="sub">
+          It is a plain static file server. It never runs TypeScript or Vite, it just
+          hands over whatever is already on disk. <code>local-test.html</code> loads
+          <code>dist/ethora_assistant.js</code>, so it shows whatever the last
+          <code>vite build</code> produced, no matter how much <code>src/</code> has
+          changed since.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
