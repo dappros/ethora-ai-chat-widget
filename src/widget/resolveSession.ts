@@ -20,6 +20,12 @@ export interface EmbedOverrides {
   greetingTitle?: string;
   greeting?: string;
   /**
+   * Opening line shown as a bot bubble when the conversation is empty.
+   * Distinct from `greeting`, which is the empty-state subtitle: setting this
+   * replaces the empty state entirely, because the room is no longer empty.
+   */
+  greetingMessage?: string;
+  /**
    * Hide MUC system messages (e.g. "X has joined the chat") in the assistant.
    * Defaults to true - they are noise in a single-bot conversation. Set the
    * embed's `data-hide-system-messages="false"` to show them.
@@ -38,6 +44,10 @@ export interface ResolvedPersona {
   greetingTitle: string;
   /** Empty-state body copy. */
   greeting: string;
+  /** Opening bot bubble. Empty string means no starter message. */
+  greetingMessage: string;
+  /** Bot's xmpp username, needed to attribute the starter bubble to the bot. */
+  botXmppUsername: string;
 }
 
 export interface ResolvedXmppSettings {
@@ -123,15 +133,30 @@ export function resolveSession(
   const botAvatar = overrides.botAvatar || envelope.bot.avatarUrl || '';
   const title = overrides.title || botName;
   const greetingTitle = overrides.greetingTitle || 'Write a question';
+  // Deliberately no longer falls back to `envelope.bot.greetingMessage`: that
+  // field is the Agent's opening LINE and now drives the starter bubble, so
+  // using it here too printed the same sentence in two places.
   const greeting =
-    overrides.greeting ||
-    envelope.bot.greetingMessage ||
-    `Our ${botName} will be happy to help`;
+    overrides.greeting || `Our ${botName} will be happy to help`;
+
+  // Resolution: explicit embed attribute -> the Agent's own greeting from the
+  // server -> nothing. No hardcoded fallback copy here: a starter message the
+  // operator never wrote is worse than no starter message at all.
+  const greetingMessage =
+    overrides.greetingMessage ?? envelope.bot.greetingMessage ?? '';
 
   return {
     user,
     roomJID,
     xmppSettings: { devServer, host, conference },
-    persona: { botName, botAvatar, title, greetingTitle, greeting },
+    persona: {
+      botName,
+      botAvatar,
+      title,
+      greetingTitle,
+      greeting,
+      greetingMessage,
+      botXmppUsername: envelope.bot.xmppUsername,
+    },
   };
 }

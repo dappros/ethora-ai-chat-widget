@@ -124,6 +124,7 @@ function readOverrides(get: (name: string) => string | undefined): EmbedOverride
     title: get('data-title'),
     greetingTitle: get('data-greeting-title'),
     greeting: get('data-greeting'),
+    greetingMessage: get('data-greeting-message'),
     // System messages ("X has joined") are hidden by default; opt back in
     // with data-hide-system-messages="false".
     hideSystemMessages: get('data-hide-system-messages') !== 'false',
