@@ -3,15 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat Assistant Demo</title>
+    <title>Ethora AI Assistant - Demo</title>
+
+    <!--
+      Vite serves THIS file at `/`, so it is what `npm run dev` shows with no
+      path. It therefore loads `/src/main.tsx` (live source), NOT `dist/`.
+      Pointing the default page at a built bundle meant `npm run dev` silently
+      rendered whatever the last `vite build` produced, which is
+      indistinguishable from "my change did nothing".
+
+      Embed contract (read by src/main.tsx + src/widget/appearance.ts):
+        data-app-id            (required) the Ethora app id
+        data-bot-id            (back-compat) a bot JID; appId is derived from
+                               its prefix when data-app-id is absent
+        data-api-base          API base URL (data-api-url is an alias)
+        data-title             header label
+        data-bot-name          bot display name
+        data-bot-avatar        bot avatar URL
+        data-greeting-message  opening bot bubble (local only, never sent)
+        data-locale            UI caption language; defaults to <html lang>
+      See local-test.html for the full list.
+    -->
     <script
-      src="dist/ethora_assistant.js"
+      type="module"
+      src="/src/main.tsx"
       id="chat-content-assistant"
-      data-bot-id="your-bot-id"
+      data-app-id="646cc8dc96d4a4dc8f7b2f2d"
+      data-api-base="https://api.chat.ethora.com/v1"
+      data-title="Chat with Ethora"
+      data-bot-name="Ethora Assistant"
+      data-greeting-message="Hi! I'm the Ethora assistant. Ask me about the chat and AI SDKs, self-hosting, compliance or pricing."
+      data-disable-media="true"
+      data-allow-fullscreen="true"
     ></script>
+
+    <style>
+      body {
+        margin: 0;
+        font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #10233f;
+        background: #f3f6fc;
+      }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 160px; }
+      h1 { font-size: 22px; margin: 0 0 6px; }
+      p { margin: 0 0 12px; color: #5b6b85; font-size: 14px; }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12.5px; background: #eef2fa; padding: 1px 5px; border-radius: 4px;
+      }
+      ul { margin: 0; padding-left: 20px; font-size: 14px; color: #5b6b85; }
+      li { margin-bottom: 6px; }
+    </style>
   </head>
   <body>
-    <h1>Chat Assistant Demo</h1>
+    <div class="wrap">
+      <h1>Ethora AI Assistant</h1>
+      <p>
+        Live from <code>/src/main.tsx</code>. Edit a file, save, this reloads.
+        No <code>dist/</code> is involved on this path, so you cannot be looking
+        at a stale bundle.
+      </p>
+      <ul>
+        <li><code>/</code> (this page) and <code>/dev.html</code>: live source.</li>
+        <li><code>/local-test.html</code>: the <strong>built</strong> bundle plus the XMPP debug harness. Run <code>npx vite build --minify false</code> first.</li>
+        <li><code>/dev-cdn-reference.html</code>: the shipped production widget, for diffing against.</li>
+      </ul>
+    </div>
   </body>
-  <footer></footer>
 </html>

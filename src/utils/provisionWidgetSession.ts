@@ -1,6 +1,6 @@
 // AI Widget MUC variant: provision a visitor + room by calling the install's
 // `POST /v2/widget/sessions` endpoint. Replaces the legacy client-side
-// `anon-<uuid>` credential flow that talked 1:1 to the bot JID — visitor
+// `anon-<uuid>` credential flow that talked 1:1 to the bot JID, visitor
 // JIDs are now app-prefixed (`${appId}_widget-<uuid>`) so mod_ethora's
 // per-app guard accepts them as MUC room members, and conversations live
 // in persistent MUC rooms that the platform admin can review later.
@@ -9,7 +9,7 @@
 // visitor on the same browser keeps their identity (and their conversation
 // history is reachable to operators by visitor _id). Cookies vs localStorage:
 // cookies would be sent on every backend call, but the widget only ever uses
-// these creds for the SASL bind to ejabberd — keeping them in localStorage
+// these creds for the SASL bind to ejabberd, keeping them in localStorage
 // avoids exposing the password as a default-attached credential to other
 // origins.
 
@@ -126,7 +126,7 @@ function joinUrl(base: string, path: string): string {
   // either a clean host (`https://api.example.com`) or one already
   // suffixed with the legacy v1 prefix (`https://api.example.com/v1`,
   // which is the conventional VITE_API value in Ethora frontends).
-  // Without this strip, a `data-api-base="https://api.example.com/v1"`
+  // Without this strip, a `data-api-url="https://api.example.com/v1"`
   // on the embed `<script>` produces the wrong URL when joined with
   // `/v2/widget/sessions` — `https://api.example.com/v1/v2/widget/sessions`
   // — which 404s.
@@ -172,14 +172,14 @@ export async function provisionWidgetSession(
   });
 
   if (!response.ok) {
-    // 404 / 409 / 422 — the embed UI shows a generic "couldn't connect"
+    // 404 / 409 / 422, the embed UI shows a generic "couldn't connect"
     // state, but we surface the code on the thrown error so consumers can
     // distinguish "AI not configured here" from a transient outage.
     let detail: any = null;
     try {
       detail = await response.json();
     } catch {
-      // ignore — fall back to status-only error
+      // ignore, fall back to status-only error
     }
     // If the persisted JID is what triggered the error (server rejected our
     // resume), wipe it so the next attempt mints a fresh visitor instead of
@@ -209,7 +209,7 @@ export async function provisionWidgetSession(
     throw new Error('Widget session provisioning returned malformed envelope');
   }
 
-  // Persist for next visit. Includes the password — it's a randomly-generated
+  // Persist for next visit. Includes the password, it's a randomly-generated
   // ejabberd credential scoped to a single anonymous visitor, no harm in
   // localStorage on the embedding origin.
   writePersistedVisitor({

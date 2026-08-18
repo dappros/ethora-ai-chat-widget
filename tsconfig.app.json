@@ -17,6 +17,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* NOTE: do not add `paths` mapping @ethora/chat-component onto the sibling
+       repo's source. It resolves the TS2307s on those imports, but it also
+       drags that entire repo into this project's typecheck under this repo's
+       stricter flags, which produced ~690 errors from code this project does
+       not own. The handful of TS2307s is the cheaper problem: vite resolves
+       those imports at build time via the aliases in vite.config.ts. */
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

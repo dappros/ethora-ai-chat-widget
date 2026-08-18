@@ -1,63 +1,133 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { readFileSync } from 'fs';
-import dts from 'vite-plugin-dts';
+import { visualizer } from 'rollup-plugin-visualizer';
 
-// Read package.json once at config load so the bundle's logged version
-// always matches the published version, instead of drifting against a
-// hardcoded src/version.ts string.
-const pkgJson = JSON.parse(
-  readFileSync(resolve(__dirname, 'package.json'), 'utf8')
+// We consume @ethora/chat-component from SOURCE (the sibling repo) instead of
+// its prebuilt npm dist. Why: the dist bundles its own styled-components copy,
+// which (a) can't be retargeted into a Shadow DOM and (b) can't be
+// tree-shaken. Building from source means one shared styled-components /
+// React / redux instance, so a single StyleSheetManager can pin every style
+// into the widget's shadow root (host page styles untouched), and Vite can
+// tree-shake unused features to shrink the bundle.
+const CHAT_COMPONENT_SRC = resolve(
+  __dirname,
+  '../ethora-chat-component/src'
 );
 
-export default defineConfig(({ mode }) => {
-  const isLibraryBuild = mode === 'library';
+// chat-component's assets/icons.tsx + assets/images.tsx each embed a large
+// base64 raster (the Referrals icon ~127KB, the SendItem icon) that the
+// assistant never shows. Shrink any big embedded raster to a 1x1 transparent
+// pixel at load time, keeping every real (vector) icon export intact. This is
+// surgical: we can't stub the whole icon barrel (34 used icons live there).
+const TRANSPARENT_PIXEL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+const shrinkChatComponentRasterAssets = {
+  name: 'shrink-cc-raster-assets',
+  enforce: 'pre' as const,
+  transform(code: string, id: string) {
+    if (
+      id.includes('ethora-chat-component') &&
+      /assets\/(icons|images)\.tsx$/.test(id)
+    ) {
+      const out = code.replace(
+        /data:image\/(?:png|jpe?g);base64,[A-Za-z0-9+/=]{1000,}/g,
+        TRANSPARENT_PIXEL
+      );
+      if (out !== code) return { code: out, map: null };
+    }
+    return null;
+  },
+};
 
-  return {
-    plugins: [react(), ...(isLibraryBuild ? [dts({ include: ['src'] })] : [])],
-    define: {
-      'process.env': {},
-      __ETHORA_AI_CHAT_WIDGET_VERSION__: JSON.stringify(pkgJson.version || ''),
+// Redirect chat-component's relative `VideoCalls/VideoCallOverlay` import to a
+// null-component stub. That subtree pulls in livekit-client +
+// @livekit/components-react (~200KB gz) for video/audio CALLS the assistant
+// never uses; stubbing the only importer lets Vite tree-shake LiveKit out.
+const stubChatComponentModules = {
+  name: 'stub-chat-component-modules',
+  enforce: 'pre' as const,
+  resolveId(source: string, importer?: string) {
+    if (
+      importer &&
+      importer.includes('ethora-chat-component') &&
+      /(^|\/)VideoCalls\/VideoCallOverlay$/.test(source)
+    ) {
+      return resolve(__dirname, 'src/widget/stubs/video-call-overlay.tsx');
+    }
+    return null;
+  },
+};
+
+export default defineConfig({
+  plugins: [
+    shrinkChatComponentRasterAssets,
+    stubChatComponentModules,
+    react(),
+    ...(process.env.ANALYZE
+      ? [
+          visualizer({
+            filename: 'stats.json',
+            template: 'raw-data',
+            gzipSize: true,
+          }) as any,
+        ]
+      : []),
+  ],
+  define: {
+    'process.env': {},
+  },
+  resolve: {
+    // Single instance of each shared lib across the shell + chat-component
+    // source (load-bearing: prevents duplicate React / styled-components and
+    // keeps the StyleSheetManager + redux store singletons shared).
+    dedupe: [
+      'react',
+      'react-dom',
+      'styled-components',
+      '@reduxjs/toolkit',
+      'react-redux',
+      'redux',
+      'redux-persist',
+    ],
+    alias: [
+      // bare `@ethora/chat-component` -> the library entry (exports Chat etc.)
+      {
+        find: /^@ethora\/chat-component$/,
+        replacement: resolve(CHAT_COMPONENT_SRC, 'main.ts'),
+      },
+      // subpaths `@ethora/chat-component/<x>` -> source `src/<x>` (lets the
+      // shell reach the redux store + slice actions to register the bot room)
+      {
+        find: /^@ethora\/chat-component\/(.*)$/,
+        replacement: `${CHAT_COMPONENT_SRC}/$1`,
+      },
+      // --- Bundle trimming: stub heavy deps the single-bot assistant never
+      // uses, so they drop out of the IIFE. Firebase (push + Google sign-in)
+      // is guarded/unused; the emoji dataset + picker only power message
+      // reactions, which the assistant disables (config.disableInteractions).
+      { find: /^firebase\/app$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-app.ts') },
+      { find: /^firebase\/messaging$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-messaging.ts') },
+      { find: /^firebase\/auth$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-auth.ts') },
+      { find: /^@emoji-mart\/data$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-data.ts') },
+      { find: /^@emoji-mart\/react$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-react.tsx') },
+      // rehype-raw (raw HTML in markdown) -> no-op, drops the parse5 HTML parser.
+      { find: /^rehype-raw$/, replacement: resolve(__dirname, 'src/widget/stubs/rehype-raw.ts') },
+    ],
+  },
+  build: {
+    sourcemap: false,
+    lib: {
+      entry: resolve(__dirname, 'src/main.tsx'),
+      name: 'ChatContentAssistant',
+      formats: ['iife'],
+      fileName: () => 'ethora_assistant.js',
     },
-    build: isLibraryBuild
-      ? {
-          sourcemap: true,
-          // Don't wipe dist/. The deploy runs `npm run build:lib` (library
-          // bundle, consumed by ethora-app-reactjs as a file: dep) and
-          // `npm run build` (standalone IIFE bundle, served by nginx as
-          // `assistant.js` for the AI Widget embed) in sequence. Both
-          // write to the same dist/, so vite's default emptyOutDir:true
-          // means the second one wipes the first. Setting this to false
-          // for library mode lets the standalone bundle survive a
-          // subsequent build:lib (which happens on every deploy via
-          // prepare_local_frontend_dependency_overrides). The standalone
-          // build is left at default emptyOutDir:true since it runs
-          // first in the deploy and benefits from a clean slate.
-          emptyOutDir: false,
-          lib: {
-            entry: resolve(__dirname, 'src/main.ts'),
-            formats: ['es'],
-            fileName: 'main',
-          },
-          rollupOptions: {
-            external: ['react', 'react-dom', 'react/jsx-runtime'],
-          },
-        }
-      : {
-          sourcemap: true,
-          lib: {
-            entry: resolve(__dirname, 'src/main.tsx'),
-            name: 'ChatContentAssistant',
-            formats: ['iife'],
-            fileName: () => 'ethora_assistant.js',
-          },
-          rollupOptions: {
-            external: [],
-            output: {
-              globals: {},
-            },
-          },
-        },
-  };
+    rollupOptions: {
+      external: [],
+      output: {
+        globals: {},
+      },
+    },
+  },
 });

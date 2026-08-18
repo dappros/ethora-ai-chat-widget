@@ -1,82 +1,102 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AssistantTest from './AssistantTest.tsx';
-import './index.css';
+import { StyleSheetManager } from 'styled-components';
+// chat-component's static base stylesheet, pulled in as a string and injected
+// into the widget's Shadow DOM (not the host <head>), so the host page is
+// never restyled. The component's runtime styled-components are pinned into
+// the same shadow root via <StyleSheetManager target>. Because we build
+// chat-component from SOURCE, there is ONE styled-components instance, so this
+// retarget actually captures every style the chat emits.
+import chatComponentCss from '@ethora/chat-component/index.css?inline';
+import Assistant from './Assistant';
 import {
   provisionWidgetSession,
   WidgetSessionEnvelope,
   __widgetSessionStorage,
 } from './utils/provisionWidgetSession';
+import type { EmbedOverrides } from './widget/resolveSession';
+import { readAppearance } from './widget/appearance';
+import { VITE_APP_API_URL } from './config';
 
 // Storage keys we own and clear when the embed identity changes (different
-// app, different visitor). The visitor record itself lives at
-// __widgetSessionStorage.KEY and is cleared by clearStorageForNewApp below.
+// app -> different bot/rooms, no continuity expected).
 const APP_ID_STORAGE_KEY = 'ethora-widget-app-id';
-const PERSIST_ROOT_KEY = 'persist:root';
-const PERSIST_CHAT_SETTINGS_KEY = 'persist:chatSettingStore';
-const PERSIST_ROOMS_KEY = 'persist:roomMessages';
-const PERSIST_ASSISTANT_SLICE_KEY = 'persist:assistanRoomSlice';
-const PERSIST_ROOM_HEAP_KEY = 'persist:roomHeapSlice';
-const ASSISTANT_USER_KEY = 'ethora-assistant-user';
-const ASSISTANT_MESSAGES_KEY = 'ethora-assistant-messages';
-const ASSISTANT_TIMESTAMP_KEY = 'ethora-assistant-timestamp';
-const ASSISTANT_OPEN_STATE_KEYS = ['EthoraAssistantOpen', 'assistantChatOpen'];
+const PERSIST_KEYS = [
+  'persist:root',
+  'persist:chatSettingStore',
+  'persist:roomMessages',
+  'persist:rooms',
+  'persist:assistanRoomSlice',
+  'persist:roomHeapSlice',
+  '@ethora/chat-component-cache-scope',
+];
+const OPEN_STATE_KEYS = ['EthoraAssistantOpen', 'assistantChatOpen'];
 
-// Wipe per-conversation state when the embed binds to a different app on
-// the same browser. Different app = different bot, different rooms, no
-// continuity expected.
 function clearStorageForNewApp(newAppId?: string) {
   if (!newAppId) return;
-  const previousAppId = window.localStorage.getItem(APP_ID_STORAGE_KEY);
+  let previousAppId: string | null = null;
+  try {
+    previousAppId = window.localStorage.getItem(APP_ID_STORAGE_KEY);
+  } catch {
+    return;
+  }
   if (previousAppId && previousAppId === newAppId) return;
 
   try {
-    window.localStorage.removeItem(ASSISTANT_USER_KEY);
-    window.localStorage.removeItem(ASSISTANT_MESSAGES_KEY);
-    window.localStorage.removeItem(ASSISTANT_TIMESTAMP_KEY);
-    ASSISTANT_OPEN_STATE_KEYS.forEach((k) => window.localStorage.removeItem(k));
-
-    window.localStorage.removeItem(PERSIST_ROOT_KEY);
-    window.localStorage.removeItem(PERSIST_CHAT_SETTINGS_KEY);
-    window.localStorage.removeItem(PERSIST_ROOMS_KEY);
-    window.localStorage.removeItem(PERSIST_ASSISTANT_SLICE_KEY);
-    window.localStorage.removeItem(PERSIST_ROOM_HEAP_KEY);
+    OPEN_STATE_KEYS.forEach((k) => window.localStorage.removeItem(k));
+    PERSIST_KEYS.forEach((k) => window.localStorage.removeItem(k));
     __widgetSessionStorage.clear();
+    window.localStorage.setItem(APP_ID_STORAGE_KEY, newAppId);
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.warn('[ethora-widget] Failed to clear storage on app change', e);
   }
-
-  window.localStorage.setItem(APP_ID_STORAGE_KEY, newAppId);
 }
 
-// Per-embed overrides pulled from <script> tag attributes. Every field
-// is optional — missing means "use the default" which is either the
-// active Agent's value (for displayName/avatar/greeting) or a generic
-// platform fallback (for greetingTitle).
-interface EmbedOverrides {
-  botName?: string;
-  botAvatar?: string;
-  title?: string;
-  greetingTitle?: string;
-  greeting?: string;
+// Resolve the install's API base. Precedence: explicit data-api-base /
+// data-api-url -> derived from the script `src` (widget.* -> api.*) ->
+// Ethora Cloud default.
+function resolveApiBase(scriptTag: HTMLElement | null): string {
+  const explicit =
+    scriptTag?.getAttribute('data-api-base')?.trim() ||
+    scriptTag?.getAttribute('data-api-url')?.trim();
+  if (explicit) return explicit;
+
+  const src = (scriptTag as HTMLScriptElement | null)?.src || '';
+  if (src) {
+    try {
+      const u = new URL(src);
+      const host = u.host.replace(/^widget\./, 'api.');
+      return `${u.protocol}//${host}`;
+    } catch {
+      // fall through to default
+    }
+  }
+  return VITE_APP_API_URL;
 }
 
-function mountChatAssistant(
-  container: HTMLElement,
-  envelope: WidgetSessionEnvelope,
-  apiBase: string,
-  overrides: EmbedOverrides
-) {
-  ReactDOM.createRoot(container).render(
-    <AssistantTest envelope={envelope} apiBase={apiBase} overrides={overrides} />
-  );
+// Resolve the appId for the widget-session call. Precedence:
+//   1. explicit data-app-id (the new-arch contract)
+//   2. data-bot-id fallback (back-compat with the existing WP plugin, which
+//      ships a bot JID): an Ethora bot JID is `${appId}_<botUser>-bot@host`,
+//      so the appId is the local-part prefix before the first underscore.
+function resolveAppId(scriptTag: HTMLElement | null): string | undefined {
+  const explicit = scriptTag?.getAttribute('data-app-id')?.trim();
+  if (explicit) return explicit;
+
+  const botId = scriptTag?.getAttribute('data-bot-id')?.trim();
+  if (botId) {
+    const localPart = botId.split('@')[0];
+    if (localPart.includes('_')) {
+      const prefix = localPart.split('_')[0];
+      if (prefix) return prefix;
+    }
+  }
+  return undefined;
 }
 
-function mountErrorState(container: HTMLElement, message: string) {
-  // Minimal inert placeholder so the embedding page sees something rather
-  // than nothing if provisioning failed (network, AI not configured, etc).
-  // Embedded as a small pill, not a chat — operators get a clear failure
-  // signal in the console too.
+function mountErrorState(message: string) {
+  // Minimal inert pill so the embedding page sees a clear failure signal
+  // rather than nothing if provisioning fails (network / AI not configured).
   const node = document.createElement('div');
   node.setAttribute('role', 'status');
   node.style.cssText = [
@@ -93,135 +113,113 @@ function mountErrorState(container: HTMLElement, message: string) {
     'z-index:2147483647',
   ].join(';');
   node.textContent = message;
-  container.appendChild(node);
+  document.body.appendChild(node);
 }
 
-function createChatWidgetDiv(): HTMLDivElement {
-  const chatWidgetContainer = document.createElement('div');
-  chatWidgetContainer.id = 'chat-widget';
-  return chatWidgetContainer;
+function readOverrides(get: (name: string) => string | undefined): EmbedOverrides {
+  return {
+    // data-bot-display-name kept as a back-compat alias for data-bot-name.
+    botName: get('data-bot-name') || get('data-bot-display-name'),
+    botAvatar: get('data-bot-avatar'),
+    title: get('data-title'),
+    greetingTitle: get('data-greeting-title'),
+    greeting: get('data-greeting'),
+    greetingMessage: get('data-greeting-message'),
+    // System messages ("X has joined") are hidden by default; opt back in
+    // with data-hide-system-messages="false".
+    hideSystemMessages: get('data-hide-system-messages') !== 'false',
+  };
 }
 
-// Derive the install's API base from the script tag's `src` URL when not
-// explicitly given. Convention: a deploy that hosts `assistant.js` at
-// `https://widget.foo.example.com/assistant.js` runs its API at
-// `https://api.foo.example.com`. So we replace the leading "widget." label
-// with "api.". Operators with non-standard layouts pass `data-api-base`
-// explicitly.
-function deriveApiBase(scriptTag: HTMLElement | null): string | undefined {
-  if (!scriptTag) return undefined;
-  // `data-api-url` is the legacy attribute name shipped by the WordPress
-  // plugin's bundled embed. Accepted as an alias so pre-2.0 plugin
-  // installs keep working when the rebuilt bundle is dropped in.
-  const explicit =
-    scriptTag.getAttribute('data-api-base') ||
-    scriptTag.getAttribute('data-api-url');
-  if (explicit) return explicit;
-  const src = (scriptTag as HTMLScriptElement).src || '';
-  if (!src) return undefined;
+// Cosmetic config getter: a URL query param (`ethora-<name>`) overrides the
+// embed `data-<name>` attribute, so the look can be tuned per-link without
+// editing the page. Restricted to cosmetic/appearance keys - appId / apiBase /
+// botId are intentionally NOT URL-overridable (a URL must never repoint the
+// widget at a different bot or backend).
+function makeCosmeticGetter(scriptTag: HTMLElement | null) {
+  let url: URLSearchParams;
   try {
-    const u = new URL(src);
-    const host = u.host.replace(/^widget\./, 'api.');
-    return `${u.protocol}//${host}`;
+    url = new URLSearchParams(window.location.search);
   } catch {
-    return undefined;
+    url = new URLSearchParams();
   }
+  return (dataAttr: string): string | undefined => {
+    const fromUrl = url.get('ethora-' + dataAttr.replace(/^data-/, ''));
+    if (fromUrl != null && fromUrl.length) return fromUrl;
+    const v = scriptTag?.getAttribute(dataAttr);
+    return v && v.length ? v : undefined;
+  };
 }
-
-let bootstrapAttempts = 0;
-const BOOTSTRAP_MAX_ATTEMPTS = 200; // ~2s at 10ms intervals
 
 async function bootstrap() {
   if (!document.body) {
     setTimeout(bootstrap, 10);
     return;
   }
+  if (document.getElementById('chat-widget')) return;
 
-  const existing = document.getElementById('chat-widget');
-  if (existing) return;
-
-  // Some embedding hosts (notably the WordPress plugin pre-v1.7.x) inject the
-  // chat-content-assistant config tag via a separate inline script that runs
-  // *after* this bundle is loaded. The bundle script tag appears earlier in
-  // document order, so on first call the config tag may not exist yet. Poll
-  // briefly before giving up.
   const scriptTag = document.getElementById('chat-content-assistant');
-  if (!scriptTag) {
-    bootstrapAttempts += 1;
-    if (bootstrapAttempts < BOOTSTRAP_MAX_ATTEMPTS) {
-      setTimeout(bootstrap, 10);
-      return;
-    }
-    // eslint-disable-next-line no-console
-    console.error(
-      '[ethora-widget] no #chat-content-assistant tag found after polling; embed cannot start.'
-    );
-    return;
-  }
+  const appId = resolveAppId(scriptTag);
+  const apiBase = resolveApiBase(scriptTag);
 
-  let appId = scriptTag?.getAttribute('data-app-id') || undefined;
-  const apiBase = deriveApiBase(scriptTag);
-
-  // Legacy fallback: the WordPress plugin's settings field stores a bot
-  // JID of the form `${appId}_${userId}-bot@${xmppHost}`. The leading
-  // underscore-delimited segment is always the app ID (App IDs are
-  // 24-char Mongo ObjectId hex and never contain underscores), so
-  // parsing it out lets pre-2.0 plugin installs keep working without a
-  // PHP-side settings migration when the rebuilt bundle is dropped in.
   if (!appId) {
-    const legacyBotId = scriptTag?.getAttribute('data-bot-id') || '';
-    const candidate = legacyBotId.split('_')[0];
-    if (candidate) appId = candidate;
-  }
-
-  if (!appId || !apiBase) {
     // eslint-disable-next-line no-console
     console.error(
-      '[ethora-widget] missing data-app-id (or legacy data-bot-id) and/or data-api-base; embed cannot start.',
-      { appId, apiBase }
+      '[ethora-widget] missing data-app-id (or a data-bot-id to derive it from) on the embed <script id="chat-content-assistant">; widget cannot start.'
     );
     return;
   }
 
-  // Read all per-embed overrides up-front. `data-bot-display-name` is
-  // an alias for `data-bot-name` kept for back-compat with operators
-  // running snippets generated before the param rename.
-  const stripUndef = (v: string | null) => (v && v.length ? v : undefined);
-  const overrides: EmbedOverrides = {
-    botName:
-      stripUndef(scriptTag?.getAttribute('data-bot-name') || null) ||
-      stripUndef(scriptTag?.getAttribute('data-bot-display-name') || null),
-    botAvatar: stripUndef(scriptTag?.getAttribute('data-bot-avatar') || null),
-    title: stripUndef(scriptTag?.getAttribute('data-title') || null),
-    greetingTitle: stripUndef(
-      scriptTag?.getAttribute('data-greeting-title') || null
-    ),
-    greeting: stripUndef(scriptTag?.getAttribute('data-greeting') || null),
-  };
-
+  const cosmeticGet = makeCosmeticGetter(scriptTag);
+  const overrides = readOverrides(cosmeticGet);
+  const appearance = readAppearance(cosmeticGet);
   clearStorageForNewApp(appId);
 
-  const chatWidgetContainer = createChatWidgetDiv();
-  document.body.appendChild(chatWidgetContainer);
+  // Host element + Shadow DOM: the entire widget renders inside the shadow
+  // root, so neither the host page's CSS reaches the chat nor the chat's CSS
+  // reaches the host page.
+  const host = document.createElement('div');
+  host.id = 'chat-widget';
+  document.body.appendChild(host);
+  const shadow = host.attachShadow({ mode: 'open' });
+
+  // chat-component's static CSS, scoped to the shadow root.
+  const staticStyle = document.createElement('style');
+  staticStyle.textContent = chatComponentCss as unknown as string;
+  shadow.appendChild(staticStyle);
+
+  // React mount point inside the shadow.
+  const appRoot = document.createElement('div');
+  shadow.appendChild(appRoot);
 
   let envelope: WidgetSessionEnvelope;
   try {
     envelope = await provisionWidgetSession({ appId, apiBase });
   } catch (e: any) {
     const code = e?.code;
-    let userMessage = 'Chat is temporarily unavailable.';
+    let message = 'Chat is temporarily unavailable.';
     if (code === 'AI_BOT_NOT_CONFIGURED') {
-      userMessage = 'AI assistant is not configured for this site yet.';
+      message = 'AI assistant is not configured for this site yet.';
     } else if (code === 'APP_NOT_FOUND') {
-      userMessage = 'Chat configuration error: app not recognised.';
+      message = 'Chat configuration error: app not recognised.';
     }
     // eslint-disable-next-line no-console
     console.error('[ethora-widget] session provisioning failed:', e);
-    mountErrorState(chatWidgetContainer, userMessage);
+    mountErrorState(message);
     return;
   }
 
-  mountChatAssistant(chatWidgetContainer, envelope, apiBase, overrides);
+  ReactDOM.createRoot(appRoot).render(
+    // Pin chat-component's (single-instance) styled-components into the shadow.
+    <StyleSheetManager target={shadow as unknown as HTMLElement}>
+      <Assistant
+        envelope={envelope}
+        apiBase={apiBase}
+        overrides={overrides}
+        appearance={appearance}
+      />
+    </StyleSheetManager>
+  );
 }
 
 bootstrap();
