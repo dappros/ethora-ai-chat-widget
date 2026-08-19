@@ -70,6 +70,10 @@ export function registerGreeting({
 
   injected.add(roomJID);
 
+  // One second back is enough to beat any human reply and small enough that
+  // the timestamp still reads as "just now" in the bubble.
+  const backdated = Date.now() - 1000;
+
   store.dispatch(
     addRoomMessage({
       roomJID,
@@ -77,10 +81,17 @@ export function registerGreeting({
         id: greetingId(roomJID),
         body,
         roomJid: roomJID,
-        date: new Date().toISOString(),
-        // Backdated by a second so it always sorts above the visitor's first
-        // reply even when they answer immediately.
-        timestamp: Date.now() - 1000,
+        // Backdated so the greeting always sorts above the visitor's first
+        // reply, even if they answer instantly.
+        //
+        // It has to be set on ALL THREE fields. `compareMessageOrder` reads
+        // `messageTimestampMs` when the key is present at all, and otherwise
+        // falls back to `date` BEFORE `timestamp` - so backdating only
+        // `timestamp` (the obvious choice) is silently ignored whenever
+        // `date` is set, which it always is.
+        messageTimestampMs: backdated,
+        date: new Date(backdated).toISOString(),
+        timestamp: backdated,
         user: {
           id: botXmppUsername,
           name: botName,
