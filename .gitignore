@@ -8,9 +8,25 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# `dist/*`, not `dist`: git will not re-include a file whose parent directory
+# is excluded, so the negation below only works if the directory itself stays
+# unignored.
+dist/*
 dist-ssr
 *.local
+
+# ...except the shipped embed bundle. Consumers install this package straight
+# from git (`github:dappros/ai-assistant-ui#<sha>`), and npm only builds a git
+# dependency if the package has a `prepare` script. This one cannot have a
+# working one: the build resolves @ethora/chat-component from the SIBLING
+# checkout (../ethora-chat-component/src, see vite.config.ts), and the
+# published chat-component tarball ships only `dist`, no sources. So the built
+# file has to be in the tree, or a git install silently yields a package whose
+# "main" points at nothing.
+#
+# Update it with `npx vite build --minify false` and commit the result in the
+# same commit as the version bump.
+!dist/ethora_assistant.js
 
 # Editor directories and files
 .vscode/*
