@@ -135,9 +135,14 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     name: 'data-width',
     group: 'layout',
     example: '20%',
-    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em accepted. Default 20%.',
+    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em and calc() accepted. Default calc(20vw + 60px).',
   },
-  { name: 'data-height', group: 'layout', example: '40%', doc: 'Docked panel height, same units. Default 40%.' },
+  {
+    name: 'data-height',
+    group: 'layout',
+    example: '40%',
+    doc: 'Docked panel height, same units. Default calc(40vh + 20px).',
+  },
   { name: 'data-expanded-width', group: 'layout', example: '100%', doc: 'Width when expanded. Default 100%.' },
   { name: 'data-expanded-height', group: 'layout', example: '100%', doc: 'Height when expanded. Default 100%.' },
   {
@@ -146,7 +151,12 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     example: '0px',
     doc: 'Gap around the expanded panel. Default 0px, i.e. edge to edge with no radius or shadow.',
   },
-  { name: 'data-disable-media', group: 'layout', example: 'true', doc: 'Hide the attach and microphone controls.' },
+  {
+    name: 'data-disable-media',
+    group: 'layout',
+    example: 'true',
+    doc: 'Hide the attach and microphone controls. Default true; pass "false" to re-enable them.',
+  },
   {
     name: 'data-allow-fullscreen',
     group: 'layout',

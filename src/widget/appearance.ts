@@ -32,12 +32,13 @@ export interface Appearance {
   /** Which side the launcher/popup dock to. Default "right". */
   position: 'left' | 'right';
   /**
-   * Popup width as a CSS length. A bare number means px, and `%`, `px`, `vw`,
-   * `vh`, `rem` and `em` are accepted, so a desktop embed can size the panel
-   * relative to the viewport ("40%") instead of guessing pixels. Default 20%.
+   * Popup width as a CSS length. A bare number means px; `%`, `px`, `vw`,
+   * `vh`, `rem`, `em` and `calc()` are accepted, so an embed can size the
+   * panel against the viewport instead of guessing pixels.
+   * Default `calc(20vw + 60px)`.
    */
   width: string;
-  /** Popup height, same units as `width`. Default 40%. */
+  /** Popup height, same units as `width`. Default `calc(40vh + 20px)`. */
   height: string;
   /** Width when expanded. Same units. Default 100% (true fullscreen). */
   expandedWidth: string;
@@ -51,7 +52,7 @@ export interface Appearance {
   /**
    * Hide the attach + microphone controls in the composer, leaving a
    * text-only input. Maps onto chat-component's `IConfig.disableMedia`.
-   * Default false.
+   * Default TRUE for an assistant; pass "false" to re-enable them.
    */
   disableMedia: boolean;
   /**
@@ -103,12 +104,12 @@ export interface Appearance {
 
 const DEFAULT_PRIMARY = '#1976d2';
 const DEFAULT_SECONDARY = '#E1E4FE';
-// Viewport-relative by default: a fixed 360x560 box is a phone-sized sliver
-// on a 27" monitor and overflows a small laptop. Percentages are resolved
-// against the viewport (see toViewportLength in Assistant.tsx) and clamped so
-// the panel can never exceed the screen.
-const DEFAULT_WIDTH = '20%';
-const DEFAULT_HEIGHT = '40%';
+// Desktop default: a viewport share plus a fixed nudge. The share keeps the
+// panel sensible from a laptop to a 27" monitor; the +60/+20 is the margin
+// that made the composer and the bubbles stop feeling cramped in review.
+// toViewportLength maps the % to vw/vh, since the panel is position: fixed.
+const DEFAULT_WIDTH = 'calc(20vw + 60px)';
+const DEFAULT_HEIGHT = 'calc(40vh + 20px)';
 
 export function readAppearance(
   get: (name: string) => string | undefined
@@ -127,6 +128,10 @@ export function readAppearance(
     if (!t) return fallback;
     if (/^-?\d+(\.\d+)?$/.test(t)) return `${t}px`;
     if (/^-?\d+(\.\d+)?(px|%|vw|vh|svh|dvh|rem|em)$/.test(t)) return t;
+    // calc() lets a default mix a viewport share with a fixed nudge. Kept
+    // deliberately narrow (digits, units, spaces and + - * /) so an embed
+    // attribute can never inject arbitrary CSS into the style attribute.
+    if (/^calc\([0-9a-z%.\s+\-*/()]+\)$/i.test(t)) return t;
     return fallback;
   };
   // Accept a bare hex ("7c3aed") and add the leading '#', so URL params don't
@@ -159,7 +164,10 @@ export function readAppearance(
   const text = (v: string | undefined, fallback: string) =>
     v === undefined ? fallback : v;
   return {
-    disableMedia: flag(get('data-disable-media'), false),
+    // Off by default: an AI assistant is a text conversation, and the attach
+    // and mic controls invite uploads the bot cannot do anything with.
+    // Set data-disable-media="false" to bring them back.
+    disableMedia: flag(get('data-disable-media'), true),
     allowFullscreen: flag(get('data-allow-fullscreen'), true),
     startFullscreen: flag(get('data-start-fullscreen'), false),
     launcherIcon: get('data-launcher-icon'),
