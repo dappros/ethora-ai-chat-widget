@@ -12,7 +12,8 @@
     "build:lib": "vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "lint:fix": "npx eslint --fix && prettier . --write"
+    "lint:fix": "npx eslint --fix && prettier . --write",
+    "check:attributes": "node scripts/check-attributes.mjs"
   },
   "dependencies": {
     "@ethora/chat-component": "^26.5.8",

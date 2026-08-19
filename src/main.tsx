@@ -15,6 +15,11 @@ import {
 } from './utils/provisionWidgetSession';
 import type { EmbedOverrides } from './widget/resolveSession';
 import { readAppearance } from './widget/appearance';
+import {
+  installPublicApi,
+  registerTeardown,
+} from './widget/publicApi';
+import { ETHORA_CHAT_ASSISTANT_VERSION } from './version';
 import { VITE_APP_API_URL } from './config';
 
 // Storage keys we own and clear when the embed identity changes (different
@@ -39,7 +44,24 @@ function clearStorageForNewApp(newAppId?: string) {
   } catch {
     return;
   }
-  if (previousAppId && previousAppId === newAppId) return;
+  // Same app is NOT enough to skip the wipe. The visitor identity and the
+  // cached rooms map are written independently, so they can disagree: a host
+  // that clears only the visitor (the admin preview used to) leaves a rooms
+  // map pointing at rooms that no longer exist, and the chat then fires MAM
+  // history requests at them - the "Conference room does not exist" noise.
+  // Treat that mismatch as a reason to wipe, regardless of the app id.
+  let inconsistent = false;
+  try {
+    const hasVisitor = !!window.localStorage.getItem('ethora-widget-visitor');
+    const hasRooms =
+      !!window.localStorage.getItem('persist:rooms') ||
+      !!window.localStorage.getItem('persist:roomMessages');
+    inconsistent = hasRooms && !hasVisitor;
+  } catch {
+    // storage unreadable; fall through to the app-id comparison
+  }
+
+  if (previousAppId && previousAppId === newAppId && !inconsistent) return;
 
   try {
     OPEN_STATE_KEYS.forEach((k) => window.localStorage.removeItem(k));
@@ -156,6 +178,10 @@ async function bootstrap() {
     setTimeout(bootstrap, 10);
     return;
   }
+  // Installed before anything can fail, so a host can always call reset()
+  // even when provisioning never succeeds.
+  installPublicApi(ETHORA_CHAT_ASSISTANT_VERSION);
+
   if (document.getElementById('chat-widget')) return;
 
   const scriptTag = document.getElementById('chat-content-assistant');
@@ -209,7 +235,12 @@ async function bootstrap() {
     return;
   }
 
-  ReactDOM.createRoot(appRoot).render(
+  const reactRoot = ReactDOM.createRoot(appRoot);
+  registerTeardown(() => {
+    reactRoot.unmount();
+    host.remove();
+  });
+  reactRoot.render(
     // Pin chat-component's (single-instance) styled-components into the shadow.
     <StyleSheetManager target={shadow as unknown as HTMLElement}>
       <Assistant
