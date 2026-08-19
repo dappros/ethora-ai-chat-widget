@@ -101,9 +101,16 @@ store.dispatch(
     const room = s2?.rooms?.rooms?.[roomJID];
     if (!room) return;
     const messages: any[] = Array.isArray(room.messages) ? room.messages : [];
-    // The visitor (or the bot) has really spoken: the greeting's job is done
-    // for good, even if it was itself wiped. Stop watching.
-    if (messages.some((m) => !isGreetingMessageId(m?.id))) {
+    // Only HUMAN/bot conversation retires the greeting. System messages must
+    // not count: the MUC join immediately stores "<bot> has joined the chat"
+    // (isSystemMessage), which the widget renders as null via
+    // HiddenSystemMessage - so the panel LOOKED empty while this guard saw a
+    // "real" message, unsubscribed, and the greeting never appeared. That was
+    // the actual root cause, found by inspecting the store at runtime.
+    const isReal = (m: any) =>
+      !isGreetingMessageId(m?.id) &&
+      !(m?.isSystemMessage === true || m?.isSystemMessage === 'true');
+    if (messages.some(isReal)) {
       unsubscribe?.();
       return;
     }
@@ -114,6 +121,12 @@ store.dispatch(
   let unsubscribe: (() => void) | null = null;
   unsubscribe = store.subscribe(ensure);
   ensure();
+  // Debug hook: lets a host page inspect the engine store the widget runs on.
+  try {
+    (window as any).__ethoraStore = store;
+  } catch {
+    // ignore
+  }
 }
 
 /** Test seam: forget what has been injected in this tab. */
