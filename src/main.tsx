@@ -61,7 +61,15 @@ function clearStorageForNewApp(newAppId?: string) {
     // storage unreadable; fall through to the app-id comparison
   }
 
-  if (previousAppId && previousAppId === newAppId && !inconsistent) return;
+  // ALWAYS wipe the engine's persisted state, same app or not. The server
+  // mints a NEW room on every /v2/widget/sessions call (verified against
+  // production), so a rehydrated rooms map can only ever point at rooms from
+  // previous sessions - and rehydrating it is exactly what left resumed
+  // visitors stuck on "Connecting…" while first-time visitors worked. Only
+  // the visitor identity (ethora-widget-visitor) is worth keeping across
+  // loads, and it is not in these lists.
+  void previousAppId;
+  void inconsistent;
 
   try {
     OPEN_STATE_KEYS.forEach((k) => window.localStorage.removeItem(k));

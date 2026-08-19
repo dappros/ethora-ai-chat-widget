@@ -47,50 +47,24 @@ export function registerGreeting({
   botAvatar,
 }: GreetingInput): void {
   const body = (text || '').trim();
-  if (!roomJID || !body || injected.has(roomJID)) return;
-  // NB: `injected` is only marked once the room exists and the decision is
-  // final, so the wait-for-room path below can safely re-enter.
-
-  const state: any = store.getState();
-  const room = state?.rooms?.rooms?.[roomJID];
-  // The room must exist first (registerWidgetRoom injects it), otherwise the
-  // reducer has nowhere to put the message and it is silently dropped.
-  //
-  // On a cold start it does NOT exist yet: provisioning, the SASL bind and the
-  // MUC join all have to finish, and the panel sits on "Connecting..." for a
-  // second or two. A single attempt at mount time therefore always lost the
-  // race and the greeting never appeared. Wait for the room instead, the same
-  // way registerWidgetRoom waits, and unsubscribe as soon as it lands.
-  if (!room) {
-    const unsubscribe = store.subscribe(() => {
-      const s: any = store.getState();
-      if (!s?.rooms?.rooms?.[roomJID]) return;
-      unsubscribe();
-      registerGreeting({ roomJID, text, botXmppUsername, botName, botAvatar });
-    });
-    return;
-  }
-
-  const messages: any[] = Array.isArray(room.messages) ? room.messages : [];
-  // Only greet an untouched conversation. If real history exists, opening with
-  // "Hi, how can I help?" above a week-old thread reads as a bug.
-  const hasRealMessages = messages.some((m) => !isGreetingMessageId(m?.id));
-  if (hasRealMessages) {
-    injected.add(roomJID);
-    return;
-  }
-  if (messages.some((m) => m?.id === greetingId(roomJID))) {
-    injected.add(roomJID);
-    return;
-  }
-
+  if (!roomJID || !body) return;
+  // One SUBSCRIPTION per room, not one injection per room. The greeting kept
+  // vanishing right after it appeared: the MAM history sync lands a moment
+  // after the MUC join, and for a fresh widget room the server's history is
+  // empty - the merge replaced the room's messages and wiped the local bubble.
+  // So, like registerWidgetRoom, keep a store subscription that re-asserts the
+  // greeting whenever the room exists and holds no real conversation. The
+  // guards make every pass a no-op once the greeting is present or the visitor
+  // has actually spoken, so it converges instead of looping.
+  if (injected.has(roomJID)) return;
   injected.add(roomJID);
 
-  // One second back is enough to beat any human reply and small enough that
-  // the timestamp still reads as "just now" in the bubble.
-  const backdated = Date.now() - 1000;
-
-  store.dispatch(
+  const inject = () => {
+    // Backdated so the greeting sorts above the visitor's first reply. Must
+    // be on all three fields: compareMessageOrder prefers messageTimestampMs,
+    // then date, then timestamp.
+    const backdated = Date.now() - 1000;
+store.dispatch(
     addRoomMessage({
       roomJID,
       message: {
@@ -120,6 +94,26 @@ export function registerGreeting({
       start: false,
     } as any)
   );
+  };
+
+  const ensure = () => {
+    const s2: any = store.getState();
+    const room = s2?.rooms?.rooms?.[roomJID];
+    if (!room) return;
+    const messages: any[] = Array.isArray(room.messages) ? room.messages : [];
+    // The visitor (or the bot) has really spoken: the greeting's job is done
+    // for good, even if it was itself wiped. Stop watching.
+    if (messages.some((m) => !isGreetingMessageId(m?.id))) {
+      unsubscribe?.();
+      return;
+    }
+    if (messages.some((m) => m?.id === greetingId(roomJID))) return;
+    inject();
+  };
+
+  let unsubscribe: (() => void) | null = null;
+  unsubscribe = store.subscribe(ensure);
+  ensure();
 }
 
 /** Test seam: forget what has been injected in this tab. */
