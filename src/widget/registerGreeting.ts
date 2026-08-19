@@ -48,12 +48,28 @@ export function registerGreeting({
 }: GreetingInput): void {
   const body = (text || '').trim();
   if (!roomJID || !body || injected.has(roomJID)) return;
+  // NB: `injected` is only marked once the room exists and the decision is
+  // final, so the wait-for-room path below can safely re-enter.
 
   const state: any = store.getState();
   const room = state?.rooms?.rooms?.[roomJID];
   // The room must exist first (registerWidgetRoom injects it), otherwise the
-  // reducer has nowhere to put the message and we would silently drop it.
-  if (!room) return;
+  // reducer has nowhere to put the message and it is silently dropped.
+  //
+  // On a cold start it does NOT exist yet: provisioning, the SASL bind and the
+  // MUC join all have to finish, and the panel sits on "Connecting..." for a
+  // second or two. A single attempt at mount time therefore always lost the
+  // race and the greeting never appeared. Wait for the room instead, the same
+  // way registerWidgetRoom waits, and unsubscribe as soon as it lands.
+  if (!room) {
+    const unsubscribe = store.subscribe(() => {
+      const s: any = store.getState();
+      if (!s?.rooms?.rooms?.[roomJID]) return;
+      unsubscribe();
+      registerGreeting({ roomJID, text, botXmppUsername, botName, botAvatar });
+    });
+    return;
+  }
 
   const messages: any[] = Array.isArray(room.messages) ? room.messages : [];
   // Only greet an untouched conversation. If real history exists, opening with

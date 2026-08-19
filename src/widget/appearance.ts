@@ -35,10 +35,10 @@ export interface Appearance {
    * Popup width as a CSS length. A bare number means px; `%`, `px`, `vw`,
    * `vh`, `rem`, `em` and `calc()` are accepted, so an embed can size the
    * panel against the viewport instead of guessing pixels.
-   * Default `calc(20vw + 60px)`.
+   * Default `calc(20vw + 30px)`.
    */
   width: string;
-  /** Popup height, same units as `width`. Default `calc(40vh + 20px)`. */
+  /** Popup height, same units as `width`. Default `calc(40vh + 32px)`. */
   height: string;
   /** Width when expanded. Same units. Default 100% (true fullscreen). */
   expandedWidth: string;
@@ -105,11 +105,11 @@ export interface Appearance {
 const DEFAULT_PRIMARY = '#1976d2';
 const DEFAULT_SECONDARY = '#E1E4FE';
 // Desktop default: a viewport share plus a fixed nudge. The share keeps the
-// panel sensible from a laptop to a 27" monitor; the +60/+20 is the margin
+// panel sensible from a laptop to a 27" monitor; the +30/+32 is the margin
 // that made the composer and the bubbles stop feeling cramped in review.
 // toViewportLength maps the % to vw/vh, since the panel is position: fixed.
-const DEFAULT_WIDTH = 'calc(20vw + 60px)';
-const DEFAULT_HEIGHT = 'calc(40vh + 20px)';
+const DEFAULT_WIDTH = 'calc(20vw + 30px)';
+const DEFAULT_HEIGHT = 'calc(40vh + 32px)';
 
 export function readAppearance(
   get: (name: string) => string | undefined

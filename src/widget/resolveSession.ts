@@ -13,6 +13,9 @@
 
 import type { WidgetSessionEnvelope } from '../utils/provisionWidgetSession';
 
+/** Shown when neither the embed nor the Agent supplies an opening line. */
+const DEFAULT_GREETING_MESSAGE = 'Hi, how can I help you?';
+
 export interface EmbedOverrides {
   botName?: string;
   botAvatar?: string;
@@ -140,10 +143,12 @@ export function resolveSession(
     overrides.greeting || `Our ${botName} will be happy to help`;
 
   // Resolution: explicit embed attribute -> the Agent's own greeting from the
-  // server -> nothing. No hardcoded fallback copy here: a starter message the
-  // operator never wrote is worse than no starter message at all.
+  // server -> a neutral default. The default exists because an assistant that
+  // opens with a blank panel reads as broken; an operator who genuinely wants
+  // silence sets data-greeting-message="".
   const greetingMessage =
-    overrides.greetingMessage ?? envelope.bot.greetingMessage ?? '';
+    overrides.greetingMessage ??
+    (envelope.bot.greetingMessage || DEFAULT_GREETING_MESSAGE);
 
   return {
     user,
