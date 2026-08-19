@@ -52,6 +52,7 @@ export const OWNED_STORAGE_KEYS = [
   'persist:assistanRoomSlice',
   'persist:roomHeapSlice',
   '@ethora/chat-component-cache-scope',
+  '@ethora/chat-component-user-session',
 ] as const;
 
 export function clearOwnedStorage(): void {

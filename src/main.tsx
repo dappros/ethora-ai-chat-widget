@@ -33,6 +33,7 @@ const PERSIST_KEYS = [
   'persist:assistanRoomSlice',
   'persist:roomHeapSlice',
   '@ethora/chat-component-cache-scope',
+  '@ethora/chat-component-user-session',
 ];
 const OPEN_STATE_KEYS = ['EthoraAssistantOpen', 'assistantChatOpen'];
 
@@ -228,7 +229,18 @@ async function bootstrap() {
 
   let envelope: WidgetSessionEnvelope;
   try {
-    envelope = await provisionWidgetSession({ appId, apiBase });
+    // resumeXmppUsername: null = mint a fresh visitor every load. Resume is
+    // deliberately OFF: the server creates a NEW room on every session call,
+    // so resuming the visitor identity gives no conversation continuity - it
+    // only exercised an engine path that came up blank (header, no messages,
+    // no empty state) while first visits worked end to end. When the server
+    // learns to return the SAME room for a resumed visitor, flip this back
+    // to reading the persisted identity.
+    envelope = await provisionWidgetSession({
+      appId,
+      apiBase,
+      resumeXmppUsername: null,
+    });
   } catch (e: any) {
     const code = e?.code;
     let message = 'Chat is temporarily unavailable.';
