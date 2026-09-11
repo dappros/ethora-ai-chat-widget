@@ -126,8 +126,13 @@ export function readAppearance(
     if (v === undefined) return fallback;
     const t = v.trim();
     if (!t) return fallback;
-    if (/^-?\d+(\.\d+)?$/.test(t)) return `${t}px`;
-    if (/^-?\d+(\.\d+)?(px|%|vw|vh|svh|dvh|rem|em)$/.test(t)) return t;
+    // Zero or negative is never a usable panel size, only a symptom of a
+    // form that stored 0 for an empty field (the WordPress plugin did, via
+    // absint('')). Honouring it opened the chat as an invisible 0x0 panel.
+    const lead = parseFloat(t);
+    if (Number.isFinite(lead) && lead <= 0) return fallback;
+    if (/^\d+(\.\d+)?$/.test(t)) return `${t}px`;
+    if (/^\d+(\.\d+)?(px|%|vw|vh|svh|dvh|rem|em)$/.test(t)) return t;
     // calc() lets a default mix a viewport share with a fixed nudge. Kept
     // deliberately narrow (digits, units, spaces and + - * /) so an embed
     // attribute can never inject arbitrary CSS into the style attribute.

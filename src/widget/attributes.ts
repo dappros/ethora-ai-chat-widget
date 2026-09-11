@@ -61,7 +61,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     name: 'data-bot-name',
     group: 'copy',
     example: 'Ethora Assistant',
-    doc: "Bot display name. Defaults to the active Agent's name.",
+    doc: "Bot display name, used everywhere the bot appears: header, greeting and every bot message. Defaults to the active Agent's name, then to the name the bot gives on its own messages.",
   },
   {
     name: 'data-bot-display-name',
@@ -74,7 +74,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     name: 'data-bot-avatar',
     group: 'copy',
     example: 'https://your-cdn/avatar.png',
-    doc: 'Bot avatar URL. Also used as the launcher image unless data-launcher-icon is set.',
+    doc: "Bot avatar URL, shown on the bot's messages only. Never used for the launcher or the header - set data-launcher-icon for those.",
   },
   {
     name: 'data-title',
@@ -166,7 +166,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
   { name: 'data-start-fullscreen', group: 'layout', example: 'false', doc: 'Open expanded. Default false.' },
 
   // --- launcher ---------------------------------------------------------
-  { name: 'data-launcher-icon', group: 'launcher', example: '', doc: 'Custom launcher glyph URL, contained not cropped.' },
+  { name: 'data-launcher-icon', group: 'launcher', example: 'https://your-site/icon.png', doc: 'Widget icon URL (any image URL, e.g. a file from a media library). Shown on the launcher and in the panel header, contained not cropped. Without it the launcher shows the default glyph and the header the first letter of the title.' },
   {
     name: 'data-launcher-gradient',
     group: 'launcher',

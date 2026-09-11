@@ -51,6 +51,15 @@ export interface ResolvedPersona {
   greetingMessage: string;
   /** Bot's xmpp username, needed to attribute the starter bubble to the bot. */
   botXmppUsername: string;
+  /**
+   * True when `botName` was actually chosen - by the embed (data-bot-name) or
+   * by the Agent's displayName - rather than being the generic fallback. Only
+   * a chosen name may override the name the bot stamps on its own messages;
+   * the fallback must never paper over the bot's real name.
+   */
+  botNameExplicit: boolean;
+  /** True when the embed set data-title. */
+  titleExplicit: boolean;
 }
 
 export interface ResolvedXmppSettings {
@@ -162,6 +171,8 @@ export function resolveSession(
       greeting,
       greetingMessage,
       botXmppUsername: envelope.bot.xmppUsername,
+      botNameExplicit: !!(overrides.botName || envelope.bot.displayName),
+      titleExplicit: !!overrides.title,
     },
   };
 }

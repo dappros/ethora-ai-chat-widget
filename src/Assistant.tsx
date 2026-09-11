@@ -4,6 +4,7 @@ import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
 import { registerWidgetRoom } from './widget/registerWidgetRoom';
 import { registerGreeting } from './widget/registerGreeting';
+import { store as chatStore } from '@ethora/chat-component/roomStore';
 import { Appearance } from './widget/appearance';
 // Deep source imports (the vite alias maps `@ethora/chat-component/<x>` onto
 // the sibling repo's `src/<x>`), so the widget reuses the engine's own art and
@@ -218,6 +219,30 @@ export default function Assistant({
     return () => clearTimeout(t);
   }, [hasMounted, roomJID, persona]);
 
+  // When neither the embed nor the Agent named the bot, the header must not
+  // sit on the generic fallback while the bot's own replies carry its real
+  // name. registerWidgetRoom adopts that name into the store from the bot's
+  // first message; mirror it here.
+  const [learnedBotName, setLearnedBotName] = useState('');
+  useEffect(() => {
+    if (persona.botNameExplicit || !persona.botXmppUsername) return;
+    const read = () => {
+      const entry = (chatStore.getState() as any)?.rooms?.usersSet?.[
+        persona.botXmppUsername
+      ];
+      const name = entry
+        ? `${entry.firstName || ''} ${entry.lastName || ''}`.trim()
+        : '';
+      setLearnedBotName((prev) => (prev === name ? prev : name));
+    };
+    read();
+    return chatStore.subscribe(read);
+  }, [persona.botNameExplicit, persona.botXmppUsername]);
+  const headerTitle =
+    persona.titleExplicit || persona.botNameExplicit
+      ? persona.title
+      : learnedBotName || persona.title;
+
   // appId is the prefix of the server-issued visitor username
   // (`${appId}_widget-<uuid>`); surfaced to chat-component for completeness.
   const appId = useMemo(
@@ -336,6 +361,9 @@ export default function Assistant({
       // No message reactions / context menu in the assistant. Also lets the
       // build stub out the emoji picker + dataset (see vite.config aliases).
       disableInteractions: true,
+      // A single-bot conversation has no profiles worth opening: clicking the
+      // bot's avatar must do nothing (it used to open an empty profile card).
+      disableProfilesInteractions: true,
       // Text-only composer when the embed asks for it: hides attach + mic.
       disableMedia: appearance.disableMedia,
       // Empty-state copy. Without this the panel renders blank on a fresh
@@ -543,24 +571,20 @@ export default function Assistant({
           )}
         <button
           type="button"
-          aria-label={`Open ${persona.title}`}
+          aria-label={`Open ${headerTitle}`}
           onClick={() => setOpen(true)}
           style={launcherStyle}
         >
+          {/* The widget's icon is its own setting (data-launcher-icon), never
+              the bot's avatar: the avatar belongs to the bot's messages, and
+              borrowing it made a person's photo the site's chat button.
+              Padded and contained, not cover-cropped, so a flat glyph reads
+              correctly on the coloured circle. */}
           {appearance.launcherIcon ? (
-            // data-launcher-icon wins: it themes ONLY the launcher, and is
-            // padded rather than cover-cropped so a flat glyph reads correctly
-            // on the coloured circle.
             <img
               src={appearance.launcherIcon}
               alt=""
               style={{ width: '58%', height: '58%', objectFit: 'contain' }}
-            />
-          ) : persona.botAvatar ? (
-            <img
-              src={persona.botAvatar}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
             <ChatGlyph size={Math.round(launcherSize * 0.57)} />
@@ -573,23 +597,23 @@ export default function Assistant({
       {hasMounted && (
         <div
           role="dialog"
-          aria-label={persona.title}
+          aria-label={headerTitle}
           style={{ ...panelStyle, display: open ? 'flex' : 'none' }}
         >
           <header style={headerStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
               <span style={avatarStyle}>
-                {persona.botAvatar ? (
+                {appearance.launcherIcon ? (
                   <img
-                    src={persona.botAvatar}
+                    src={appearance.launcherIcon}
                     alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
                   />
                 ) : (
-                  persona.title.slice(0, 1).toUpperCase()
+                  headerTitle.slice(0, 1).toUpperCase()
                 )}
               </span>
-              <span style={titleStyle}>{persona.title}</span>
+              <span style={titleStyle}>{headerTitle}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
               {appearance.allowFullscreen && (
