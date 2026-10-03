@@ -90,10 +90,21 @@ const hostFromJid = (jid?: string): string => {
   return jid.split('@')[1] || '';
 };
 
+// Before a session exists (the launcher is shown, the visitor has not opened
+// the panel yet) only the persona is needed; it comes from the embed
+// overrides and platform defaults, exactly as it would with an envelope that
+// carries no Agent persona.
+const EMPTY_ENVELOPE: WidgetSessionEnvelope = {
+  visitor: { xmppUsername: '', xmppPassword: '', uuid: '' },
+  room: { name: '', chatId: '' },
+  bot: { xmppUsername: '' },
+};
+
 export function resolveSession(
-  envelope: WidgetSessionEnvelope,
+  envelopeOrNull: WidgetSessionEnvelope | null,
   overrides: EmbedOverrides = {}
 ): ResolvedSession {
+  const envelope = envelopeOrNull || EMPTY_ENVELOPE;
   // Prefer the fully-qualified host from the server response; fall back to
   // deriving it from any JID in the envelope.
   const host =

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { XmppProvider, Chat } from '@ethora/chat-component';
 import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
@@ -138,10 +138,24 @@ function withAlpha(color: string, alpha: number): string {
 const HiddenSystemMessage = () => null;
 
 interface AssistantProps {
-  envelope: WidgetSessionEnvelope;
+  /**
+   * Provisions (or resumes) the visitor session on demand. Called once, the
+   * first time the panel opens or the launcher is hovered, never at page
+   * load: a visitor who only reads the page costs the platform nothing, and
+   * crawlers never trigger it at all.
+   */
+  provision: () => Promise<WidgetSessionEnvelope>;
   apiBase: string;
   overrides?: EmbedOverrides;
   appearance: Appearance;
+}
+
+// Copy for the panel when the session could not be provisioned.
+function provisionErrorMessage(e: any): string {
+  const code = e?.code;
+  if (code === 'AI_BOT_NOT_CONFIGURED') return 'AI assistant is not configured for this site yet.';
+  if (code === 'APP_NOT_FOUND') return 'Chat configuration error: app not recognised.';
+  return 'Chat is temporarily unavailable. Please try again in a moment.';
 }
 
 /**
@@ -161,11 +175,35 @@ interface AssistantProps {
  * attributes; theme colors/fonts are forwarded into chat-component's config.
  */
 export default function Assistant({
-  envelope,
+  provision,
   apiBase,
   overrides,
   appearance,
 }: AssistantProps) {
+  // The session arrives lazily (see AssistantProps.provision). Until then the
+  // persona resolves from the embed overrides and defaults, which is all the
+  // launcher and the panel header need.
+  const [envelope, setEnvelope] = useState<WidgetSessionEnvelope | null>(null);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
+  const provisionInFlight = useRef<Promise<void> | null>(null);
+
+  const startProvision = useCallback(() => {
+    if (envelope || provisionInFlight.current) return;
+    setProvisionError(null);
+    provisionInFlight.current = provision()
+      .then((env) => {
+        setEnvelope(env);
+      })
+      .catch((e: any) => {
+        // eslint-disable-next-line no-console
+        console.error('[ethora-widget] session provisioning failed:', e);
+        setProvisionError(provisionErrorMessage(e));
+      })
+      .finally(() => {
+        provisionInFlight.current = null;
+      });
+  }, [envelope, provision]);
+
   const session = useMemo(
     () => resolveSession(envelope, overrides),
     [envelope, overrides]
@@ -181,17 +219,22 @@ export default function Assistant({
       return false;
     }
   });
-  // Once opened, keep the chat engine mounted (visibility toggles, no remount).
-  const [hasMounted, setHasMounted] = useState<boolean>(open);
+  // Once the panel is open and the session exists, keep the chat engine
+  // mounted (visibility toggles, no remount).
+  const [hasMounted, setHasMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    if (open) setHasMounted(true);
+    if (open) startProvision();
     try {
       window.localStorage.setItem(OPEN_STATE_KEY, open ? '1' : '0');
     } catch {
       // ignore (storage disabled)
     }
-  }, [open]);
+  }, [open, startProvision]);
+
+  useEffect(() => {
+    if (open && envelope) setHasMounted(true);
+  }, [open, envelope]);
 
   // Register the known MUC room directly in chat-component's store once the
   // chat engine has mounted (so it runs after redux-persist rehydration and
@@ -545,6 +588,11 @@ export default function Assistant({
           type="button"
           aria-label={`Open ${persona.title}`}
           onClick={() => setOpen(true)}
+          // Hover / focus is a strong signal a person is about to open the
+          // panel; starting the session now hides its round trip behind the
+          // click. Crawlers do neither.
+          onMouseEnter={startProvision}
+          onFocus={startProvision}
           style={launcherStyle}
         >
           {appearance.launcherIcon ? (
@@ -569,8 +617,9 @@ export default function Assistant({
         </>
       )}
 
-      {/* Popup panel: mounted on first open, then hidden (not unmounted). */}
-      {hasMounted && (
+      {/* Popup panel: shown while the session provisions, then the chat engine
+          mounts into it on first open and stays mounted (hidden, not unmounted). */}
+      {(open || hasMounted) && (
         <div
           role="dialog"
           aria-label={persona.title}
@@ -615,14 +664,29 @@ export default function Assistant({
           </header>
 
           <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-            <XmppProvider config={config}>
-              <Chat
-                user={{ email: '', password: '' }}
-                roomJID={roomJID}
-                config={config}
-                MainComponentStyles={{ height: '100%' }}
-              />
-            </XmppProvider>
+            {hasMounted ? (
+              <XmppProvider config={config}>
+                <Chat
+                  user={{ email: '', password: '' }}
+                  roomJID={roomJID}
+                  config={config}
+                  MainComponentStyles={{ height: '100%' }}
+                />
+              </XmppProvider>
+            ) : (
+              <div style={pendingStyle} role="status">
+                {provisionError ? (
+                  <>
+                    <span>{provisionError}</span>
+                    <button type="button" onClick={startProvision} style={retryStyle}>
+                      Try again
+                    </button>
+                  </>
+                ) : (
+                  <span>Connecting…</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -631,6 +695,28 @@ export default function Assistant({
 }
 
 /* --- static chrome styles (color-independent) --- */
+
+const pendingStyle: React.CSSProperties = {
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 12,
+  padding: 24,
+  textAlign: 'center',
+  font: '14px/1.5 inherit',
+  color: '#555',
+};
+
+const retryStyle: React.CSSProperties = {
+  border: '1px solid #ccc',
+  borderRadius: 8,
+  background: '#fff',
+  padding: '6px 14px',
+  font: 'inherit',
+  cursor: 'pointer',
+};
 
 const avatarStyle: React.CSSProperties = {
   width: 32,
