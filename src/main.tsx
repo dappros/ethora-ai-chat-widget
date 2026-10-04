@@ -87,6 +87,16 @@ function resolveApiBase(scriptTag: HTMLElement | null): string {
   return VITE_APP_API_URL;
 }
 
+// Origin the widget script came from; pdf.js is served beside it under /pdfjs/.
+function resolveAssetBase(scriptTag: HTMLElement | null): string {
+  const src = (scriptTag as HTMLScriptElement | null)?.src || '';
+  try {
+    return src ? new URL(src).origin : '';
+  } catch {
+    return '';
+  }
+}
+
 // Resolve the appId for the widget-session call. Precedence:
 //   1. explicit data-app-id (the new-arch contract)
 //   2. data-bot-id fallback (back-compat with the existing WP plugin, which
@@ -178,6 +188,7 @@ async function bootstrap() {
   const scriptTag = document.getElementById('chat-content-assistant');
   const appId = resolveAppId(scriptTag);
   const apiBase = resolveApiBase(scriptTag);
+  const assetBase = resolveAssetBase(scriptTag);
 
   if (!appId) {
     // eslint-disable-next-line no-console
@@ -229,6 +240,7 @@ async function bootstrap() {
       <Assistant
         provision={provision}
         apiBase={apiBase}
+        assetBase={assetBase}
         overrides={overrides}
         appearance={appearance}
       />
