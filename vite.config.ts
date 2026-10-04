@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { copyFileSync, mkdirSync } from 'fs';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // We consume @ethora/chat-component from SOURCE (the sibling repo) instead of
@@ -59,8 +60,29 @@ const stubChatComponentModules = {
   },
 };
 
+// Copies the pdf.js ES module build and its worker into dist/pdfjs/ so the
+// widget host serves them next to assistant.js. Resolved from the sibling
+// chat-component checkout, the same place the component source comes from.
+function copyPdfjsPlugin() {
+  return {
+    name: 'copy-pdfjs',
+    closeBundle() {
+      const srcDir = resolve(
+        __dirname,
+        '../ethora-chat-component/node_modules/pdfjs-dist/legacy/build'
+      );
+      const outDir = resolve(__dirname, 'dist/pdfjs');
+      mkdirSync(outDir, { recursive: true });
+      for (const f of ['pdf.min.mjs', 'pdf.worker.min.mjs']) {
+        copyFileSync(resolve(srcDir, f), resolve(outDir, f));
+      }
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    copyPdfjsPlugin(),
     shrinkChatComponentRasterAssets,
     stubChatComponentModules,
     react(),
@@ -124,7 +146,13 @@ export default defineConfig({
       fileName: () => 'ethora_assistant.js',
     },
     rollupOptions: {
-      external: [],
+      // pdf.js stays out of the single-file bundle (1.7 MB, half of it). The
+      // component loads it at runtime from `pdfPreview.libUrl`, which the
+      // widget points at the copies the plugin below places in dist/pdfjs/.
+      // A dynamic import of these specifiers would fail inside the IIFE, but
+      // it is only reached when no libUrl is configured, and then pdf
+      // previews fall back to the static document card.
+      external: [/^pdfjs-dist\//],
       output: {
         globals: {},
       },

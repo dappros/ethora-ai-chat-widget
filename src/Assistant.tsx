@@ -146,6 +146,12 @@ interface AssistantProps {
    */
   provision: () => Promise<WidgetSessionEnvelope>;
   apiBase: string;
+  /**
+   * Origin the widget script was loaded from. pdf.js is served from there
+   * (`/pdfjs/`) and loaded only when a PDF is shown, instead of being part
+   * of the bundle.
+   */
+  assetBase?: string;
   overrides?: EmbedOverrides;
   appearance: Appearance;
 }
@@ -177,6 +183,7 @@ function provisionErrorMessage(e: any): string {
 export default function Assistant({
   provision,
   apiBase,
+  assetBase,
   overrides,
   appearance,
 }: AssistantProps) {
@@ -372,6 +379,14 @@ export default function Assistant({
       userLogin: { enabled: true, user },
       xmppSettings,
       defaultRooms: [{ jid: roomJID, pinned: true }],
+      ...(assetBase
+        ? {
+            pdfPreview: {
+              libUrl: `${assetBase}/pdfjs/pdf.min.mjs`,
+              workerSrc: `${assetBase}/pdfjs/pdf.worker.min.mjs`,
+            },
+          }
+        : {}),
       newArch: false,
       disableRooms: true,
       disableHeader: true,
