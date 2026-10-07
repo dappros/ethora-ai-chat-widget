@@ -120,7 +120,7 @@ function clearPersistedVisitor(): void {
   }
 }
 
-function joinUrl(base: string, path: string): string {
+export function joinUrl(base: string, path: string): string {
   if (!base) return path;
   // Strip any trailing /vN (or /vN/) so the caller's apiBase can be
   // either a clean host (`https://api.example.com`) or one already
