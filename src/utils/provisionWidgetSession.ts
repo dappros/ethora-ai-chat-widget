@@ -164,6 +164,13 @@ export async function provisionWidgetSession(
   const url = joinUrl(apiBase, '/v2/widget/sessions');
   const body: Record<string, string> = { appId };
   if (resumeXmppUsername) body.resumeXmppUsername = resumeXmppUsername;
+  // The page the chat is opened on, shown to the operator under Users >
+  // Visitors. The API keeps only origin + path (no query or fragment).
+  try {
+    if (typeof window !== 'undefined' && window.location?.href) body.pageUrl = window.location.href;
+  } catch {
+    // sandboxed frames can refuse location access; the API falls back to Referer
+  }
 
   const response = await fetch(url, {
     method: 'POST',
