@@ -81,6 +81,11 @@ function copyPdfjsPlugin() {
 }
 
 export default defineConfig({
+  // Escape every non-ASCII character in the bundle (emoji, accented strings)
+  // as \u escapes. The script is embedded on other people's pages and a
+  // classic <script> is decoded in the page's charset, so on a page that is
+  // not UTF-8 raw bytes came out garbled (the teaser's sparkle as "âœ¨").
+  esbuild: { charset: 'ascii' },
   plugins: [
     copyPdfjsPlugin(),
     shrinkChatComponentRasterAssets,
