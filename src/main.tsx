@@ -15,6 +15,7 @@ import {
 } from './utils/provisionWidgetSession';
 import type { EmbedOverrides } from './widget/resolveSession';
 import { readAppearance } from './widget/appearance';
+import { fetchStoredAppearance, type StoredAppearance } from './widget/storedAppearance';
 import {
   installPublicApi,
   registerTeardown,
@@ -156,10 +157,11 @@ function readOverrides(get: (name: string) => string | undefined): EmbedOverride
 
 // Cosmetic config getter: a URL query param (`ethora-<name>`) overrides the
 // embed `data-<name>` attribute, so the look can be tuned per-link without
-// editing the page. Restricted to cosmetic/appearance keys - appId / apiBase /
-// botId are intentionally NOT URL-overridable (a URL must never repoint the
-// widget at a different bot or backend).
-function makeCosmeticGetter(scriptTag: HTMLElement | null) {
+// editing the page, and both override what the App saved in the admin's AI
+// Widget tab (`stored`). Restricted to cosmetic/appearance keys - appId /
+// apiBase / botId are intentionally NOT URL-overridable (a URL must never
+// repoint the widget at a different bot or backend).
+function makeCosmeticGetter(scriptTag: HTMLElement | null, stored: StoredAppearance = {}) {
   let url: URLSearchParams;
   try {
     url = new URLSearchParams(window.location.search);
@@ -170,7 +172,9 @@ function makeCosmeticGetter(scriptTag: HTMLElement | null) {
     const fromUrl = url.get('ethora-' + dataAttr.replace(/^data-/, ''));
     if (fromUrl != null && fromUrl.length) return fromUrl;
     const v = scriptTag?.getAttribute(dataAttr);
-    return v && v.length ? v : undefined;
+    if (v && v.length) return v;
+    const s = stored[dataAttr];
+    return s && s.length ? s : undefined;
   };
 }
 
@@ -198,7 +202,9 @@ async function bootstrap() {
     return;
   }
 
-  const cosmeticGet = makeCosmeticGetter(scriptTag);
+  const stored = await fetchStoredAppearance({ appId, apiBase });
+  if (document.getElementById('chat-widget')) return;
+  const cosmeticGet = makeCosmeticGetter(scriptTag, stored);
   const overrides = readOverrides(cosmeticGet);
   const appearance = readAppearance(cosmeticGet);
   clearStorageForNewApp(appId);
