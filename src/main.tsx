@@ -88,11 +88,15 @@ function resolveApiBase(scriptTag: HTMLElement | null): string {
   return VITE_APP_API_URL;
 }
 
-// Origin the widget script came from; pdf.js is served beside it under /pdfjs/.
+// Directory the widget script was loaded from, without the trailing slash;
+// pdf.js is served beside the script under pdfjs/. Using the directory rather
+// than the origin keeps the hosted build unchanged (assistant.js sits at the
+// host root) and lets a copy served from a sub-path, such as the WordPress
+// plugin's assets/js/, find its own pdfjs/ folder.
 function resolveAssetBase(scriptTag: HTMLElement | null): string {
   const src = (scriptTag as HTMLScriptElement | null)?.src || '';
   try {
-    return src ? new URL(src).origin : '';
+    return src ? new URL('.', src).href.replace(/\/$/, '') : '';
   } catch {
     return '';
   }
