@@ -45,3 +45,6 @@ dist-ssr
 .claude
 Claude.md
 stats.json
+
+# Server CI checks out ethora-chat-component here (see .github/workflows)
+.ci/
