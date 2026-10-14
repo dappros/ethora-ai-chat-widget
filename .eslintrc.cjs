@@ -16,5 +16,7 @@ module.exports = {
     ],
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn'],
+    // The embed shim and the firebase/emoji stubs take loosely typed values on purpose.
+    '@typescript-eslint/no-explicit-any': 'warn',
   },
 };
