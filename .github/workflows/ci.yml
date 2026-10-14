@@ -1,0 +1,66 @@
+name: CI
+
+# Server CI runs when dev has been merged into main. Feature, fix and hotfix
+# branches are checked locally before they reach dev (npm run ci:local, run by
+# .githooks/pre-push). See docs/WORKFLOW.md.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-main
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, attributes, rules, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the chat-component ref
+        id: ref
+        run: echo "ref=$(tr -d '[:space:]' < chat-component.ref)" >> "$GITHUB_OUTPUT"
+
+      # The widget compiles chat-component from source (vite.config.ts alias to
+      # ../ethora-chat-component/src), so the checkout must sit next to this one.
+      - name: Check out ethora-chat-component at the pinned ref
+        uses: actions/checkout@v4
+        with:
+          repository: dappros/ethora-chat-component
+          ref: ${{ steps.ref.outputs.ref }}
+          path: .ci/ethora-chat-component
+
+      - name: Install chat-component dependencies
+        working-directory: .ci/ethora-chat-component
+        run: npm ci --ignore-scripts
+
+      - name: Link chat-component where vite.config.ts looks for it
+        run: ln -sfn "$GITHUB_WORKSPACE/.ci/ethora-chat-component" "$GITHUB_WORKSPACE/../ethora-chat-component"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Attribute contract
+        run: npm run check:attributes
+
+      - name: Release script rules
+        run: npm run test:release
+
+      # Readable, not minified: the WordPress.org review requires human-readable JS.
+      - name: Build the widget bundle
+        run: npx vite build --minify false
