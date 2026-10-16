@@ -109,6 +109,9 @@ jobs:
       - name: Build the widget bundle
         run: npx vite build --minify false
 
+      - name: Check the bundle is readable
+        run: node scripts/check-bundle.mjs dist/ethora_assistant.js
+
   publish:
     needs: verify
     runs-on: ubuntu-latest
@@ -155,6 +158,9 @@ jobs:
 
       - name: Build the widget bundle
         run: npx vite build --minify false
+
+      - name: Check the bundle is readable
+        run: node scripts/check-bundle.mjs dist/ethora_assistant.js
 
       - name: Publish with provenance
         env:

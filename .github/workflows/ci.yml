@@ -64,3 +64,6 @@ jobs:
       # Readable, not minified: the WordPress.org review requires human-readable JS.
       - name: Build the widget bundle
         run: npx vite build --minify false
+
+      - name: Check the bundle is readable
+        run: node scripts/check-bundle.mjs dist/ethora_assistant.js
