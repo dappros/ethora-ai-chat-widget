@@ -107,6 +107,18 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     doc: "UI caption language. Defaults to the page's <html lang>, then the browser.",
   },
   {
+    name: 'data-language-selector',
+    group: 'copy',
+    example: 'false',
+    doc: 'Globe in the header that lets the reader pick the UI language (English, Español, Français). Default true; the choice is remembered. Set false to hide it.',
+  },
+  {
+    name: 'data-color-scheme',
+    group: 'theme',
+    example: 'system',
+    doc: 'Chat colour scheme: light (default), dark, or system to follow the visitor\'s OS setting.',
+  },
+  {
     name: 'data-hide-system-messages',
     group: 'copy',
     example: 'true',
@@ -128,20 +140,26 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
   { name: 'data-font-family', group: 'theme', example: '', doc: 'Explicit font family for the chat and chrome.' },
   { name: 'data-font-size', group: 'theme', example: '', doc: 'Base font size, e.g. "16".' },
   { name: 'data-google-font', group: 'theme', example: 'Inter', doc: 'Google Fonts family to load automatically.' },
+  {
+    name: 'data-button-style',
+    group: 'theme',
+    example: 'pill',
+    doc: 'Look of the quick-reply buttons: "pill" (default, outlined buttons that fill on hover) or "list" (one bordered row per option with a chevron).',
+  },
 
   // --- layout -----------------------------------------------------------
   { name: 'data-position', group: 'layout', example: 'right', doc: 'Dock side: "left" or "right". Default right.' },
   {
     name: 'data-width',
     group: 'layout',
-    example: '20%',
-    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em and calc() accepted. Default calc(20vw + 30px).',
+    example: '384px',
+    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em, calc(), clamp(), min() and max() accepted. Default 384px. Readers can drag the top-left corner to resize. Under 520px wide the panel becomes a full-width bottom sheet.',
   },
   {
     name: 'data-height',
     group: 'layout',
-    example: '40%',
-    doc: 'Docked panel height, same units. Default calc(40vh + 32px).',
+    example: '524px',
+    doc: 'Docked panel height, same units. Default 524px.',
   },
   { name: 'data-expanded-width', group: 'layout', example: '100%', doc: 'Width when expanded. Default 100%.' },
   { name: 'data-expanded-height', group: 'layout', example: '100%', doc: 'Height when expanded. Default 100%.' },

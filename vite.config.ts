@@ -111,6 +111,8 @@ export default defineConfig({
       { find: /^firebase\/auth$/, replacement: resolve(__dirname, 'src/widget/stubs/firebase-auth.ts') },
       { find: /^@emoji-mart\/data$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-data.ts') },
       { find: /^@emoji-mart\/react$/, replacement: resolve(__dirname, 'src/widget/stubs/emoji-react.tsx') },
+      // pdf.js (lib + worker, ~1.7MB): only used for PDF thumbnails, media is off.
+      { find: /^pdfjs-dist\/.*$/, replacement: resolve(__dirname, 'src/widget/stubs/pdfjs.ts') },
       // rehype-raw (raw HTML in markdown) -> no-op, drops the parse5 HTML parser.
       { find: /^rehype-raw$/, replacement: resolve(__dirname, 'src/widget/stubs/rehype-raw.ts') },
     ],

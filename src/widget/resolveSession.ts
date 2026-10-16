@@ -12,6 +12,7 @@
 // `roomJID` (active) + `defaultRooms` (force MUC join) + `disableRooms`.
 
 import type { WidgetSessionEnvelope } from '../utils/provisionWidgetSession';
+import { VITE_APP_XMPP_BASEDOMAIN } from '../config';
 
 /** Shown when neither the embed nor the Agent supplies an opening line. */
 const DEFAULT_GREETING_MESSAGE = 'Hi, how can I help you?';
@@ -119,9 +120,11 @@ export function resolveSession(
   const devServer =
     envelope.xmpp?.wsUrl || (host ? `wss://${host}/ws` : '');
 
+  // chat-component silently drops a room whose JID has no "@" (addRoom is a
+  // no-op), which shows up as a permanent "No room". Always hand it a full JID.
   const roomJID =
     envelope.room.jid ||
-    (conference ? `${envelope.room.name}@${conference}` : envelope.room.name);
+    `${envelope.room.name}@${conference || `conference.${VITE_APP_XMPP_BASEDOMAIN}`}`;
 
   // The visitor identity used for the SASL bind. xmppUsername + xmppPassword
   // are appId-prefixed (`${appId}_widget-<uuid>`) so mod_ethora's per-app

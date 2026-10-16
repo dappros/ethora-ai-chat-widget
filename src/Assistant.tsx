@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { XmppProvider, Chat } from '@ethora/chat-component';
 import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
@@ -6,16 +6,26 @@ import { registerWidgetRoom } from './widget/registerWidgetRoom';
 import { registerGreeting } from './widget/registerGreeting';
 import { store as chatStore } from '@ethora/chat-component/roomStore';
 import { Appearance } from './widget/appearance';
-// Deep source imports (the vite alias maps `@ethora/chat-component/<x>` onto
-// the sibling repo's `src/<x>`), so the widget reuses the engine's own art and
-// icons instead of shipping near-duplicates that drift from it.
-import { NoMessagesIllustration } from '@ethora/chat-component/assets/illustrations/NoMessagesIllustration';
+import { quickRepliesCss, attachQuickReplyLayout } from './widget/quickReplies';
+import { CHROME_CSS } from './widget/chromeCss';
+import { WidgetTypingBubble } from './widget/typingBubble';
+import {
+  WIDGET_LANGUAGES,
+  DEFAULT_COPY,
+  makeT,
+  matchLanguage,
+} from './widget/i18n';
+import { setLangSource } from '@ethora/chat-component/roomStore/chatSettingsSlice';
 
 // Persisted open/closed state so a page navigation keeps the panel as the
 // visitor left it. Kept as the same key the legacy widget used.
 const OPEN_STATE_KEY = 'EthoraAssistantOpen';
 const EXPANDED_STATE_KEY = 'EthoraAssistantExpanded';
 const CTA_DISMISSED_KEY = 'EthoraAssistantCtaDismissed';
+const LOCALE_KEY = 'EthoraAssistantLocale';
+const SIZE_KEY = 'EthoraAssistantSize';
+const MIN_W = 320;
+const MIN_H = 400;
 const Z = 2147483000;
 
 // The shipped widget's launcher gradient, kept as the default so an embed that
@@ -24,6 +34,8 @@ const DEFAULT_GRADIENT_FROM = '#6e72fc';
 const DEFAULT_GRADIENT_TO = '#ad1deb';
 /** How long the teaser stays up once shown. Matches the original 5s. */
 const CTA_VISIBLE_MS = 5000;
+/** Length of the panel's close animation (see .ew-panel.ew-closing). */
+const CLOSE_MS = 170;
 
 /**
  * chat-component publishes its font on `--ethora-font-family`, but its default
@@ -64,46 +76,6 @@ function resolveUiLocale(explicit?: string): string {
 }
 
 /**
- * Keyframes for the launcher glow and the teaser's bounce. These have to
- * be real CSS (inline styles cannot express keyframes) and are injected into
- * the widget's Shadow DOM, so they cannot leak into the host page.
- * `--ethora-glow-*` is set per-instance from the resolved gradient.
- *
- * `ethora-fade-bounce` only animates `transform` - NOT `opacity`. A CSS
- * animation's computed value is driven by its own timeline, which only
- * advances when the browser actually produces render frames for the
- * document. In any context where frames are throttled or never start (a
- * backgrounded tab, an inactive/non-visible preview iframe such as the SDK
- * playground's, a low-power device), `currentTime` stays pinned at 0 and the
- * element is rendered forever at the animation's first keyframe. When that
- * keyframe set `opacity: 0` (a fade-IN), the teaser was permanently invisible
- * in exactly those conditions - present in the DOM, correctly positioned and
- * sized, but never visible, which is indistinguishable from "never renders".
- * Keeping opacity out of the animation and setting it statically on
- * `ctaStyle` instead means the teaser is visible immediately regardless of
- * whether the animation's timeline ever ticks; the bounce is then a pure
- * enhancement layered on top when it does.
- */
-const CHROME_KEYFRAMES = `
-@keyframes ethora-pulse-glow {
-  0%   { box-shadow: 0 0 12px var(--ethora-glow-soft); }
-  50%  { box-shadow: 0 0 20px var(--ethora-glow-strong); }
-  100% { box-shadow: 0 0 12px var(--ethora-glow-soft); }
-}
-@keyframes ethora-fade-bounce {
-  0%   { transform: translateY(-3px); }
-  10%  { transform: translateY(-1px); }
-  50%  { transform: translateY(1px); }
-  90%  { transform: translateY(3px); }
-  100% { transform: translateY(1px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  @keyframes ethora-pulse-glow { 0%,100% { box-shadow: 0 0 12px var(--ethora-glow-soft); } }
-  @keyframes ethora-fade-bounce { 0%,100% { transform: none; } }
-}
-`;
-
-/**
  * Resolve a configured length against the VIEWPORT rather than the parent.
  *
  * The panel is `position: fixed` inside a wrapper whose height is `auto`, so a
@@ -119,20 +91,40 @@ function toViewportLength(len: string, axis: 'w' | 'h'): string {
   return `${m[1]}${axis === 'w' ? 'vw' : 'vh'}`;
 }
 
-/**
- * Add an alpha channel to a hex colour so it can be used as a glow. Non-hex
- * inputs (named colours, rgb(), gradients someone pasted in) are returned
- * unchanged: the shadow then just renders opaque instead of breaking.
- */
-function withAlpha(color: string, alpha: number): string {
-  const m = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(color.trim());
-  if (!m) return color;
-  let hex = m[1];
-  if (hex.length === 3) hex = hex.split('').map((c) => c + c).join('');
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+/** The scheme the chrome paints in: "system" follows the visitor's OS setting. */
+function useResolvedScheme(pref: Appearance['colorScheme']): 'light' | 'dark' {
+  const query = '(prefers-color-scheme: dark)';
+  const [systemDark, setSystemDark] = useState<boolean>(() => {
+    try {
+      return window.matchMedia(query).matches;
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (pref !== 'system') return;
+    let mq: MediaQueryList;
+    try {
+      mq = window.matchMedia(query);
+    } catch {
+      return;
+    }
+    const sync = () => setSystemDark(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [pref]);
+  if (pref === 'dark') return 'dark';
+  if (pref === 'system') return systemDark ? 'dark' : 'light';
+  return 'light';
+}
+
+function prefersReducedMotion(): boolean {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
 }
 
 // Rendered in place of MUC system messages to suppress them (see config).
@@ -160,6 +152,7 @@ interface AssistantProps {
  * Look & feel (colors, fonts, bubble/input backgrounds, dock side, size) come
  * from the `appearance` prop, which the embed reads off the `<script>` data-*
  * attributes; theme colors/fonts are forwarded into chat-component's config.
+ * The chrome itself is styled by widget/chromeCss.ts.
  */
 export default function Assistant({
   envelope,
@@ -184,6 +177,13 @@ export default function Assistant({
   });
   // Once opened, keep the chat engine mounted (visibility toggles, no remount).
   const [hasMounted, setHasMounted] = useState<boolean>(open);
+  // The panel plays its close animation before it is hidden.
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  // Set when the visitor closes the panel, so focus can return to the launcher
+  // (a hidden panel would otherwise drop keyboard focus onto the page body).
+  const returnFocusOnClose = useRef(false);
 
   useEffect(() => {
     if (open) setHasMounted(true);
@@ -192,7 +192,32 @@ export default function Assistant({
     } catch {
       // ignore (storage disabled)
     }
+    if (!open && returnFocusOnClose.current) {
+      returnFocusOnClose.current = false;
+      launcherRef.current?.focus();
+    }
   }, [open]);
+
+  useEffect(
+    () => () => {
+      if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    },
+    []
+  );
+
+  const closePanel = () => {
+    if (closing || !open) return;
+    returnFocusOnClose.current = true;
+    if (prefersReducedMotion()) {
+      setOpen(false);
+      return;
+    }
+    setClosing(true);
+    closeTimer.current = window.setTimeout(() => {
+      setClosing(false);
+      setOpen(false);
+    }, CLOSE_MS);
+  };
 
   // Register the known MUC room directly in chat-component's store once the
   // chat engine has mounted (so it runs after redux-persist rehydration and
@@ -207,16 +232,22 @@ export default function Assistant({
   // no room to attach it to and it is silently dropped.
   useEffect(() => {
     if (!hasMounted || !persona.greetingMessage) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       registerGreeting({
         roomJID,
-        text: persona.greetingMessage,
+        text:
+          persona.greetingMessage === DEFAULT_COPY.greeting
+            ? makeT(uiLocale)('widget.greeting')
+            : persona.greetingMessage,
         botXmppUsername: persona.botXmppUsername,
         botName: persona.botName,
         botAvatar: persona.botAvatar,
       });
     }, 0);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
+    // uiLocale deliberately not a dependency: the starter bubble is posted once
+    // per room, in the language the reader had when the chat opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMounted, roomJID, persona]);
 
   // When neither the embed nor the Agent named the bot, the header must not
@@ -254,10 +285,34 @@ export default function Assistant({
   // else the shared stack so chrome and chat never disagree.
   const fontFamily =
     appearance.fontFamily || appearance.googleFont || DEFAULT_FONT_STACK;
+  // Reader's own pick from the header globe wins over data-locale / <html lang>
+  // and is remembered, since choosing a language is a deliberate act.
+  const [pickedLocale, setPickedLocale] = useState<string | undefined>(() => {
+    if (!appearance.languageSelector) return undefined;
+    try {
+      return matchLanguage(window.localStorage.getItem(LOCALE_KEY)) || undefined;
+    } catch {
+      return undefined;
+    }
+  });
   const uiLocale = useMemo(
-    () => resolveUiLocale(appearance.locale),
-    [appearance.locale]
+    () => pickedLocale || resolveUiLocale(appearance.locale),
+    [pickedLocale, appearance.locale]
   );
+  const t = useMemo(() => makeT(uiLocale), [uiLocale]);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const pickLanguage = (id: string) => {
+    setPickedLocale(id);
+    setLangMenuOpen(false);
+    try {
+      window.localStorage.setItem(LOCALE_KEY, id);
+    } catch {
+      // ignore
+    }
+    // Same switch the component's own globe makes: captions and the reader's
+    // translation language move together.
+    chatStore.dispatch(setLangSource(id as any));
+  };
 
   // Panel expanded to (near) fullscreen. Persisted so it survives navigation.
   const [expanded, setExpanded] = useState<boolean>(() => {
@@ -315,30 +370,36 @@ export default function Assistant({
     }
   }, [open]);
   const showCta = !open && ctaReady && !ctaDismissed && !!appearance.ctaText;
+  const ctaLabel =
+    appearance.ctaText === DEFAULT_COPY.cta ? t('widget.cta') : appearance.ctaText;
 
   // Empty-state placeholder handed to the engine as `noMessagesPlaceholder`.
   // Identity must be stable or the engine remounts it on every render, so it
-  // is memoised on the copy + colour it actually renders.
+  // is memoised on the copy it actually renders.
   const EmptyState = useMemo(() => {
-    const { greetingTitle, greeting } = persona;
-    const color = appearance.primaryColor;
-    // Reuses chat-component's own NoMessagesIllustration so the widget's empty
-    // state matches the shipped one. The built-in placeholder is not usable as
-    // is: its copy ("This chat is empty / Be the first one to start it") is
-    // hardcoded and wrong for a single-bot assistant, so we render the same
-    // illustration with the persona's greeting copy around it.
+    const greetingTitle =
+      persona.greetingTitle === DEFAULT_COPY.emptyTitle
+        ? t('widget.emptyTitle')
+        : persona.greetingTitle;
+    const greeting =
+      persona.greeting === `Our ${persona.botName} will be happy to help`
+        ? t('widget.emptyBody', { name: persona.botName })
+        : persona.greeting;
+    // The built-in placeholder is not usable as is: its copy is hardcoded and
+    // wrong for a single-bot assistant, so the widget renders its own empty
+    // state with the persona's copy, styled by the .ew-empty rules.
     const Placeholder = () => (
-      <div style={emptyStateStyle}>
-        <NoMessagesIllustration width={200} style={{ color }} />
-        <div style={emptyCopyStyle}>
-          <div style={emptyTitleStyle}>{greetingTitle}</div>
-          {greeting ? <div style={emptyBodyStyle}>{greeting}</div> : null}
+      <div className="ew-empty">
+        <div className="ew-empty-orb" aria-hidden="true">
+          <ChatGlyph size={34} />
         </div>
+        <div className="ew-empty-title">{greetingTitle}</div>
+        {greeting ? <div className="ew-empty-body">{greeting}</div> : null}
       </div>
     );
     Placeholder.displayName = 'AssistantEmptyState';
     return Placeholder;
-  }, [persona, appearance.primaryColor]);
+  }, [persona, t]);
 
   // The chat-component config. The single-room recipe for 26.5.x:
   //   userLogin.user (xmpp creds)  -> connect as visitor, no login form
@@ -375,6 +436,12 @@ export default function Assistant({
       // set, so this suppresses every system message.
       ...(hideSystemMessages ? { customSystemMessage: HiddenSystemMessage } : {}),
       botMessageAutoScroll: true,
+      // Typing indicator: a soft bubble with a wave of dots (widget/typingBubble.tsx).
+      customTypingIndicator: {
+        enabled: true,
+        position: 'bottom',
+        customComponent: WidgetTypingBubble,
+      },
       colors: {
         primary: appearance.primaryColor,
         secondary: appearance.secondaryColor,
@@ -401,6 +468,14 @@ export default function Assistant({
       chatHeaderSettings: { hide: true, disableCreate: true, hideSearch: true },
       // Pin the caption language so a persisted `langSource` cannot hijack it.
       i18n: { locale: uiLocale },
+      colorScheme: appearance.colorScheme,
+      // Profile / room-update events are honoured only from the bot itself, so
+      // a visitor in the room cannot forge them. The room list and message
+      // search are not part of a single-bot widget.
+      ...(persona.botXmppUsername
+        ? { trustedEventSenders: [persona.botXmppUsername] }
+        : {}),
+      disablePublicChatsDirectory: true,
       // The assistant always has a known room (we self-inject it), so the
       // built-in "No room. Let's create one!" screen must NEVER show. Replace
       // every empty/disconnected state with a status screen: a "connecting"
@@ -424,20 +499,28 @@ export default function Assistant({
       fontFamily,
       EmptyState,
       uiLocale,
+      persona.botXmppUsername,
     ]
   );
 
-  // Chrome styles (live inside the Shadow DOM). Driven by appearance.
+  const scheme = useResolvedScheme(appearance.colorScheme);
   const primary = appearance.primaryColor;
   const dockSide = appearance.position === 'left' ? { left: 24 } : { right: 24 };
+
+  // Quick-reply buttons inside the chat are restyled from here (see
+  // widget/quickReplies.ts). The root element is the observation point: the
+  // chat mounts inside it, so new bot button rows are caught as they arrive.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!rootRef.current) return;
+    return attachQuickReplyLayout(rootRef.current);
+  }, []);
 
   // Launcher: gradient + coloured glow when configured, otherwise the flat
   // primary. The glow is a second, wider shadow tinted with the end colour so
   // the button reads as a light source rather than a flat disc.
-  // Restored from the original AssistantClosedButton: violet gradient with a
-  // pulsing glow keyed to the gradient's end colour. Defaults are the shipped
-  // widget's exact values (#6e72fc -> #ad1deb); data-launcher-gradient and
-  // data-primary-color only override them.
+  // Defaults are the shipped widget's exact values (#6e72fc -> #ad1deb);
+  // data-launcher-gradient and data-primary-color only override them.
   const [gradFrom, gradTo] = appearance.launcherGradient || [
     DEFAULT_GRADIENT_FROM,
     DEFAULT_GRADIENT_TO,
@@ -449,30 +532,69 @@ export default function Assistant({
   const glowColor = usesBrandFlat ? primary : gradTo;
   const launcherSize = appearance.launcherSize;
 
-  const launcherStyle: React.CSSProperties = {
-    width: launcherSize,
-    height: launcherSize,
-    borderRadius: '50%',
-    border: 'none',
-    padding: 0,
-    cursor: 'pointer',
-    overflow: 'hidden',
-    background: launcherBg,
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: `0 0 12px ${withAlpha(glowColor, 0.4)}`,
-    transition: 'transform 0.2s ease',
-    flex: '0 0 auto',
-    ...(appearance.launcherGlow
-      ? { animation: `ethora-pulse-glow 2.5s infinite` }
-      : {}),
-  };
-
   // Expanded mode escapes the docked box: the panel is taken out of the
   // bottom-corner anchor and pinned to the viewport with a small inset, so it
   // works the same whether the widget docks left or right.
+  // Reader-resizable docked panel: drag the corner that faces into the page
+  // (top-left when docked right, top-right when docked left). The size is
+  // remembered; double-click the grip to go back to the default.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [customSize, setCustomSize] = useState<{ w: number; h: number } | null>(() => {
+    try {
+      const raw = window.localStorage.getItem(SIZE_KEY);
+      if (!raw) return null;
+      const v = JSON.parse(raw);
+      return typeof v?.w === 'number' && typeof v?.h === 'number' ? v : null;
+    } catch {
+      return null;
+    }
+  });
+  const dockedLeft = appearance.position === 'left';
+  // `edge` says which borders the handle moves: the left/right border changes
+  // width only, the top border height only, the corner both.
+  const startResize = (edge: 'x' | 'y' | 'xy') => (e: React.PointerEvent<HTMLDivElement>) => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    e.preventDefault();
+    const grip = e.currentTarget;
+    grip.setPointerCapture(e.pointerId);
+    const rect = panel.getBoundingClientRect();
+    const sx = e.clientX;
+    const sy = e.clientY;
+    const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+    let last = { w: rect.width, h: rect.height };
+    const move = (ev: PointerEvent) => {
+      const dx = dockedLeft ? ev.clientX - sx : sx - ev.clientX;
+      const dy = sy - ev.clientY;
+      last = {
+        w: edge === 'y' ? rect.width : Math.round(clamp(rect.width + dx, MIN_W, window.innerWidth - 32)),
+        h: edge === 'x' ? rect.height : Math.round(clamp(rect.height + dy, MIN_H, window.innerHeight - 48)),
+      };
+      setCustomSize(last);
+    };
+    const up = () => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', up);
+      grip.removeEventListener('pointercancel', up);
+      try {
+        window.localStorage.setItem(SIZE_KEY, JSON.stringify(last));
+      } catch {
+        // ignore
+      }
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', up);
+    grip.addEventListener('pointercancel', up);
+  };
+  const resetSize = () => {
+    setCustomSize(null);
+    try {
+      window.localStorage.removeItem(SIZE_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
   const isExpanded = appearance.allowFullscreen && expanded;
 
   // Percentages must resolve against the viewport, not the auto-height wrapper.
@@ -486,9 +608,10 @@ export default function Assistant({
   // all four edges reads as a broken modal, not as fullscreen.
   const isEdgeToEdge = /^0(px|%|vw|vh|rem|em)?$/.test(inset.trim());
 
+  // Only the geometry is inline. Surface, radius and shadow come from the
+  // .ew-panel class so the palette stays in one place.
   const panelStyle: React.CSSProperties = isExpanded
     ? {
-        flexDirection: 'column',
         position: 'fixed',
         // Centred within the inset box, so a partial expanded size (say 80%)
         // sits in the middle of the screen rather than hugging one corner.
@@ -497,38 +620,26 @@ export default function Assistant({
         transform: 'translate(-50%, -50%)',
         width: `min(${expandedW}, calc(100vw - 2 * ${inset}))`,
         height: `min(${expandedH}, calc(100vh - 2 * ${inset}))`,
-        background: '#fff',
-        borderRadius: isEdgeToEdge ? 0 : 16,
-        overflow: 'hidden',
-        boxShadow: isEdgeToEdge ? 'none' : '0 12px 40px rgba(0,0,0,0.22)',
-        ...(fontFamily ? { fontFamily } : {}),
+        ...(isEdgeToEdge ? { borderRadius: 0, boxShadow: 'none' } : {}),
       }
     : {
-        flexDirection: 'column',
         // 32/48px keep the docked panel clear of the viewport edges and the
         // launcher on small screens; a % width is clamped by the same rule.
-        width: `min(${dockedW}, calc(100vw - 32px))`,
-        height: `min(${dockedH}, calc(100vh - 48px))`,
-        background: '#fff',
-        borderRadius: 16,
-        overflow: 'hidden',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
-        ...(fontFamily ? { fontFamily } : {}),
+        width: `min(${customSize ? `${customSize.w}px` : dockedW}, calc(100vw - 32px))`,
+        height: `min(${customSize ? `${customSize.h}px` : dockedH}, calc(100vh - 48px))`,
       };
 
-  const headerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    padding: '12px 14px',
-    background: primary,
-    color: '#fff',
-    flex: '0 0 auto',
-  };
+  const glowRing = `color-mix(in srgb, ${glowColor} 18%, transparent)`;
+  const glowSoft = `color-mix(in srgb, ${glowColor} 36%, transparent)`;
+  const glowStrong = `color-mix(in srgb, ${glowColor} 60%, transparent)`;
+
+  const panelVisible = open || closing;
 
   return (
     <div
+      ref={rootRef}
+      className={appearance.position === 'left' ? 'ew-root ew-dock-left' : 'ew-root'}
+      data-ew-scheme={scheme}
       style={
         {
           position: 'fixed',
@@ -536,14 +647,18 @@ export default function Assistant({
           zIndex: Z,
           fontFamily,
           ...dockSide,
-          // Consumed by the ethora-pulse-glow keyframes.
-          '--ethora-glow-soft': withAlpha(glowColor, 0.4),
-          '--ethora-glow-strong': withAlpha(glowColor, 0.8),
+          '--ew-primary': primary,
+          '--ew-glow-ring': glowRing,
+          '--ew-glow-soft': glowSoft,
+          '--ew-glow-strong': glowStrong,
+          // Accent for the typing bubble and the quick-reply buttons.
+          '--ethora-qr-accent': primary,
         } as unknown as React.CSSProperties
       }
     >
       {/* Scoped to the widget's Shadow DOM, never reaches the host page. */}
-      <style>{CHROME_KEYFRAMES}</style>
+      <style>{CHROME_CSS}</style>
+      <style>{quickRepliesCss(appearance.buttonStyle)}</style>
 
       {/* Launcher button (hidden while the panel is open) */}
       {!open && (
@@ -555,90 +670,158 @@ export default function Assistant({
             // reads as broken.
             <button
               type="button"
+              className="ew-teaser"
               onClick={() => setOpen(true)}
               style={{
-                ...ctaStyle,
                 bottom: launcherSize + 26,
-                ...(appearance.position === 'left'
-                  ? { left: 0 }
-                  : { right: 0 }),
-                ...(fontFamily ? { fontFamily } : {}),
+                ...(appearance.position === 'left' ? { left: 0 } : { right: 0 }),
+                fontFamily,
               }}
             >
-              {appearance.ctaSparkle ? '✨ ' : ''}
-              {appearance.ctaText}
+              {appearance.ctaSparkle ? <span className="ew-teaser-spark" aria-hidden="true" /> : null}
+              {ctaLabel}
             </button>
           )}
-        <button
-          type="button"
-          aria-label={`Open ${headerTitle}`}
-          onClick={() => setOpen(true)}
-          style={launcherStyle}
-        >
-          {/* The widget's icon is its own setting (data-launcher-icon), never
-              the bot's avatar: the avatar belongs to the bot's messages, and
-              borrowing it made a person's photo the site's chat button.
-              Padded and contained, not cover-cropped, so a flat glyph reads
-              correctly on the coloured circle. */}
-          {appearance.launcherIcon ? (
-            <img
-              src={appearance.launcherIcon}
-              alt=""
-              style={{ width: '58%', height: '58%', objectFit: 'contain' }}
-            />
-          ) : (
-            <ChatGlyph size={Math.round(launcherSize * 0.57)} />
-          )}
-        </button>
+          <button
+            ref={launcherRef}
+            type="button"
+            className={appearance.launcherGlow ? 'ew-launcher ew-launcher--glow' : 'ew-launcher'}
+            aria-label={t('widget.open', { name: headerTitle })}
+            onClick={() => setOpen(true)}
+            style={{
+              width: launcherSize,
+              height: launcherSize,
+              borderRadius: '50%',
+              background: launcherBg,
+            }}
+          >
+            {/* The widget's icon is its own setting (data-launcher-icon), never
+                the bot's avatar: the avatar belongs to the bot's messages, and
+                borrowing it made a person's photo the site's chat button.
+                Padded and contained, not cover-cropped, so a flat glyph reads
+                correctly on the coloured circle. */}
+            {appearance.launcherIcon ? (
+              <img
+                src={appearance.launcherIcon}
+                alt=""
+                style={{ width: '58%', height: '58%', objectFit: 'contain' }}
+              />
+            ) : (
+              <ChatGlyph size={Math.round(launcherSize * 0.57)} />
+            )}
+          </button>
         </>
       )}
 
       {/* Popup panel: mounted on first open, then hidden (not unmounted). */}
       {hasMounted && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={headerTitle}
-          style={{ ...panelStyle, display: open ? 'flex' : 'none' }}
+          className={[
+            'ew-panel',
+            closing ? 'ew-closing' : '',
+            isExpanded ? 'ew-expanded' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') closePanel();
+          }}
+          style={{ ...panelStyle, display: panelVisible ? 'flex' : 'none' }}
         >
-          <header style={headerStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-              <span style={avatarStyle}>
+          {!isExpanded && (
+            <>
+              <div
+                className={`ew-edge${dockedLeft ? ' ew-edge--right' : ''}`}
+                title={t('widget.resize')}
+                onPointerDown={startResize('xy')}
+                onDoubleClick={resetSize}
+              />
+            </>
+          )}
+          <header className="ew-header">
+            <div className="ew-brand">
+              <span
+                className={appearance.launcherIcon ? 'ew-avatar ew-avatar--icon' : 'ew-avatar'}
+                aria-hidden="true"
+              >
                 {appearance.launcherIcon ? (
-                  <img
-                    src={appearance.launcherIcon}
-                    alt=""
-                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                  />
+                  <img src={appearance.launcherIcon} alt="" />
                 ) : (
                   headerTitle.slice(0, 1).toUpperCase()
                 )}
               </span>
-              <span style={titleStyle}>{headerTitle}</span>
+              <div className="ew-titles">
+                <span className="ew-title">{headerTitle}</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+            <div className="ew-actions">
+              {appearance.languageSelector && (
+                <div style={{ position: 'relative', display: 'inline-flex' }}>
+                  <button
+                    type="button"
+                    className="ew-iconbtn"
+                    aria-label={t('language.select')}
+                    title={t('language.select')}
+                    aria-haspopup="listbox"
+                    aria-expanded={langMenuOpen}
+                    onClick={() => setLangMenuOpen((v) => !v)}
+                  >
+                    <GlobeGlyph />
+                  </button>
+                  {langMenuOpen && (
+                    <>
+                      <div
+                        onClick={() => setLangMenuOpen(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 1 }}
+                      />
+                      <div role="listbox" className="ew-menu">
+                        {WIDGET_LANGUAGES.map((l) => {
+                          const selected = matchLanguage(uiLocale) === l.id;
+                          return (
+                            <button
+                              key={l.id}
+                              type="button"
+                              role="option"
+                              aria-selected={selected}
+                              className="ew-menu-item"
+                              onClick={() => pickLanguage(l.id)}
+                            >
+                              {l.name}
+                              {selected ? <CheckGlyph /> : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               {appearance.allowFullscreen && (
                 <button
                   type="button"
-                  aria-label={isExpanded ? 'Collapse assistant chat' : 'Expand assistant chat'}
-                  title={isExpanded ? 'Collapse' : 'Expand'}
+                  className="ew-iconbtn ew-iconbtn--expand"
+                  aria-label={isExpanded ? t('widget.collapse') : t('widget.expand')}
+                  title={isExpanded ? t('widget.collapse') : t('widget.expand')}
                   onClick={() => setExpanded((v) => !v)}
-                  style={closeStyle}
                 >
                   {isExpanded ? <CollapseGlyph /> : <ExpandGlyph />}
                 </button>
               )}
               <button
                 type="button"
-                aria-label="Close assistant chat"
-                onClick={() => setOpen(false)}
-                style={closeStyle}
+                className="ew-iconbtn"
+                aria-label={t('widget.close')}
+                onClick={closePanel}
               >
                 <CloseGlyph />
               </button>
             </div>
           </header>
 
-          <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          <div className="ew-body">
             <XmppProvider config={config}>
               <Chat
                 user={{ email: '', password: '' }}
@@ -654,97 +837,7 @@ export default function Assistant({
   );
 }
 
-/* --- static chrome styles (color-independent) --- */
-
-const avatarStyle: React.CSSProperties = {
-  width: 32,
-  height: 32,
-  borderRadius: '50%',
-  overflow: 'hidden',
-  background: 'rgba(255,255,255,0.25)',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontWeight: 600,
-  fontSize: 15,
-  flex: '0 0 auto',
-};
-
-// Original ChatTooltip: white pill floating above the launcher.
-const ctaStyle: React.CSSProperties = {
-  position: 'absolute',
-  background: '#ffffff',
-  color: '#333',
-  padding: '10px 14px',
-  borderRadius: 12,
-  border: 'none',
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-  fontSize: 14,
-  lineHeight: 1.3,
-  whiteSpace: 'nowrap',
-  // Long copy must not push the pill off a narrow viewport.
-  maxWidth: 'calc(100vw - 64px)',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  cursor: 'pointer',
-  // Static, NOT animated: see the CHROME_KEYFRAMES comment above. Visibility
-  // must not depend on the animation timeline ever advancing.
-  opacity: 1,
-  animation: 'ethora-fade-bounce 5s ease forwards',
-};
-
-// Mirrors chat-component's own NoMessagesPlaceholder layout (illustration,
-// 16px gap, centred copy block) so the two read as the same screen.
-const emptyStateStyle: React.CSSProperties = {
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 16,
-  padding: '16px 20px',
-  textAlign: 'center',
-  boxSizing: 'border-box',
-};
-
-const emptyCopyStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-  padding: 16,
-  justifyContent: 'center',
-  textAlign: 'center',
-};
-
-const emptyTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--ethora-font-size, 16px)',
-  fontWeight: 600,
-};
-
-const emptyBodyStyle: React.CSSProperties = {
-  fontSize: 'var(--ethora-font-size-sm, 14px)',
-  fontWeight: 400,
-};
-
-const titleStyle: React.CSSProperties = {
-  fontWeight: 600,
-  fontSize: 15,
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
-
-const closeStyle: React.CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  color: '#fff',
-  cursor: 'pointer',
-  padding: 4,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flex: '0 0 auto',
-};
+/* --- icons --- */
 
 /**
  * The original widget's launcher mark (`AiChatIcon` from the pre-new-arch
@@ -768,63 +861,60 @@ const ChatGlyph = ({ size = 32 }: { size?: number }) => (
   </svg>
 );
 
+const GlobeGlyph = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M2.5 10h15M10 2.5c2 2.1 3 4.7 3 7.5s-1 5.4-3 7.5c-2-2.1-3-4.7-3-7.5s1-5.4 3-7.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
+const CheckGlyph = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M5 12.5l4.5 4.5L19 7.5"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 /**
  * Header expand / collapse marks, restored from the widget's own
  * `assets/icons.tsx` (deleted in 8accc85). Rounded-square outline with an
  * arrow, matching the shipped CDN widget rather than a redrawn equivalent.
  */
 const ExpandGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
-      d="M13.5 10.5H16.5M13.5 10.5V7.5M13.5 10.5L17 7"
+      d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-    />
-    <path
-      d="M10.5 13.5H7.5M10.5 13.5V16.5M10.5 13.5L7 17"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C21.5093 4.43821 21.8356 5.80655 21.9449 8"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
     />
   </svg>
 );
 
 const CollapseGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
-      d="M10.5 13.5H7.5M10.5 13.5V16.5M10.5 13.5L7 17"
+      d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-    />
-    <path
-      d="M13.5 10.5H16.5M13.5 10.5V7.5M13.5 10.5L17 7"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C21.5093 4.43821 21.8356 5.80655 21.9449 8"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
     />
   </svg>
 );
 
 const CloseGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
       d="M6 6l12 12M18 6 6 18"
       stroke="currentColor"
@@ -857,50 +947,32 @@ function StatusScreen({
     };
   }, []);
 
-  const wrap: React.CSSProperties = {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    padding: 24,
-    textAlign: 'center',
-    color: '#475569',
-  };
-
   if (!online) {
     return (
-      <div style={wrap}>
+      <div className="ew-status">
         <OfflineGlyph />
-        <div style={{ fontWeight: 600, fontSize: 15, color: '#0f172a' }}>
-          No internet connection
-        </div>
-        <div style={{ fontSize: 13 }}>
-          Check your connection - the chat will reconnect automatically.
-        </div>
+        <div className="ew-status-title">No internet connection</div>
+        <div>Check your connection, the chat will reconnect automatically.</div>
       </div>
     );
   }
   return (
-    <div style={wrap}>
+    <div className="ew-status">
       <Spinner color={color} />
-      <div style={{ fontSize: 13 }}>
-        {mode === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}
-      </div>
+      <div>{mode === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}</div>
     </div>
   );
 }
 
 const Spinner = ({ color }: { color: string }) => (
-  <svg width="34" height="34" viewBox="0 0 50 50" aria-hidden="true">
+  <svg width="30" height="30" viewBox="0 0 50 50" aria-hidden="true">
     <circle
       cx="25"
       cy="25"
       r="20"
       fill="none"
       stroke={color}
-      strokeWidth="5"
+      strokeWidth="4"
       strokeLinecap="round"
       strokeDasharray="80 50"
     >
