@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Quick replies demo</title>
+
+    <script>
+      // Scheme and button style come from the URL, so every combination is a
+      // shareable link. The widget reads ?ethora-color-scheme and
+      // ?ethora-button-style itself (see widget/appearance.ts).
+      var Q = new URLSearchParams(location.search);
+      window.__demoStyle = ['list', 'pill'].indexOf(Q.get('ethora-button-style')) >= 0 ? Q.get('ethora-button-style') : 'pill';
+      window.__demoScheme = Q.get('ethora-color-scheme') === 'dark' ? 'dark' : 'light';
+      if (window.__demoScheme === 'dark') document.documentElement.setAttribute('data-demo-dark', '');
+    </script>
+
+    <script>
+      // Open the panel on load. The widget reads this key when it starts.
+      try {
+        localStorage.setItem('EthoraAssistantOpen', '1');
+        localStorage.setItem('EthoraAssistantCtaDismissed', '1');
+        // A language picked on another page would otherwise stick here.
+        localStorage.removeItem('EthoraAssistantLocale');
+        // Start docked: a saved fullscreen flag from another page would hide the width test.
+        localStorage.removeItem('EthoraAssistantExpanded');
+      } catch (e) {}
+    </script>
+
+    <script
+      src="dist/ethora_assistant.js?v=buttons-demo-35"
+      id="chat-content-assistant"
+      data-app-id="646cc8dc96d4a4dc8f7b2f2d"
+      data-api-base="https://api.chat.ethora.com/v1"
+      data-bot-name="Ethora Assistant"
+      data-title="Chat with Ethora"
+      data-greeting-title="Ask me anything"
+      data-greeting="I can help with SDKs, self-hosting, compliance and pricing."
+      data-primary-color="#0052CD"
+      data-disable-media="true"
+      data-allow-fullscreen="true"
+    ></script>
+
+    <style>
+      body { margin: 0; font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; color: #10233f; background: #f3f6fc; }
+      html[data-demo-dark] body { color: #e7edf6; background: #0b1119; }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 160px; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      .sub { color: #5b6b85; margin: 0 0 20px; font-size: 14px; }
+      .card { background: #fff; border: 1px solid #e2e8f3; border-radius: 12px; padding: 14px 18px; font-size: 14px; color: #3d4f6b; }
+      html[data-demo-dark] .card { background: #121a26; border-color: #243044; color: #a9b4c6; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: #eef2fa; padding: 1px 5px; border-radius: 4px; }
+      html[data-demo-dark] code { background: #1e2938; }
+      .row { display: flex; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; align-items: center; }
+      .row .label { font-size: 12px; color: #7a879b; text-transform: uppercase; letter-spacing: .06em; margin-right: 4px; min-width: 64px; }
+      .switch a, .toggle { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid #c9d5ea; background: #fff; color: #10233f; font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; }
+      html[data-demo-dark] .switch a, html[data-demo-dark] .toggle { background: #121a26; border-color: #2a3650; color: #dbe3ef; }
+      .switch a[aria-current="true"] { background: #0052cd; border-color: #0052cd; color: #fff; }
+      .toggle { background: #fff; }
+      .toggle[aria-pressed="true"] { background: #0052cd; border-color: #0052cd; color: #fff; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Quick replies demo</h1>
+      <p class="sub">The real widget with sample bot messages carrying buttons. The panel opens on load.</p>
+      <div class="row" role="group" aria-label="Quick-reply button style">
+        <span class="label">Buttons</span>
+        <nav class="switch" style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="?ethora-button-style=pill&amp;ethora-color-scheme=light" data-style="pill">Pill (default)</a>
+          <a href="?ethora-button-style=list&amp;ethora-color-scheme=light" data-style="list">List</a>
+        </nav>
+      </div>
+      <div class="row" role="group" aria-label="Colour scheme">
+        <span class="label">Scheme</span>
+        <nav class="switch" style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="?ethora-button-style=pill&amp;ethora-color-scheme=light" data-scheme="light">Light</a>
+          <a href="?ethora-button-style=pill&amp;ethora-color-scheme=dark" data-scheme="dark">Dark</a>
+        </nav>
+      </div>
+      <div class="card">
+        Samples: short labels, long labels, many options and a mixed set. The look is chosen with
+        <code>data-button-style="pill|list"</code> on the embed, or per link with
+        <code>?ethora-button-style=</code> (the links above). The colour scheme is
+        <code>data-color-scheme="light|dark|system"</code> or <code>?ethora-color-scheme=</code>.
+        Narrow the panel with <code>?ethora-width=340px</code> to check small widths.
+        Tapping a button sends it to the live demo room, so tap only if you mean to.
+        <br />
+        <button type="button" class="toggle" id="typing-toggle" aria-pressed="false">Show typing bubble</button>
+      </div>
+    </div>
+
+    <script>
+      // Sample bot messages, injected into the widget's store the same way the
+      // starter greeting is. Shape matches what XMPP delivers: quickReplies is
+      // an array of {name, value} and the bot is a non-visitor user.
+      (function () {
+        var BOT_ID = 'ethora-demo-bot';
+        var BOT_NAME = 'Ethora Assistant';
+
+        var SAMPLES = [
+          {
+            body: 'Pick a topic and I will go deeper.',
+            replies: ['SDKs', 'Self-hosting', 'Pricing', 'Compliance']
+          },
+          {
+            body: 'Here is what I can help you with today.',
+            replies: [
+              'Add chat to my React app in about ten minutes',
+              'Compare self-hosting with the cloud plan',
+              'Check whether the setup fits HIPAA requirements',
+              'Talk to the sales team about enterprise pricing'
+            ]
+          },
+          {
+            body: 'Which platform are you building for?',
+            replies: ['Web', 'iOS', 'Android', 'React Native', 'Flutter', 'WordPress', 'Node.js', 'Something else']
+          },
+          {
+            body: 'Does your team already run a chat backend?',
+            replies: ['Yes', 'No', 'Not sure yet, tell me more about the options']
+          }
+        ];
+
+        var ROOM_WAIT_MS = 60000;
+        var OPEN_AFTER_MS = 1500;
+        var started = Date.now();
+        var clickedLauncher = false;
+
+        // The widget's startup storage cleanup can drop the saved open flag,
+        // so if the chat has not mounted shortly after load, open it the way
+        // a visitor would: click the launcher inside the widget's shadow root.
+        function openLauncher() {
+          var host = document.getElementById('chat-widget');
+          var root = host && host.shadowRoot;
+          // The launcher is the first labelled button without a popup (the
+          // label is localised, so it cannot be matched by its text).
+          var btn = root && root.querySelector('button[aria-label]:not([aria-haspopup])');
+          if (btn) btn.click();
+        }
+
+        function buildMessage(roomJID, index, sample) {
+          var ts = Date.now() + index * 1000;
+          return {
+            id: 'demo-quick-replies-' + index,
+            body: sample.body,
+            roomJid: roomJID,
+            messageTimestampMs: ts,
+            date: new Date(ts).toISOString(),
+            timestamp: ts,
+            user: { id: BOT_ID, name: BOT_NAME, profileImage: '' },
+            quickReplies: sample.replies.map(function (label) {
+              return { name: label, value: label };
+            }),
+            pending: false
+          };
+        }
+
+        // The widget exposes its store on window once the chat engine has
+        // started (the panel is open, so that is immediate). The room appears
+        // after the session is provisioned. Re-check on an interval so a MAM
+        // history sync that replaces the room's messages cannot drop them.
+        var timer = setInterval(function () {
+          var store = window.__ethoraStore;
+          if (!store) {
+            if (!clickedLauncher && Date.now() - started > OPEN_AFTER_MS) {
+              clickedLauncher = true;
+              openLauncher();
+            }
+            if (Date.now() - started > ROOM_WAIT_MS) clearInterval(timer);
+            return;
+          }
+          var state = store.getState();
+          var rooms = state && state.rooms && state.rooms.rooms;
+          var jids = rooms ? Object.keys(rooms) : [];
+          if (!jids.length) {
+            if (Date.now() - started > ROOM_WAIT_MS) clearInterval(timer);
+            return;
+          }
+          // Several rooms can linger in storage from earlier visits; target the
+          // one the widget has open.
+          var active = state.rooms.activeRoomJID;
+          var roomJID = active && rooms[active] ? active : jids[0];
+          var existing = (rooms[roomJID] && rooms[roomJID].messages) || [];
+          SAMPLES.forEach(function (sample, index) {
+            var id = 'demo-quick-replies-' + index;
+            var present = existing.some(function (m) { return m && m.id === id; });
+            if (present) return;
+            store.dispatch({
+              type: 'roomMessages/addRoomMessage',
+              payload: {
+                roomJID: roomJID,
+                message: buildMessage(roomJID, index, sample),
+                start: false
+              }
+            });
+          });
+        }, 400);
+      })();
+    </script>
+
+    <script>
+      // Typing bubble trigger. It dispatches the same action the XMPP chatstate
+      // handler dispatches (roomMessages/setComposing) for the open room, so
+      // the widget renders its real typing path. No stanza is sent.
+      (function () {
+        var btn = document.getElementById('typing-toggle');
+        // Each switch link keeps every other query parameter (width, etc.) and
+        // changes only its own key, so the variants stay directly comparable.
+        function linkFor(key, value) {
+          var p = new URLSearchParams(location.search);
+          p.set(key, value);
+          return '?' + p.toString();
+        }
+        document.querySelectorAll('[data-style]').forEach(function (a) {
+          var style = a.getAttribute('data-style');
+          a.setAttribute('href', linkFor('ethora-button-style', style));
+          if (style === window.__demoStyle) a.setAttribute('aria-current', 'true');
+        });
+        document.querySelectorAll('[data-scheme]').forEach(function (a) {
+          var scheme = a.getAttribute('data-scheme');
+          a.setAttribute('href', linkFor('ethora-color-scheme', scheme));
+          if (scheme === window.__demoScheme) a.setAttribute('aria-current', 'true');
+        });
+
+        var on = false;
+        btn.addEventListener('click', function () {
+          var store = window.__ethoraStore;
+          var state = store && store.getState();
+          var rooms = state && state.rooms;
+          if (!rooms || !rooms.activeRoomJID || !rooms.rooms[rooms.activeRoomJID]) {
+            btn.textContent = 'Chat not ready yet, try again in a moment';
+            setTimeout(function () { btn.textContent = on ? 'Hide typing bubble' : 'Show typing bubble'; }, 1800);
+            return;
+          }
+          on = !on;
+          store.dispatch({
+            type: 'roomMessages/setComposing',
+            payload: {
+              chatJID: rooms.activeRoomJID,
+              composing: on,
+              composingList: on ? ['Ethora Assistant'] : []
+            }
+          });
+          btn.setAttribute('aria-pressed', String(on));
+          btn.textContent = on ? 'Hide typing bubble' : 'Show typing bubble';
+        });
+      })();
+    </script>
+  </body>
+</html>

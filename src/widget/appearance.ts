@@ -3,6 +3,18 @@
 // fonts onto IConfig.typography, and position/size onto the widget's own
 // launcher + popup chrome.
 
+import type { QuickReplyStyle } from './quickReplies';
+
+/**
+ * Quick-reply look. Anything that is not "list" (unset, or the retired
+ * "chips" and "card") gets the pill look, so existing embeds keep working.
+ */
+function readButtonStyle(v: string | undefined): QuickReplyStyle {
+  const t = v?.trim().toLowerCase();
+  if (t === 'list') return 'list';
+  return 'pill';
+}
+
 export interface Appearance {
   /** Header + launcher color, and chat primary. Default #1976d2. */
   primaryColor: string;
@@ -23,12 +35,21 @@ export interface Appearance {
   /** Google Fonts family name to auto-load (e.g. "Inter"). */
   googleFont?: string;
   /**
+   * Look of the bot's quick-reply buttons. "pill" (default): outlined buttons that fill
+   * on hover. "list": one bordered row per option with a trailing chevron. See widget/quickReplies.ts.
+   */
+  buttonStyle: QuickReplyStyle;
+  /**
    * BCP-47 tag for the chat's UI captions, e.g. "en", "uk", "fr-CA". When
    * unset the widget follows the host page's <html lang>, then the browser.
    * Pinning this stops a persisted reader language from leaking across
    * sessions and sites.
    */
   locale?: string;
+  /** Globe in the header that lets the reader switch the UI language. Default true. */
+  languageSelector: boolean;
+  /** Light, dark, or follow the visitor's OS. Default light. */
+  colorScheme: 'light' | 'dark' | 'system';
   /** Which side the launcher/popup dock to. Default "right". */
   position: 'left' | 'right';
   /**
@@ -108,8 +129,11 @@ const DEFAULT_SECONDARY = '#E1E4FE';
 // panel sensible from a laptop to a 27" monitor; the +30/+32 is the margin
 // that made the composer and the bubbles stop feeling cramped in review.
 // toViewportLength maps the % to vw/vh, since the panel is position: fixed.
-const DEFAULT_WIDTH = 'calc(20vw + 30px)';
-const DEFAULT_HEIGHT = 'calc(40vh + 32px)';
+// A share of the viewport with a floor, so a small window gets a usable panel
+// rather than a sliver, and a ceiling, so a large monitor does not get a wall
+// of chat. Under 520px the stylesheet turns the panel into a bottom sheet.
+const DEFAULT_WIDTH = '384px';
+const DEFAULT_HEIGHT = '524px';
 
 export function readAppearance(
   get: (name: string) => string | undefined
@@ -126,12 +150,19 @@ export function readAppearance(
     if (v === undefined) return fallback;
     const t = v.trim();
     if (!t) return fallback;
-    if (/^-?\d+(\.\d+)?$/.test(t)) return `${t}px`;
-    if (/^-?\d+(\.\d+)?(px|%|vw|vh|svh|dvh|rem|em)$/.test(t)) return t;
+    // Zero or negative is never a usable panel size, only a symptom of a
+    // form that stored 0 for an empty field (the WordPress plugin did, via
+    // absint('')). Honouring it opened the chat as an invisible 0x0 panel.
+    const lead = parseFloat(t);
+    if (Number.isFinite(lead) && lead <= 0) return fallback;
+    if (/^\d+(\.\d+)?$/.test(t)) return `${t}px`;
+    if (/^\d+(\.\d+)?(px|%|vw|vh|svh|dvh|rem|em)$/.test(t)) return t;
     // calc() lets a default mix a viewport share with a fixed nudge. Kept
     // deliberately narrow (digits, units, spaces and + - * /) so an embed
     // attribute can never inject arbitrary CSS into the style attribute.
     if (/^calc\([0-9a-z%.\s+\-*/()]+\)$/i.test(t)) return t;
+    // clamp()/min()/max() with the same narrow alphabet, plus commas.
+    if (/^(clamp|min|max)\([0-9a-z%.\s+\-*/(),]+\)$/i.test(t)) return t;
     return fallback;
   };
   // Accept a bare hex ("7c3aed") and add the leading '#', so URL params don't
@@ -187,7 +218,10 @@ export function readAppearance(
     fontFamily: get('data-font-family'),
     fontSize: get('data-font-size'),
     googleFont: get('data-google-font'),
+    buttonStyle: readButtonStyle(get('data-button-style')),
     locale: get('data-locale'),
+    languageSelector: flag(get('data-language-selector'), true),
+    colorScheme: ((v) => (v === 'dark' || v === 'system' ? v : 'light'))(get('data-color-scheme')),
     position: get('data-position') === 'left' ? 'left' : 'right',
     width: size(get('data-width'), DEFAULT_WIDTH),
     height: size(get('data-height'), DEFAULT_HEIGHT),

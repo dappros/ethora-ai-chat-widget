@@ -218,6 +218,12 @@ async function bootstrap() {
   // reaches the host page.
   const host = document.createElement('div');
   host.id = 'chat-widget';
+  // Host pages (Shopify's Dawn theme and others) ship a reset rule like
+  // `div:empty { display: none }`. The host div has no light-DOM children
+  // (everything lives in the shadow root below), so it matches `:empty` and
+  // gets hidden. An inline style always wins over an external stylesheet
+  // rule regardless of specificity, so set it explicitly here.
+  host.style.display = 'block';
   document.body.appendChild(host);
   const shadow = host.attachShadow({ mode: 'open' });
 

@@ -61,7 +61,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     name: 'data-bot-name',
     group: 'copy',
     example: 'Ethora Assistant',
-    doc: "Bot display name. Defaults to the active Agent's name.",
+    doc: "Bot display name, used everywhere the bot appears: header, greeting and every bot message. Defaults to the active Agent's name, then to the name the bot gives on its own messages.",
   },
   {
     name: 'data-bot-display-name',
@@ -74,7 +74,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     name: 'data-bot-avatar',
     group: 'copy',
     example: 'https://your-cdn/avatar.png',
-    doc: 'Bot avatar URL. Also used as the launcher image unless data-launcher-icon is set.',
+    doc: "Bot avatar URL, shown on the bot's messages only. Never used for the launcher or the header - set data-launcher-icon for those.",
   },
   {
     name: 'data-title',
@@ -107,6 +107,18 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
     doc: "UI caption language. Defaults to the page's <html lang>, then the browser.",
   },
   {
+    name: 'data-language-selector',
+    group: 'copy',
+    example: 'false',
+    doc: 'Globe in the header that lets the reader pick the UI language (English, Español, Français). Default true; the choice is remembered. Set false to hide it.',
+  },
+  {
+    name: 'data-color-scheme',
+    group: 'theme',
+    example: 'system',
+    doc: 'Chat colour scheme: light (default), dark, or system to follow the visitor\'s OS setting.',
+  },
+  {
     name: 'data-hide-system-messages',
     group: 'copy',
     example: 'true',
@@ -128,20 +140,26 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
   { name: 'data-font-family', group: 'theme', example: '', doc: 'Explicit font family for the chat and chrome.' },
   { name: 'data-font-size', group: 'theme', example: '', doc: 'Base font size, e.g. "16".' },
   { name: 'data-google-font', group: 'theme', example: 'Inter', doc: 'Google Fonts family to load automatically.' },
+  {
+    name: 'data-button-style',
+    group: 'theme',
+    example: 'pill',
+    doc: 'Look of the quick-reply buttons: "pill" (default, outlined buttons that fill on hover) or "list" (one bordered row per option with a chevron).',
+  },
 
   // --- layout -----------------------------------------------------------
   { name: 'data-position', group: 'layout', example: 'right', doc: 'Dock side: "left" or "right". Default right.' },
   {
     name: 'data-width',
     group: 'layout',
-    example: '20%',
-    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em and calc() accepted. Default calc(20vw + 30px).',
+    example: '384px',
+    doc: 'Docked panel width. Bare number = px; px, %, vw, vh, rem, em, calc(), clamp(), min() and max() accepted. Default 384px. Readers can drag the top-left corner to resize. Under 520px wide the panel becomes a full-width bottom sheet.',
   },
   {
     name: 'data-height',
     group: 'layout',
-    example: '40%',
-    doc: 'Docked panel height, same units. Default calc(40vh + 32px).',
+    example: '524px',
+    doc: 'Docked panel height, same units. Default 524px.',
   },
   { name: 'data-expanded-width', group: 'layout', example: '100%', doc: 'Width when expanded. Default 100%.' },
   { name: 'data-expanded-height', group: 'layout', example: '100%', doc: 'Height when expanded. Default 100%.' },
@@ -166,7 +184,7 @@ export const WIDGET_ATTRIBUTES: readonly AttributeSpec[] = [
   { name: 'data-start-fullscreen', group: 'layout', example: 'false', doc: 'Open expanded. Default false.' },
 
   // --- launcher ---------------------------------------------------------
-  { name: 'data-launcher-icon', group: 'launcher', example: '', doc: 'Custom launcher glyph URL, contained not cropped.' },
+  { name: 'data-launcher-icon', group: 'launcher', example: 'https://your-site/icon.png', doc: 'Widget icon URL (any image URL, e.g. a file from a media library). Shown on the launcher and in the panel header, contained not cropped. Without it the launcher shows the default glyph and the header the first letter of the title.' },
   {
     name: 'data-launcher-gradient',
     group: 'launcher',

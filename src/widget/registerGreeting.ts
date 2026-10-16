@@ -63,7 +63,42 @@ export function registerGreeting({
     // Backdated so the greeting sorts above the visitor's first reply. Must
     // be on all three fields: compareMessageOrder prefers messageTimestampMs,
     // then date, then timestamp.
-    const backdated = Date.now() - 1000;
+    //
+    // A flat "now - 1000" is not enough on its own. chat-component's
+    // ChatRoom captures `lastViewedTimestamp` (the read-marker used to place
+    // the "New Messages" divider) at mount time, essentially "now" too - and
+    // this injection can land more than 1s AFTER that mount (XMPP connect,
+    // MUC join, persona/greeting resolve all happen first). When that lag
+    // exceeds 1s, the greeting ends up newer than the stored read-marker even
+    // though it is backdated. That inconsistency is invisible at first, but
+    // the next time chat-component re-applies a read-marker (e.g. the
+    // routine private-store resync on connect, nothing to do with an actual
+    // error), normalizeDelimiterPosition finds the greeting as "unread"
+    // relative to the stale marker and splices a "New Messages" divider
+    // directly above it - the greeting bubble visually drops down a row,
+    // looking exactly like "the greeting moved lower after the first reply".
+    // Fix: never let the greeting be newer than anything already known about
+    // this room (its own read-marker included), not just newer than "now".
+    const s2: any = store.getState();
+    const room = s2?.rooms?.rooms?.[roomJID];
+    const knownMessages: any[] = room && Array.isArray(room.messages)
+      ? room.messages
+      : [];
+    const knownTimestamps: number[] = [];
+    for (const m of knownMessages) {
+      const t =
+        Number(m?.messageTimestampMs) ||
+        Number(m?.timestamp) ||
+        Date.parse(m?.date || '') ||
+        0;
+      if (t > 0) knownTimestamps.push(t);
+    }
+    const lastViewed = Number(room?.lastViewedTimestamp) || 0;
+    if (lastViewed > 0) knownTimestamps.push(lastViewed);
+    let backdated = Date.now() - 1000;
+    if (knownTimestamps.length) {
+      backdated = Math.min(backdated, Math.min(...knownTimestamps) - 1000);
+    }
 store.dispatch(
     addRoomMessage({
       roomJID,
