@@ -10,10 +10,18 @@
     "dev": "vite",
     "build": "vite build",
     "build:lib": "vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --quiet",
+    "lint:full": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "lint:fix": "npx eslint --fix && prettier . --write",
-    "check:attributes": "node scripts/check-attributes.mjs"
+    "check:attributes": "node scripts/check-attributes.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "ci:local": "npm run lint && npm run check:attributes && npm run test:release",
+    "release": "node scripts/release.mjs",
+    "release:ci": "node scripts/release-ci.mjs",
+    "test:release": "node --test scripts/lib/version.check.mjs",
+    "prepare": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
     "@ethora/chat-component": "^26.7.4",

@@ -1,12 +1,12 @@
 module.exports = {
   root: true,
-  env: { main: true, es2021: true },
+  env: { browser: true, es2021: true },
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', '.ci', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh', '@typescript-eslint'],
   rules: {
@@ -16,5 +16,7 @@ module.exports = {
     ],
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn'],
+    // The embed shim and the firebase/emoji stubs take loosely typed values on purpose.
+    '@typescript-eslint/no-explicit-any': 'warn',
   },
 };
