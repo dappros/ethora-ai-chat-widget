@@ -88785,6 +88785,16 @@ ${CHROME_KEYFRAMES}
 }
 .ew-root div:has(> textarea[data-multiline]) { min-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
 
+/* No history spinner. chat-component floats a loader over the top of the
+   transcript while it fetches older history. A widget room is created fresh
+   for each visitor and is never paged back through a long history, so on open
+   that loader only flashes over an empty conversation. chat-component has no
+   option to turn it off, and that library is shared with other products, so it
+   is hidden here, scoped to this widget's shadow root. To restore it, delete
+   this rule. */
+.ew-root [data-testid="history-loader"],
+.ew-root [data-testid="history-loader-bottom"] { display: none !important; }
+
 /* The composer's emoji picker is not offered in the assistant. */
 .ew-root div:has(> div > textarea) > button[aria-expanded] { display: none !important; }
 
