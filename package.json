@@ -1,6 +1,6 @@
 {
   "name": "@ethora/ai-chat-widget",
-  "version": "26.7.2",
+  "version": "26.10.0",
   "type": "module",
   "main": "dist/ethora_assistant.js",
   "files": [

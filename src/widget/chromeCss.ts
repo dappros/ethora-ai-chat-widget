@@ -366,6 +366,16 @@ ${CHROME_KEYFRAMES}
   font-size: 13px;
 }
 .ew-status-title { font-size: 15px; font-weight: 600; color: var(--ew-text); }
+.ew-retry {
+  border: 1px solid var(--ew-hair);
+  border-radius: 8px;
+  background: var(--ew-surface);
+  color: var(--ew-text);
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.ew-retry:hover { background: var(--ew-hover); }
 
 /* Empty state: mirrors the engine's own placeholder layout. */
 .ew-empty {

@@ -20064,7 +20064,7 @@
                     knownKeys.add(key);
                     break;
                   }
-                  error2("Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.", key);
+                  error2("Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted \u2014 the behavior is unsupported and could change in a future version.", key);
                   break;
                 case REACT_LAZY_TYPE:
                   var payload = child._payload;
@@ -53776,14 +53776,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       return null;
     }
   };
-  const isPlausibleRepair = (original, repaired) => repaired !== original && !repaired.includes("�") && !hasControlChars(repaired) && // Must contain a letter from a non-Latin-1 script or a real accented
+  const isPlausibleRepair = (original, repaired) => repaired !== original && !repaired.includes("\uFFFD") && !hasControlChars(repaired) && // Must contain a letter from a non-Latin-1 script or a real accented
   // letter, otherwise the "fix" is just noise.
   hasNonAscii(repaired) && new RegExp("\\p{L}", "u").test(repaired);
   const tryPercentDecode = (value) => {
     if (!looksLikePercentEncoded(value)) return value;
     try {
       const decoded = decodeURIComponent(value);
-      return hasControlChars(decoded) || decoded.includes("�") ? value : decoded;
+      return hasControlChars(decoded) || decoded.includes("\uFFFD") ? value : decoded;
     } catch {
       return value;
     }
@@ -54685,7 +54685,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "media.sealedUnavailable": "Encrypted attachment could not be opened",
     "media.sealedFile": "Encrypted file",
     "media.sealedDownload": "Download and decrypt",
-    "media.sealedDownloading": "Decrypting…",
+    "media.sealedDownloading": "Decrypting\u2026",
     "media.sealedDownloadFailed": "Download failed: tap to retry",
     "media.imageUnavailable": "Image unavailable",
     "media.imageUnavailableHint": "The file could not be loaded",
@@ -54771,9 +54771,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.report": "Report",
     "action.mute": "Mute notifications",
     "action.unmute": "Unmute notifications",
-    "status.connecting": "Connecting…",
+    "status.connecting": "Connecting\u2026",
     "status.noInternet": "No internet connection",
-    "translation.translating": "Translating…",
+    "translation.translating": "Translating\u2026",
     "translation.failed": "Could not translate",
     "translation.enableToggleLabel": "Translate my messages",
     "translation.enableToggleDisclaimer": "If translations were not enabled, only new messages sent from now on will be translated.",
@@ -54991,16 +54991,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "files.empty": "Aucun fichier pour le moment",
     "search.placeholder": "Rechercher...",
     "select.noOptions": "Aucune option trouvee",
-    "input.placeholder": "Écrire un message",
-    "e2ee.otherDevice": "Chiffré pour un autre appareil",
-    "e2ee.notEncrypted": "Non chiffré",
-    "e2ee.roomEncrypted": "Chiffré de bout en bout",
-    "e2ee.notEncryptedHint": "Envoyé sans chiffrement de bout en bout, car aucun destinataire n'a encore publié de clé.",
-    "e2ee.undecryptable": "Impossible de déchiffrer ce message",
-    "room.created": "Salon créé",
+    "input.placeholder": "\xC9crire un message",
+    "e2ee.otherDevice": "Chiffr\xE9 pour un autre appareil",
+    "e2ee.notEncrypted": "Non chiffr\xE9",
+    "e2ee.roomEncrypted": "Chiffr\xE9 de bout en bout",
+    "e2ee.notEncryptedHint": "Envoy\xE9 sans chiffrement de bout en bout, car aucun destinataire n'a encore publi\xE9 de cl\xE9.",
+    "e2ee.undecryptable": "Impossible de d\xE9chiffrer ce message",
+    "room.created": "Salon cr\xE9\xE9",
     "room.empty": "Ce salon est vide",
-    "room.empty.hint": "Soyez le premier à écrire.",
-    "media.unsupported": "Type de média non pris en charge",
+    "room.empty.hint": "Soyez le premier \xE0 \xE9crire.",
+    "media.unsupported": "Type de m\xE9dia non pris en charge",
     "media.audioPlay": "Lire le message vocal",
     "media.audioPause": "Mettre en pause le message vocal",
     "media.audioSpeed": "Vitesse de lecture",
@@ -55008,86 +55008,86 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "search.clear": "Effacer la recherche",
     "search.messages.placeholderChat": "Rechercher dans cette discussion",
     "search.messages.placeholderAll": "Rechercher dans toutes les discussions",
-    "search.messages.scope": "Où chercher",
+    "search.messages.scope": "O\xF9 chercher",
     "search.messages.scopeChat": "Cette discussion",
     "search.messages.scopeAll": "Toutes",
     "search.messages.hint": "Saisissez pour chercher dans l'historique",
-    "search.messages.tooShort": "Saisissez au moins {count} caractères",
+    "search.messages.tooShort": "Saisissez au moins {count} caract\xE8res",
     "search.messages.searching": "Recherche...",
-    "search.messages.empty": "Aucun message trouvé",
-    "search.messages.error": "La recherche a échoué.",
-    "search.messages.retry": "Réessayer",
+    "search.messages.empty": "Aucun message trouv\xE9",
+    "search.messages.error": "La recherche a \xE9chou\xE9.",
+    "search.messages.retry": "R\xE9essayer",
     "search.messages.loadMore": "Afficher plus",
-    "search.messages.count": "{count} trouvés",
+    "search.messages.count": "{count} trouv\xE9s",
     "search.messages.you": "Vous",
     "search.messages.someone": "Quelqu'un",
     "search.messages.chat": "Discussion",
-    "search.messages.notFound": "Ce message est trop ancien pour être chargé.",
+    "search.messages.notFound": "Ce message est trop ancien pour \xEAtre charg\xE9.",
     "search.messages.archivedTitle": "Message plus ancien",
-    "search.messages.archivedNote": "Ce message est plus ancien que l'historique disponible dans cette discussion, il ne peut donc pas être affiché à sa place.",
+    "search.messages.archivedNote": "Ce message est plus ancien que l'historique disponible dans cette discussion, il ne peut donc pas \xEAtre affich\xE9 \xE0 sa place.",
     "search.messages.filters": "Filtres",
     "search.messages.filterSender": "De",
-    "search.messages.filterSenderPlaceholder": "Nom de l'expéditeur",
+    "search.messages.filterSenderPlaceholder": "Nom de l'exp\xE9diteur",
     "search.messages.filterSince": "Du",
     "search.messages.filterUntil": "Au",
     "search.messages.filterClear": "Retirer le filtre",
     "search.messages.filterClearAll": "Effacer les filtres",
-    "search.messages.dateOrder": "La date de début est postérieure à la date de fin.",
-    "publicChats.title": "Découvrir des discussions",
+    "search.messages.dateOrder": "La date de d\xE9but est post\xE9rieure \xE0 la date de fin.",
+    "publicChats.title": "D\xE9couvrir des discussions",
     "publicChats.filter": "Filtrer les discussions",
     "publicChats.loading": "Chargement des discussions...",
     "publicChats.error": "Impossible de charger les discussions publiques.",
-    "publicChats.empty": "Aucune discussion publique à afficher",
-    "publicChats.emptyFilterMore": "Aucun résultat parmi les discussions chargées. Affichez-en plus pour continuer.",
+    "publicChats.empty": "Aucune discussion publique \xE0 afficher",
+    "publicChats.emptyFilterMore": "Aucun r\xE9sultat parmi les discussions charg\xE9es. Affichez-en plus pour continuer.",
     "publicChats.join": "Rejoindre",
     "publicChats.open": "Ouvrir",
-    "media.sealedUnavailable": "La pièce jointe chiffrée n'a pas pu être ouverte",
-    "media.sealedFile": "Fichier chiffré",
-    "media.sealedDownload": "Télécharger et déchiffrer",
-    "media.sealedDownloading": "Déchiffrement…",
-    "media.sealedDownloadFailed": "Échec du téléchargement : appuyez pour réessayer",
+    "media.sealedUnavailable": "La pi\xE8ce jointe chiffr\xE9e n'a pas pu \xEAtre ouverte",
+    "media.sealedFile": "Fichier chiffr\xE9",
+    "media.sealedDownload": "T\xE9l\xE9charger et d\xE9chiffrer",
+    "media.sealedDownloading": "D\xE9chiffrement\u2026",
+    "media.sealedDownloadFailed": "\xC9chec du t\xE9l\xE9chargement : appuyez pour r\xE9essayer",
     "media.imageUnavailable": "Image indisponible",
-    "media.imageUnavailableHint": "Le fichier n’a pas pu être chargé",
-    "media.retry": "Réessayer",
+    "media.imageUnavailableHint": "Le fichier n\u2019a pas pu \xEAtre charg\xE9",
+    "media.retry": "R\xE9essayer",
     "lastMessage.photo": "Photo",
     "lastMessage.photos": "{count} photos",
-    "lastMessage.video": "Vidéo",
-    "lastMessage.videos": "{count} vidéos",
+    "lastMessage.video": "Vid\xE9o",
+    "lastMessage.videos": "{count} vid\xE9os",
     "lastMessage.voice": "Message vocal",
     "lastMessage.audio": "Audio",
     "lastMessage.file": "Fichier",
-    "lastMessage.attachment": "Pièce jointe",
+    "lastMessage.attachment": "Pi\xE8ce jointe",
     "lastMessage.files": "{count} fichiers",
-    "media.videoPlay": "Lire la vidéo",
-    "media.download": "Télécharger",
+    "media.videoPlay": "Lire la vid\xE9o",
+    "media.download": "T\xE9l\xE9charger",
     "media.uploadProgress": "Envoi en cours : {percent} %",
     "common.or": "Ou",
-    "tabs.label": "Sections de la barre latérale",
+    "tabs.label": "Sections de la barre lat\xE9rale",
     "call.disabled.roomType": "Les appels ne sont disponibles que dans les discussions 1:1",
-    "call.disabled.noLivekit": "Appels indisponibles : service vidéo non configuré",
-    "call.disabled.busy": "Un autre appel est déjà en cours",
+    "call.disabled.noLivekit": "Appels indisponibles : service vid\xE9o non configur\xE9",
+    "call.disabled.busy": "Un autre appel est d\xE9j\xE0 en cours",
     "date.today": "Aujourd'hui",
     "date.yesterday": "Hier",
-    "message.deleted": "Message supprimé",
-    "message.edited": "modifié",
-    "message.notDelivered": "Non envoyé",
-    "message.retry": "Réessayer",
-    "message.retryAriaLabel": "Réessayer d’envoyer ce message",
+    "message.deleted": "Message supprim\xE9",
+    "message.edited": "modifi\xE9",
+    "message.notDelivered": "Non envoy\xE9",
+    "message.retry": "R\xE9essayer",
+    "message.retryAriaLabel": "R\xE9essayer d\u2019envoyer ce message",
     "message.remove": "Supprimer",
     "message.removeAriaLabel": "Supprimer ce message",
-    "message.mediaLostNote": "Les fichiers ont été perdus au rechargement de la page, ce message ne peut pas être renvoyé. Supprimez-le pour le retirer.",
-    "message.receipt.sent": "Envoyé",
-    "message.receipt.delivered": "Distribué",
+    "message.mediaLostNote": "Les fichiers ont \xE9t\xE9 perdus au rechargement de la page, ce message ne peut pas \xEAtre renvoy\xE9. Supprimez-le pour le retirer.",
+    "message.receipt.sent": "Envoy\xE9",
+    "message.receipt.delivered": "Distribu\xE9",
     "message.receipt.read": "Lu",
     "message.receipt.readBy": "Lu par {names}",
-    "message.receipt.deliveredTo": "Distribué à {names}",
-    "reaction.tooltip.one": "{name} a réagi avec {emoji}",
-    "reaction.tooltip.two": "{first} et {second} ont réagi avec {emoji}",
-    "reaction.tooltip.others": "{first}, {second} et {count} autres ont réagi avec {emoji}",
-    "reaction.tooltip.other": "{first}, {second} et {count} autre a réagi avec {emoji}",
-    "reaction.aria.mine": "{emoji} {count}, vous avez réagi",
+    "message.receipt.deliveredTo": "Distribu\xE9 \xE0 {names}",
+    "reaction.tooltip.one": "{name} a r\xE9agi avec {emoji}",
+    "reaction.tooltip.two": "{first} et {second} ont r\xE9agi avec {emoji}",
+    "reaction.tooltip.others": "{first}, {second} et {count} autres ont r\xE9agi avec {emoji}",
+    "reaction.tooltip.other": "{first}, {second} et {count} autre a r\xE9agi avec {emoji}",
+    "reaction.aria.mine": "{emoji} {count}, vous avez r\xE9agi",
     "reaction.aria.theirs": "{emoji} {count}",
-    "reaction.more": "Afficher {count} autres réactions",
+    "reaction.more": "Afficher {count} autres r\xE9actions",
     "presence.online": "en ligne",
     "presence.offline": "hors ligne",
     "presence.onlineCount": "{count} en ligne",
@@ -55096,15 +55096,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "avatar.altWithName": "Avatar de {name}",
     "avatar.altGeneric": "Avatar",
     "header.action.back": "Retour",
-    "header.action.startAudioCall": "Démarrer un appel audio",
-    "header.action.startVideoCall": "Démarrer un appel vidéo",
+    "header.action.startAudioCall": "D\xE9marrer un appel audio",
+    "header.action.startVideoCall": "D\xE9marrer un appel vid\xE9o",
     "header.logoAlt": "Logo",
     "header.menu": "Menu",
     "header.chatMenu": "Menu du chat",
     "call.outgoing": "Appel sortant",
     "call.incoming": "Appel entrant",
-    "call.noAnswer": "Pas de réponse",
-    "call.missed": "Appel manqué",
+    "call.noAnswer": "Pas de r\xE9ponse",
+    "call.missed": "Appel manqu\xE9",
     "call.durationSec": "{n} s",
     "call.durationMin": "{n} min",
     "call.durationMinSec": "{m} min {s} s",
@@ -55115,116 +55115,116 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.save": "Enregistrer",
     "action.delete": "Supprimer",
     "action.leave": "Quitter",
-    "action.create": "Créer",
+    "action.create": "Cr\xE9er",
     "action.submit": "Soumettre",
     "action.translate": "Traduire",
     "action.showOriginal": "Afficher l'original",
-    "action.scrollToBottom": "Défiler vers le bas",
+    "action.scrollToBottom": "D\xE9filer vers le bas",
     "action.jumpToLatest": "Aller aux derniers messages",
     "action.newChat": "Nouvelle discussion",
     "action.addUsers": "Ajouter des utilisateurs",
     "action.addUsersCount": "Ajouter des utilisateurs ({count} selectionnes)",
     "action.addMoreUsers": "Ajouter d'autres utilisateurs",
     "action.add": "Ajouter",
-    "action.backToCreation": "Retour à la création",
+    "action.backToCreation": "Retour \xE0 la cr\xE9ation",
     "action.report": "Signaler",
-    "action.mute": "Désactiver les notifications",
-    "action.unmute": "Réactiver les notifications",
-    "status.connecting": "Connexion…",
+    "action.mute": "D\xE9sactiver les notifications",
+    "action.unmute": "R\xE9activer les notifications",
+    "status.connecting": "Connexion\u2026",
     "status.noInternet": "Pas de connexion internet",
-    "translation.translating": "Traduction…",
+    "translation.translating": "Traduction\u2026",
     "translation.failed": "Traduction impossible",
     "translation.enableToggleLabel": "Traduire mes messages",
-    "translation.enableToggleDisclaimer": "Si les traductions n'étaient pas activées, seuls les nouveaux messages envoyés à partir de maintenant seront traduits.",
+    "translation.enableToggleDisclaimer": "Si les traductions n'\xE9taient pas activ\xE9es, seuls les nouveaux messages envoy\xE9s \xE0 partir de maintenant seront traduits.",
     "translation.modeLabel": "Affichage des traductions",
     "translation.modeAuto": "Automatique",
     "translation.modeManual": "Manuel",
     "language.select": "Choisir la langue",
-    "modal.newChat.title": "Créer une discussion",
+    "modal.newChat.title": "Cr\xE9er une discussion",
     "modal.newChat.roomNamePlaceholder": "Nom du salon",
     "modal.newChat.chatTypePlaceholder": "Choisir le type de discussion",
     "modal.newChat.typePublic": "Public",
-    "modal.newChat.typePrivate": "Privé",
-    "modal.newChat.selectUsersTitle": "Sélectionner des utilisateurs à ajouter",
-    "modal.selectUsers.title": "Sélectionner des utilisateurs (max 20)",
+    "modal.newChat.typePrivate": "Priv\xE9",
+    "modal.newChat.selectUsersTitle": "S\xE9lectionner des utilisateurs \xE0 ajouter",
+    "modal.selectUsers.title": "S\xE9lectionner des utilisateurs (max 20)",
     "modal.selectUsers.searchPlaceholder": "Rechercher des utilisateurs...",
-    "mention.pickerTitle": "Mentionner quelqu’un",
+    "mention.pickerTitle": "Mentionner quelqu\u2019un",
     "mention.showAll": "Afficher les {count}...",
-    "mention.loadingMembers": "Chargement d’autres personnes...",
+    "mention.loadingMembers": "Chargement d\u2019autres personnes...",
     "modal.selectUsers.empty": "Aucun utilisateur trouve",
     "thread.title": "Fil de discussion",
     "thread.alsoSendTo": "Envoyer aussi dans",
-    "toast.roomCreationTitle": "Création du salon",
-    "modal.filePreview.unsupported": "Impossible d'ouvrir le document téléchargé. Le format du fichier n'est pas pris en charge par le système. Veuillez téléverser un fichier dans un format compatible. Vous pouvez toujours télécharger ce fichier.",
-    "toast.roomCreating": "Le salon est en cours de création...",
-    "toast.success": "Succès !",
-    "toast.roomCreatedSuccess": "Salon créé avec succès !",
-    "toast.usersAddedSuccess": "Utilisateurs ajoutés avec succès !",
-    "settings.menu.title": "Paramètres",
-    "modal.filePreview.title": "Aperçu du fichier",
+    "toast.roomCreationTitle": "Cr\xE9ation du salon",
+    "modal.filePreview.unsupported": "Impossible d'ouvrir le document t\xE9l\xE9charg\xE9. Le format du fichier n'est pas pris en charge par le syst\xE8me. Veuillez t\xE9l\xE9verser un fichier dans un format compatible. Vous pouvez toujours t\xE9l\xE9charger ce fichier.",
+    "toast.roomCreating": "Le salon est en cours de cr\xE9ation...",
+    "toast.success": "Succ\xE8s !",
+    "toast.roomCreatedSuccess": "Salon cr\xE9\xE9 avec succ\xE8s !",
+    "toast.usersAddedSuccess": "Utilisateurs ajout\xE9s avec succ\xE8s !",
+    "settings.menu.title": "Param\xE8tres",
+    "modal.filePreview.title": "Aper\xE7u du fichier",
     "modal.filePreview.pdfPages": "Pages du PDF",
-    "modal.filePreview.previousPage": "Page précédente",
+    "modal.filePreview.previousPage": "Page pr\xE9c\xE9dente",
     "modal.filePreview.nextPage": "Page suivante",
-    "modal.filePreview.previousItem": "Élément précédent",
-    "modal.filePreview.nextItem": "Élément suivant",
+    "modal.filePreview.previousItem": "\xC9l\xE9ment pr\xE9c\xE9dent",
+    "modal.filePreview.nextItem": "\xC9l\xE9ment suivant",
     "modal.filePreview.position": "{current} sur {total}",
     "modal.filePreview.zoomIn": "Zoom avant",
-    "modal.filePreview.zoomOut": "Zoom arrière",
-    "modal.filePreview.resetZoom": "Réinitialiser le zoom",
-    "modal.filePreview.imageAlt": "Image partagée",
+    "modal.filePreview.zoomOut": "Zoom arri\xE8re",
+    "modal.filePreview.resetZoom": "R\xE9initialiser le zoom",
+    "modal.filePreview.imageAlt": "Image partag\xE9e",
     "modal.filePreview.close": "Fermer",
     "modal.filePreview.unavailable": "Ce fichier est indisponible",
-    "modal.filePreview.retry": "Réessayer",
-    "modal.filePreview.download": "Télécharger",
-    "modal.filePreview.loading": "Chargement de l’image",
+    "modal.filePreview.retry": "R\xE9essayer",
+    "modal.filePreview.download": "T\xE9l\xE9charger",
+    "modal.filePreview.loading": "Chargement de l\u2019image",
     "modal.filePreview.thumbnails": "Miniatures",
-    "modal.filePreview.showItem": "Afficher l’élément {current} sur {total}",
+    "modal.filePreview.showItem": "Afficher l\u2019\xE9l\xE9ment {current} sur {total}",
     "modal.filePreview.fileLabel": "Fichier",
-    "attachment.remove": "Supprimer la pièce jointe",
-    "attachment.limit": "Vous pouvez joindre jusqu’à {count} fichiers par message.",
-    "attachment.tooLarge": "Ignoré {files} : plus de {size} Mo.",
+    "attachment.remove": "Supprimer la pi\xE8ce jointe",
+    "attachment.limit": "Vous pouvez joindre jusqu\u2019\xE0 {count} fichiers par message.",
+    "attachment.tooLarge": "Ignor\xE9 {files} : plus de {size} Mo.",
     "action.attachFile": "Joindre un fichier",
     "action.startRecording": "Enregistrer un message vocal",
     "action.stopRecording": "Annuler l'enregistrement",
     "action.sendRecording": "Envoyer le message vocal",
-    "action.emoji": "Insérer un émoji",
-    "attachment.dropHint": "Déposez les fichiers ici pour les joindre",
-    "attachment.uploadFailed": "Échec de l’envoi",
-    "attachment.retryUpload": "Réessayer l’envoi de {file}",
-    "attachment.hiddenFailed": "{count} échec(s), appuyez pour réessayer",
+    "action.emoji": "Ins\xE9rer un \xE9moji",
+    "attachment.dropHint": "D\xE9posez les fichiers ici pour les joindre",
+    "attachment.uploadFailed": "\xC9chec de l\u2019envoi",
+    "attachment.retryUpload": "R\xE9essayer l\u2019envoi de {file}",
+    "attachment.hiddenFailed": "{count} \xE9chec(s), appuyez pour r\xE9essayer",
     "attachment.moreCount": "+{count}",
     "modal.filePreview.openExternally": "Ouvrir dans un nouvel onglet",
-    "modal.filePreview.pdfUnavailable": "Ce PDF ne peut pas être affiché ici. Vous pouvez toujours l’ouvrir ou le télécharger.",
+    "modal.filePreview.pdfUnavailable": "Ce PDF ne peut pas \xEAtre affich\xE9 ici. Vous pouvez toujours l\u2019ouvrir ou le t\xE9l\xE9charger.",
     "toast.error": "Erreur",
-    "toast.couldNotOpenPrivateChat": "Impossible d'ouvrir la nouvelle discussion privée",
-    "toast.couldNotResolveRecipient": "Impossible de résoudre le destinataire",
-    "toast.failedToCreatePrivateChat": "Échec de la création de la discussion privée",
-    "toast.failedToCreateCall": "Échec de la création de l'appel",
-    "toast.failedToDeleteUser": "Échec de la suppression de l'utilisateur.",
-    "toast.muteFailed": "Échec de la désactivation des notifications pour ce salon.",
-    "toast.unmuteFailed": "Échec de la réactivation des notifications pour ce salon.",
-    "toast.userRemovedFromRoom": "{userId} a été retiré du salon.",
-    "toast.failedToAddUser": "Échec de l'ajout de l'utilisateur.",
+    "toast.couldNotOpenPrivateChat": "Impossible d'ouvrir la nouvelle discussion priv\xE9e",
+    "toast.couldNotResolveRecipient": "Impossible de r\xE9soudre le destinataire",
+    "toast.failedToCreatePrivateChat": "\xC9chec de la cr\xE9ation de la discussion priv\xE9e",
+    "toast.failedToCreateCall": "\xC9chec de la cr\xE9ation de l'appel",
+    "toast.failedToDeleteUser": "\xC9chec de la suppression de l'utilisateur.",
+    "toast.muteFailed": "\xC9chec de la d\xE9sactivation des notifications pour ce salon.",
+    "toast.unmuteFailed": "\xC9chec de la r\xE9activation des notifications pour ce salon.",
+    "toast.userRemovedFromRoom": "{userId} a \xE9t\xE9 retir\xE9 du salon.",
+    "toast.failedToAddUser": "\xC9chec de l'ajout de l'utilisateur.",
     "user.unknown": "Utilisateur inconnu",
-    "toast.userAddedToRoom": "{userName} a été ajouté au salon.",
-    "toast.loginFailedTitle": "Échec de la connexion",
+    "toast.userAddedToRoom": "{userName} a \xE9t\xE9 ajout\xE9 au salon.",
+    "toast.loginFailedTitle": "\xC9chec de la connexion",
     "toast.invalidCredentials": "Identifiants invalides",
-    "toast.loginSuccessfulTitle": "Connexion réussie",
+    "toast.loginSuccessfulTitle": "Connexion r\xE9ussie",
     "toast.welcomeBack": "Content de vous revoir !",
     "toast.loginErrorTitle": "Erreur de connexion",
     "toast.loginErrorMessage": "Une erreur s'est produite lors de la connexion",
     "validation.invalidEmail": "Format d'e-mail invalide",
-    "validation.passwordTooShort": "Le mot de passe doit comporter au moins 6 caractères",
-    "validation.wrongCredentials": "Données incorrectes. Réessayez",
+    "validation.passwordTooShort": "Le mot de passe doit comporter au moins 6 caract\xE8res",
+    "validation.wrongCredentials": "Donn\xE9es incorrectes. R\xE9essayez",
     "field.email": "E-mail",
     "field.password": "Mot de passe",
-    "field.firstName": "Prénom",
+    "field.firstName": "Pr\xE9nom",
     "field.lastName": "Nom",
-    "field.additionalDetails": "Détails supplémentaires",
-    "action.logOut": "Déconnexion",
+    "field.additionalDetails": "D\xE9tails suppl\xE9mentaires",
+    "action.logOut": "D\xE9connexion",
     "action.message": "Message",
-    "action.encryptedMessage": "Message chiffré",
-    "action.videoCall": "Appel vidéo",
+    "action.encryptedMessage": "Message chiffr\xE9",
+    "action.videoCall": "Appel vid\xE9o",
     "action.call": "Appeler",
     "action.audioCall": "Appel audio",
     "action.copyUserId": "Copier l'ID utilisateur",
@@ -55236,23 +55236,23 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.no": "Non",
     "action.yes": "Oui",
     "action.deleteMyAccount": "Supprimer mon compte",
-    "auth.loginButton": "Se connecter à Ethora Chat",
+    "auth.loginButton": "Se connecter \xE0 Ethora Chat",
     "auth.loginWithGoogle": "Se connecter avec Google",
     "auth.orDelimiter": "ou",
     "auth.noAccount": "Vous n'avez pas de compte ?",
     "auth.signUp": "S'inscrire sur Ethora",
     "auth.loginAnonymously": "Se connecter anonymement",
     "auth.anonymousTextOnly": "Peut seulement envoyer des messages texte",
-    "auth.anonymousLoginMessage": "Vous êtes connecté anonymement !",
+    "auth.anonymousLoginMessage": "Vous \xEAtes connect\xE9 anonymement !",
     "modal.profile.title": "Profil",
     "action.editProfile": "Modifier le profil",
-    "modal.profile.about": "À propos",
+    "modal.profile.about": "\xC0 propos",
     "modal.profile.noDescription": "Aucune description",
     "modal.chatProfile.title": "Profil de la discussion",
     "modal.chatProfile.description": "Description",
     "modal.chatProfile.chatType": "Type de discussion",
     "modal.chatProfile.typePublic": "Public",
-    "modal.chatProfile.typePrivate": "Privé",
+    "modal.chatProfile.typePrivate": "Priv\xE9",
     "modal.chatProfile.typeGroup": "Groupe",
     "modal.chatProfile.memberCountSingular": "{count} membre",
     "modal.chatProfile.memberCountPlural": "{count} membres",
@@ -55267,60 +55267,60 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.leaveChat.description": "Voulez-vous vraiment quitter cette discussion ?",
     "modal.report.chatTitle": "Signaler la discussion",
     "modal.report.messageTitle": "Signaler le message",
-    "modal.report.otherDetails": "Veuillez indiquer des détails supplémentaires concernant votre signalement.",
+    "modal.report.otherDetails": "Veuillez indiquer des d\xE9tails suppl\xE9mentaires concernant votre signalement.",
     "report.category.spam": "Spam",
     "report.category.violence": "Violence",
     "report.category.childAbuse": "Maltraitance d'enfants",
     "report.category.pornography": "Pornographie",
     "report.category.personalDetails": "Informations personnelles",
-    "report.category.illegalDrugs": "Drogues illégales",
+    "report.category.illegalDrugs": "Drogues ill\xE9gales",
     "report.category.other": "Autre",
-    "notification.saved": "Enregistré",
-    "settings.visibility.title": "Visibilité",
-    "settings.visibility.profileLabel": "Visibilité du profil",
-    "settings.visibility.open": "Ouvert (par défaut)",
-    "settings.visibility.openDescription": "Votre profil peut être consulté par quiconque suit votre lien de profil ou votre code QR.",
+    "notification.saved": "Enregistr\xE9",
+    "settings.visibility.title": "Visibilit\xE9",
+    "settings.visibility.profileLabel": "Visibilit\xE9 du profil",
+    "settings.visibility.open": "Ouvert (par d\xE9faut)",
+    "settings.visibility.openDescription": "Votre profil peut \xEAtre consult\xE9 par quiconque suit votre lien de profil ou votre code QR.",
     "settings.visibility.restricted": "Restreint",
-    "settings.visibility.restrictedDescription": "Seuls les utilisateurs autorisés ou disposant d'un lien sécurisé temporaire peuvent voir votre profil.",
-    "settings.visibility.documentsLabel": "Visibilité des documents",
-    "settings.visibility.full": "Complète (par défaut)",
-    "settings.visibility.fullDescription": "Montrer tous les documents à ceux qui peuvent voir votre profil.",
+    "settings.visibility.restrictedDescription": "Seuls les utilisateurs autoris\xE9s ou disposant d'un lien s\xE9curis\xE9 temporaire peuvent voir votre profil.",
+    "settings.visibility.documentsLabel": "Visibilit\xE9 des documents",
+    "settings.visibility.full": "Compl\xE8te (par d\xE9faut)",
+    "settings.visibility.fullDescription": "Montrer tous les documents \xE0 ceux qui peuvent voir votre profil.",
     "settings.visibility.individual": "Individuelle",
     "settings.visibility.individualDescription": "Vous devez partager chaque document individuellement avant que d'autres puissent le voir.",
-    "settings.manageData.title": "Gérer les données",
-    "settings.manageData.downloadLabel": "Télécharger vos données",
-    "settings.manageData.downloadDescription": "Vos données vous appartiennent. Appuyez sur le bouton ci-dessous pour en télécharger une copie",
+    "settings.manageData.title": "G\xE9rer les donn\xE9es",
+    "settings.manageData.downloadLabel": "T\xE9l\xE9charger vos donn\xE9es",
+    "settings.manageData.downloadDescription": "Vos donn\xE9es vous appartiennent. Appuyez sur le bouton ci-dessous pour en t\xE9l\xE9charger une copie",
     "settings.manageData.deleteLabel": "Supprimer votre compte",
-    "settings.manageData.deleteDescription": "À utiliser uniquement si vous souhaitez supprimer définitivement votre compte et vos données de notre système.",
-    "settings.manageData.deleteDisclosure": "En raison de la nature immuable de la technologie des registres distribués, les nœuds du réseau exploités par la communauté peuvent conserver des transactions historiques générées par votre compte ; toutefois, vos informations personnelles identifiables telles que votre nom, e-mail, stockage clé-valeur, etc. seront supprimées. Tous vos actifs numériques seront perdus.",
-    "settings.section.privacy": "Confidentialité et données",
-    "settings.manageData.rowHint": "Téléchargez une copie de vos données ou supprimez votre compte",
+    "settings.manageData.deleteDescription": "\xC0 utiliser uniquement si vous souhaitez supprimer d\xE9finitivement votre compte et vos donn\xE9es de notre syst\xE8me.",
+    "settings.manageData.deleteDisclosure": "En raison de la nature immuable de la technologie des registres distribu\xE9s, les n\u0153uds du r\xE9seau exploit\xE9s par la communaut\xE9 peuvent conserver des transactions historiques g\xE9n\xE9r\xE9es par votre compte ; toutefois, vos informations personnelles identifiables telles que votre nom, e-mail, stockage cl\xE9-valeur, etc. seront supprim\xE9es. Tous vos actifs num\xE9riques seront perdus.",
+    "settings.section.privacy": "Confidentialit\xE9 et donn\xE9es",
+    "settings.manageData.rowHint": "T\xE9l\xE9chargez une copie de vos donn\xE9es ou supprimez votre compte",
     "settings.visibility.rowHint": "Choisissez qui peut voir votre profil et vos documents",
-    "settings.manageData.section.export": "Vos données",
+    "settings.manageData.section.export": "Vos donn\xE9es",
     "settings.manageData.deleteConfirmTitle": "Supprimer votre compte ?",
-    "settings.manageData.deleteConfirmDescription": "Cette action supprime définitivement votre compte et vous déconnecte. Elle est irréversible.",
+    "settings.manageData.deleteConfirmDescription": "Cette action supprime d\xE9finitivement votre compte et vous d\xE9connecte. Elle est irr\xE9versible.",
     "settings.manageData.deleting": "Suppression...",
-    "settings.manageData.deleteFailed": "Nous n'avons pas pu supprimer votre compte. Veuillez réessayer.",
+    "settings.manageData.deleteFailed": "Nous n'avons pas pu supprimer votre compte. Veuillez r\xE9essayer.",
     "files.panel.title": "Fichiers",
     "files.filter.all": "Tous",
-    "files.filter.media": "Médias",
+    "files.filter.media": "M\xE9dias",
     "files.filter.documents": "Documents",
     "files.filter.audio": "Audio",
     "files.search.placeholder": "Rechercher des fichiers...",
     "files.empty.title": "Aucun fichier",
-    "files.empty.subtitle": "Les fichiers que vous envoyez apparaîtront ici.",
-    "files.noResults": "Aucun fichier ne correspond à votre recherche",
-    "files.noResults.moreAvailable": "Tous les fichiers ne sont pas encore chargés, chargez-en plus pour continuer la recherche",
+    "files.empty.subtitle": "Les fichiers que vous envoyez appara\xEEtront ici.",
+    "files.noResults": "Aucun fichier ne correspond \xE0 votre recherche",
+    "files.noResults.moreAvailable": "Tous les fichiers ne sont pas encore charg\xE9s, chargez-en plus pour continuer la recherche",
     "files.loading": "Chargement des fichiers...",
     "files.error.title": "Impossible de charger les fichiers",
-    "files.action.retry": "Réessayer",
+    "files.action.retry": "R\xE9essayer",
     "files.action.loadMore": "Charger plus",
-    "files.action.preview": "Aperçu",
-    "files.action.download": "Télécharger",
+    "files.action.preview": "Aper\xE7u",
+    "files.action.download": "T\xE9l\xE9charger",
     "files.action.delete": "Supprimer",
     "files.delete.confirmTitle": "Supprimer ce fichier ?",
-    "files.delete.confirmMessage": "Ce fichier sera définitivement supprimé. Cette action est irréversible.",
-    "files.delete.failed": "Échec de la suppression du fichier",
+    "files.delete.confirmMessage": "Ce fichier sera d\xE9finitivement supprim\xE9. Cette action est irr\xE9versible.",
+    "files.delete.failed": "\xC9chec de la suppression du fichier",
     "modal.chatProfile.filesTitle": "Fichiers",
     "modal.chatProfile.filesShowAll": "Tout afficher",
     "modal.chatProfile.filesEmpty": "Aucun fichier dans ce salon pour le moment",
@@ -55328,21 +55328,21 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.qr.hint": "Scannez ce code ou partagez le lien pour ouvrir cette conversation.",
     "action.copyLink": "Copier le lien",
     "error.boundary.title": "Une erreur est survenue",
-    "error.boundary.description": "Le chat a rencontré un problème inattendu. Vos messages sont intacts.",
-    "error.boundary.retry": "Réessayer",
-    "modal.profile.preferences": "Préférences",
-    "modal.profile.languageHint": "Langue utilisée pour les libellés et la traduction des messages",
+    "error.boundary.description": "Le chat a rencontr\xE9 un probl\xE8me inattendu. Vos messages sont intacts.",
+    "error.boundary.retry": "R\xE9essayer",
+    "modal.profile.preferences": "Pr\xE9f\xE9rences",
+    "modal.profile.languageHint": "Langue utilis\xE9e pour les libell\xE9s et la traduction des messages",
     "modal.profile.actions": "Actions",
-    "modal.chatProfile.aboutSection": "À propos",
+    "modal.chatProfile.aboutSection": "\xC0 propos",
     "modal.chatProfile.membersSection": "Membres",
     "modal.chatProfile.filesShowLess": "Afficher moins",
     "notification.newMessage": "Nouveau message",
     "notification.photo": "Photo",
-    "notification.video": "Vidéo",
+    "notification.video": "Vid\xE9o",
     "notification.audio": "Message vocal",
     "notification.file": "Fichier",
     "notification.photos": "{count} photos",
-    "notification.attachments": "{count} pièces jointes"
+    "notification.attachments": "{count} pi\xE8ces jointes"
   };
   const es = {
     "tabs.chats": "Chats",
@@ -55354,31 +55354,31 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "e2ee.otherDevice": "Cifrado para otro dispositivo",
     "e2ee.notEncrypted": "Sin cifrar",
     "e2ee.roomEncrypted": "Cifrado de extremo a extremo",
-    "e2ee.notEncryptedHint": "Enviado sin cifrado de extremo a extremo, porque ningún destinatario ha publicado una clave todavía.",
+    "e2ee.notEncryptedHint": "Enviado sin cifrado de extremo a extremo, porque ning\xFAn destinatario ha publicado una clave todav\xEDa.",
     "e2ee.undecryptable": "No se pudo descifrar este mensaje",
     "room.created": "Sala creada",
-    "room.empty": "Este chat está vacío",
-    "room.empty.hint": "Sé el primero en escribir.",
+    "room.empty": "Este chat est\xE1 vac\xEDo",
+    "room.empty.hint": "S\xE9 el primero en escribir.",
     "media.unsupported": "Tipo de archivo no compatible",
     "media.audioPlay": "Reproducir mensaje de voz",
     "media.audioPause": "Pausar mensaje de voz",
-    "media.audioSpeed": "Velocidad de reproducción",
+    "media.audioSpeed": "Velocidad de reproducci\xF3n",
     "search.messages.title": "Buscar mensajes",
-    "search.clear": "Borrar búsqueda",
+    "search.clear": "Borrar b\xFAsqueda",
     "search.messages.placeholderChat": "Buscar en este chat",
     "search.messages.placeholderAll": "Buscar en todos los chats",
-    "search.messages.scope": "Dónde buscar",
+    "search.messages.scope": "D\xF3nde buscar",
     "search.messages.scopeChat": "Este chat",
     "search.messages.scopeAll": "Todos",
     "search.messages.hint": "Escribe para buscar en el historial",
     "search.messages.tooShort": "Escribe al menos {count} caracteres",
     "search.messages.searching": "Buscando...",
     "search.messages.empty": "No se encontraron mensajes",
-    "search.messages.error": "La búsqueda falló.",
+    "search.messages.error": "La b\xFAsqueda fall\xF3.",
     "search.messages.retry": "Reintentar",
-    "search.messages.loadMore": "Mostrar más",
+    "search.messages.loadMore": "Mostrar m\xE1s",
     "search.messages.count": "{count} encontrados",
-    "search.messages.you": "Tú",
+    "search.messages.you": "T\xFA",
     "search.messages.someone": "Alguien",
     "search.messages.chat": "Chat",
     "search.messages.notFound": "Ese mensaje es demasiado antiguo para cargarlo.",
@@ -55395,15 +55395,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "publicChats.title": "Descubrir chats",
     "publicChats.filter": "Filtrar chats",
     "publicChats.loading": "Cargando chats...",
-    "publicChats.error": "No se pudieron cargar los chats públicos.",
-    "publicChats.empty": "No hay chats públicos para mostrar",
-    "publicChats.emptyFilterMore": "Sin coincidencias entre los chats cargados. Muestra más para seguir buscando.",
+    "publicChats.error": "No se pudieron cargar los chats p\xFAblicos.",
+    "publicChats.empty": "No hay chats p\xFAblicos para mostrar",
+    "publicChats.emptyFilterMore": "Sin coincidencias entre los chats cargados. Muestra m\xE1s para seguir buscando.",
     "publicChats.join": "Unirse",
     "publicChats.open": "Abrir",
     "media.sealedUnavailable": "No se pudo abrir el archivo adjunto cifrado",
     "media.sealedFile": "Archivo cifrado",
     "media.sealedDownload": "Descargar y descifrar",
-    "media.sealedDownloading": "Descifrando…",
+    "media.sealedDownloading": "Descifrando\u2026",
     "media.sealedDownloadFailed": "Error de descarga: toca para reintentar",
     "media.imageUnavailable": "Imagen no disponible",
     "media.imageUnavailableHint": "No se pudo cargar el archivo",
@@ -55422,8 +55422,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "media.uploadProgress": "Subiendo {percent}%",
     "common.or": "O",
     "tabs.label": "Secciones de la barra lateral",
-    "call.disabled.roomType": "Las llamadas solo están disponibles en chats 1:1",
-    "call.disabled.noLivekit": "Llamadas no disponibles: el servicio de video no está configurado",
+    "call.disabled.roomType": "Las llamadas solo est\xE1n disponibles en chats 1:1",
+    "call.disabled.noLivekit": "Llamadas no disponibles: el servicio de video no est\xE1 configurado",
     "call.disabled.busy": "Ya hay otra llamada en curso",
     "date.today": "Hoy",
     "date.yesterday": "Ayer",
@@ -55431,35 +55431,35 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "message.edited": "editado",
     "message.notDelivered": "No enviado",
     "message.retry": "Reintentar",
-    "message.retryAriaLabel": "Reintentar el envío de este mensaje",
+    "message.retryAriaLabel": "Reintentar el env\xEDo de este mensaje",
     "message.remove": "Eliminar",
     "message.removeAriaLabel": "Eliminar este mensaje",
-    "message.mediaLostNote": "Los archivos se perdieron al recargar la página, así que este mensaje no se puede reintentar. Elimínalo para quitarlo.",
+    "message.mediaLostNote": "Los archivos se perdieron al recargar la p\xE1gina, as\xED que este mensaje no se puede reintentar. Elim\xEDnalo para quitarlo.",
     "message.receipt.sent": "Enviado",
     "message.receipt.delivered": "Entregado",
-    "message.receipt.read": "Leído",
-    "message.receipt.readBy": "Leído por {names}",
+    "message.receipt.read": "Le\xEDdo",
+    "message.receipt.readBy": "Le\xEDdo por {names}",
     "message.receipt.deliveredTo": "Entregado a {names}",
-    "reaction.tooltip.one": "{name} reaccionó con {emoji}",
+    "reaction.tooltip.one": "{name} reaccion\xF3 con {emoji}",
     "reaction.tooltip.two": "{first} y {second} reaccionaron con {emoji}",
-    "reaction.tooltip.others": "{first}, {second} y {count} más reaccionaron con {emoji}",
-    "reaction.tooltip.other": "{first}, {second} y {count} más reaccionó con {emoji}",
-    "reaction.aria.mine": "{emoji} {count}, tú reaccionaste",
+    "reaction.tooltip.others": "{first}, {second} y {count} m\xE1s reaccionaron con {emoji}",
+    "reaction.tooltip.other": "{first}, {second} y {count} m\xE1s reaccion\xF3 con {emoji}",
+    "reaction.aria.mine": "{emoji} {count}, t\xFA reaccionaste",
     "reaction.aria.theirs": "{emoji} {count}",
-    "reaction.more": "Mostrar {count} reacciones más",
-    "presence.online": "en línea",
+    "reaction.more": "Mostrar {count} reacciones m\xE1s",
+    "presence.online": "en l\xEDnea",
     "presence.offline": "desconectado",
-    "presence.onlineCount": "{count} en línea",
+    "presence.onlineCount": "{count} en l\xEDnea",
     "header.userCountSingular": "{count} usuario",
     "header.userCountPlural": "{count} usuarios",
     "avatar.altWithName": "Avatar de {name}",
     "avatar.altGeneric": "Avatar",
-    "header.action.back": "Atrás",
+    "header.action.back": "Atr\xE1s",
     "header.action.startAudioCall": "Iniciar llamada de audio",
     "header.action.startVideoCall": "Iniciar videollamada",
     "header.logoAlt": "Logo",
-    "header.menu": "Menú",
-    "header.chatMenu": "Menú del chat",
+    "header.menu": "Men\xFA",
+    "header.chatMenu": "Men\xFA del chat",
     "call.outgoing": "Llamada saliente",
     "call.incoming": "Llamada entrante",
     "call.noAnswer": "Sin respuesta",
@@ -55479,51 +55479,51 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.translate": "Traducir",
     "action.showOriginal": "Ver original",
     "action.scrollToBottom": "Desplazarse al final",
-    "action.jumpToLatest": "Ir a los últimos mensajes",
+    "action.jumpToLatest": "Ir a los \xFAltimos mensajes",
     "action.newChat": "Nuevo chat",
-    "action.addUsers": "Añadir usuarios",
-    "action.addUsersCount": "Añadir usuarios ({count} seleccionados)",
-    "action.addMoreUsers": "Añadir más usuarios",
-    "action.add": "Añadir",
-    "action.backToCreation": "Volver a la creación",
+    "action.addUsers": "A\xF1adir usuarios",
+    "action.addUsersCount": "A\xF1adir usuarios ({count} seleccionados)",
+    "action.addMoreUsers": "A\xF1adir m\xE1s usuarios",
+    "action.add": "A\xF1adir",
+    "action.backToCreation": "Volver a la creaci\xF3n",
     "action.report": "Reportar",
     "action.mute": "Silenciar notificaciones",
     "action.unmute": "Activar notificaciones",
-    "status.connecting": "Conectando…",
-    "status.noInternet": "Sin conexión a internet",
-    "translation.translating": "Traduciendo…",
+    "status.connecting": "Conectando\u2026",
+    "status.noInternet": "Sin conexi\xF3n a internet",
+    "translation.translating": "Traduciendo\u2026",
     "translation.failed": "No se pudo traducir",
     "translation.enableToggleLabel": "Traducir mis mensajes",
-    "translation.enableToggleDisclaimer": "Si las traducciones no estaban activadas, solo se traducirán los mensajes nuevos enviados a partir de ahora.",
-    "translation.modeLabel": "Visualización de traducciones",
-    "translation.modeAuto": "Automático",
+    "translation.enableToggleDisclaimer": "Si las traducciones no estaban activadas, solo se traducir\xE1n los mensajes nuevos enviados a partir de ahora.",
+    "translation.modeLabel": "Visualizaci\xF3n de traducciones",
+    "translation.modeAuto": "Autom\xE1tico",
     "translation.modeManual": "Manual",
     "language.select": "Seleccionar idioma",
     "modal.newChat.title": "Crear nuevo chat",
     "modal.newChat.roomNamePlaceholder": "Nombre de la sala",
     "modal.newChat.chatTypePlaceholder": "Selecciona el tipo de chat",
-    "modal.newChat.typePublic": "Público",
+    "modal.newChat.typePublic": "P\xFAblico",
     "modal.newChat.typePrivate": "Privado",
-    "modal.newChat.selectUsersTitle": "Selecciona usuarios para añadir al chat",
-    "modal.filePreview.unsupported": "No se puede abrir el documento cargado. El formato del archivo no es compatible con el sistema. Cargue un archivo en un formato compatible. Aún puede descargar este archivo.",
-    "modal.selectUsers.title": "Seleccionar usuarios (máx. 20)",
+    "modal.newChat.selectUsersTitle": "Selecciona usuarios para a\xF1adir al chat",
+    "modal.filePreview.unsupported": "No se puede abrir el documento cargado. El formato del archivo no es compatible con el sistema. Cargue un archivo en un formato compatible. A\xFAn puede descargar este archivo.",
+    "modal.selectUsers.title": "Seleccionar usuarios (m\xE1x. 20)",
     "modal.selectUsers.searchPlaceholder": "Buscar usuarios...",
     "mention.pickerTitle": "Mencionar a alguien",
     "mention.showAll": "Mostrar los {count}...",
-    "mention.loadingMembers": "Cargando más personas...",
+    "mention.loadingMembers": "Cargando m\xE1s personas...",
     "modal.selectUsers.empty": "No se encontraron usuarios",
-    "thread.title": "Hilo de conversación",
-    "thread.alsoSendTo": "Enviar también a",
-    "toast.roomCreationTitle": "Creación de sala",
-    "toast.roomCreating": "La sala se está creando...",
-    "toast.success": "¡Éxito!",
-    "toast.roomCreatedSuccess": "¡Sala creada correctamente!",
-    "toast.usersAddedSuccess": "¡Usuarios añadidos correctamente!",
-    "settings.menu.title": "Configuración",
+    "thread.title": "Hilo de conversaci\xF3n",
+    "thread.alsoSendTo": "Enviar tambi\xE9n a",
+    "toast.roomCreationTitle": "Creaci\xF3n de sala",
+    "toast.roomCreating": "La sala se est\xE1 creando...",
+    "toast.success": "\xA1\xC9xito!",
+    "toast.roomCreatedSuccess": "\xA1Sala creada correctamente!",
+    "toast.usersAddedSuccess": "\xA1Usuarios a\xF1adidos correctamente!",
+    "settings.menu.title": "Configuraci\xF3n",
     "modal.filePreview.title": "Vista previa del archivo",
-    "modal.filePreview.pdfPages": "Páginas del PDF",
-    "modal.filePreview.previousPage": "Página anterior",
-    "modal.filePreview.nextPage": "Página siguiente",
+    "modal.filePreview.pdfPages": "P\xE1ginas del PDF",
+    "modal.filePreview.previousPage": "P\xE1gina anterior",
+    "modal.filePreview.nextPage": "P\xE1gina siguiente",
     "modal.filePreview.previousItem": "Elemento anterior",
     "modal.filePreview.nextItem": "Elemento siguiente",
     "modal.filePreview.position": "{current} de {total}",
@@ -55532,7 +55532,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.filePreview.resetZoom": "Restablecer el zoom",
     "modal.filePreview.imageAlt": "Imagen compartida",
     "modal.filePreview.close": "Cerrar",
-    "modal.filePreview.unavailable": "Este archivo no está disponible",
+    "modal.filePreview.unavailable": "Este archivo no est\xE1 disponible",
     "modal.filePreview.retry": "Intentar de nuevo",
     "modal.filePreview.download": "Descargar",
     "modal.filePreview.loading": "Cargando imagen",
@@ -55541,19 +55541,19 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.filePreview.fileLabel": "Archivo",
     "attachment.remove": "Quitar el archivo adjunto",
     "attachment.limit": "Puedes adjuntar hasta {count} archivos por mensaje.",
-    "attachment.tooLarge": "Se omitió {files}: supera {size} MB.",
+    "attachment.tooLarge": "Se omiti\xF3 {files}: supera {size} MB.",
     "action.attachFile": "Adjuntar archivo",
     "action.startRecording": "Grabar mensaje de voz",
-    "action.stopRecording": "Cancelar grabación",
+    "action.stopRecording": "Cancelar grabaci\xF3n",
     "action.sendRecording": "Enviar mensaje de voz",
     "action.emoji": "Insertar emoji",
-    "attachment.dropHint": "Suelta los archivos aquí para adjuntarlos",
+    "attachment.dropHint": "Suelta los archivos aqu\xED para adjuntarlos",
     "attachment.uploadFailed": "Error al subir",
     "attachment.retryUpload": "Reintentar la subida de {file}",
     "attachment.hiddenFailed": "{count} fallido(s), toca para reintentar",
     "attachment.moreCount": "+{count}",
-    "modal.filePreview.openExternally": "Abrir en una pestaña nueva",
-    "modal.filePreview.pdfUnavailable": "Este PDF no se puede mostrar aquí. Aún puedes abrirlo o descargarlo.",
+    "modal.filePreview.openExternally": "Abrir en una pesta\xF1a nueva",
+    "modal.filePreview.pdfUnavailable": "Este PDF no se puede mostrar aqu\xED. A\xFAn puedes abrirlo o descargarlo.",
     "toast.error": "Error",
     "toast.couldNotOpenPrivateChat": "No se pudo abrir el nuevo chat privado",
     "toast.couldNotResolveRecipient": "No se pudo resolver el destinatario",
@@ -55563,24 +55563,24 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "toast.muteFailed": "No se pudo silenciar este chat.",
     "toast.unmuteFailed": "No se pudo activar las notificaciones de este chat.",
     "toast.userRemovedFromRoom": "{userId} ha sido eliminado de la sala.",
-    "toast.failedToAddUser": "No se pudo añadir al usuario.",
+    "toast.failedToAddUser": "No se pudo a\xF1adir al usuario.",
     "user.unknown": "Usuario desconocido",
-    "toast.userAddedToRoom": "{userName} ha sido añadido a la sala.",
-    "toast.loginFailedTitle": "Error al iniciar sesión",
-    "toast.invalidCredentials": "Credenciales inválidas",
-    "toast.loginSuccessfulTitle": "Inicio de sesión exitoso",
-    "toast.welcomeBack": "¡Bienvenido de nuevo!",
-    "toast.loginErrorTitle": "Error de inicio de sesión",
-    "toast.loginErrorMessage": "Ocurrió un error durante el inicio de sesión",
-    "validation.invalidEmail": "Formato de correo inválido",
-    "validation.passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
-    "validation.wrongCredentials": "Datos incorrectos. Inténtalo de nuevo",
-    "field.email": "Correo electrónico",
-    "field.password": "Contraseña",
+    "toast.userAddedToRoom": "{userName} ha sido a\xF1adido a la sala.",
+    "toast.loginFailedTitle": "Error al iniciar sesi\xF3n",
+    "toast.invalidCredentials": "Credenciales inv\xE1lidas",
+    "toast.loginSuccessfulTitle": "Inicio de sesi\xF3n exitoso",
+    "toast.welcomeBack": "\xA1Bienvenido de nuevo!",
+    "toast.loginErrorTitle": "Error de inicio de sesi\xF3n",
+    "toast.loginErrorMessage": "Ocurri\xF3 un error durante el inicio de sesi\xF3n",
+    "validation.invalidEmail": "Formato de correo inv\xE1lido",
+    "validation.passwordTooShort": "La contrase\xF1a debe tener al menos 6 caracteres",
+    "validation.wrongCredentials": "Datos incorrectos. Int\xE9ntalo de nuevo",
+    "field.email": "Correo electr\xF3nico",
+    "field.password": "Contrase\xF1a",
     "field.firstName": "Nombre",
     "field.lastName": "Apellido",
     "field.additionalDetails": "Detalles adicionales",
-    "action.logOut": "Cerrar sesión",
+    "action.logOut": "Cerrar sesi\xF3n",
     "action.message": "Mensaje",
     "action.encryptedMessage": "Mensaje cifrado",
     "action.videoCall": "Videollamada",
@@ -55588,49 +55588,49 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.audioCall": "Llamada de audio",
     "action.copyUserId": "Copiar ID de usuario",
     "action.deleteChat": "Eliminar chat",
-    "action.moreOptions": "Más opciones",
+    "action.moreOptions": "M\xE1s opciones",
     "action.openChatList": "Abrir la lista de chats",
     "action.showQr": "Mostrar QR",
-    "action.addMembers": "Añadir miembros",
+    "action.addMembers": "A\xF1adir miembros",
     "action.no": "No",
-    "action.yes": "Sí",
+    "action.yes": "S\xED",
     "action.deleteMyAccount": "Eliminar mi cuenta",
-    "auth.loginButton": "Iniciar sesión en Ethora Chat",
-    "auth.loginWithGoogle": "Iniciar sesión con Google",
+    "auth.loginButton": "Iniciar sesi\xF3n en Ethora Chat",
+    "auth.loginWithGoogle": "Iniciar sesi\xF3n con Google",
     "auth.orDelimiter": "o",
-    "auth.noAccount": "¿No tienes una cuenta?",
-    "auth.signUp": "Regístrate en Ethora",
-    "auth.loginAnonymously": "Iniciar sesión de forma anónima",
+    "auth.noAccount": "\xBFNo tienes una cuenta?",
+    "auth.signUp": "Reg\xEDstrate en Ethora",
+    "auth.loginAnonymously": "Iniciar sesi\xF3n de forma an\xF3nima",
     "auth.anonymousTextOnly": "Solo se pueden enviar mensajes de texto",
-    "auth.anonymousLoginMessage": "¡Has iniciado sesión de forma anónima!",
+    "auth.anonymousLoginMessage": "\xA1Has iniciado sesi\xF3n de forma an\xF3nima!",
     "modal.profile.title": "Perfil",
     "action.editProfile": "Editar perfil",
     "modal.profile.about": "Acerca de",
-    "modal.profile.noDescription": "Sin descripción",
+    "modal.profile.noDescription": "Sin descripci\xF3n",
     "modal.chatProfile.title": "Perfil del chat",
-    "modal.chatProfile.description": "Descripción",
+    "modal.chatProfile.description": "Descripci\xF3n",
     "modal.chatProfile.chatType": "Tipo de chat",
-    "modal.chatProfile.typePublic": "Público",
+    "modal.chatProfile.typePublic": "P\xFAblico",
     "modal.chatProfile.typePrivate": "Privado",
     "modal.chatProfile.typeGroup": "Grupo",
     "modal.chatProfile.memberCountSingular": "{count} miembro",
     "modal.chatProfile.memberCountPlural": "{count} miembros",
-    "modal.chatProfile.membersShowMore": "Mostrar {count} más",
+    "modal.chatProfile.membersShowMore": "Mostrar {count} m\xE1s",
     "modal.chatProfile.membersLoadingAll": "Cargando todos los miembros...",
     "modal.chatProfile.searchMembers": "Buscar miembros",
     "modal.chatProfile.notifications": "Notificaciones",
-    "modal.deleteChat.title": "¿Eliminar este chat?",
-    "modal.addMembers.title": "Añadir nuevo miembro",
+    "modal.deleteChat.title": "\xBFEliminar este chat?",
+    "modal.addMembers.title": "A\xF1adir nuevo miembro",
     "modal.addMembers.userIdPlaceholder": "Introduce el ID de usuario",
     "modal.leaveChat.title": "Salir del chat",
-    "modal.leaveChat.description": "¿Seguro que quieres salir de este chat?",
+    "modal.leaveChat.description": "\xBFSeguro que quieres salir de este chat?",
     "modal.report.chatTitle": "Reportar chat",
     "modal.report.messageTitle": "Reportar mensaje",
     "modal.report.otherDetails": "Introduce detalles adicionales relevantes para tu reporte.",
     "report.category.spam": "Spam",
     "report.category.violence": "Violencia",
     "report.category.childAbuse": "Abuso infantil",
-    "report.category.pornography": "Pornografía",
+    "report.category.pornography": "Pornograf\xEDa",
     "report.category.personalDetails": "Datos personales",
     "report.category.illegalDrugs": "Drogas ilegales",
     "report.category.other": "Otro",
@@ -55638,7 +55638,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "settings.visibility.title": "Visibilidad",
     "settings.visibility.profileLabel": "Visibilidad del perfil",
     "settings.visibility.open": "Abierto (predeterminado)",
-    "settings.visibility.openDescription": "Cualquiera que siga el enlace de tu perfil o tu código QR puede ver tu perfil.",
+    "settings.visibility.openDescription": "Cualquiera que siga el enlace de tu perfil o tu c\xF3digo QR puede ver tu perfil.",
     "settings.visibility.restricted": "Restringido",
     "settings.visibility.restrictedDescription": "Solo los usuarios con tu permiso o un enlace seguro temporal pueden ver tu perfil.",
     "settings.visibility.documentsLabel": "Visibilidad de documentos",
@@ -55648,49 +55648,49 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "settings.visibility.individualDescription": "Debes compartir cada documento individualmente antes de que otros puedan verlo.",
     "settings.manageData.title": "Gestionar datos",
     "settings.manageData.downloadLabel": "Descarga tus datos",
-    "settings.manageData.downloadDescription": "Tus datos te pertenecen. Toca el botón de abajo para descargar una copia de tus datos",
+    "settings.manageData.downloadDescription": "Tus datos te pertenecen. Toca el bot\xF3n de abajo para descargar una copia de tus datos",
     "settings.manageData.deleteLabel": "Elimina tu cuenta",
     "settings.manageData.deleteDescription": "Utiliza esto solo si deseas eliminar permanentemente tu cuenta y tus datos de nuestro sistema.",
-    "settings.manageData.deleteDisclosure": "Debido a la naturaleza inmutable de la tecnología de registro distribuido, los nodos de red operados por la comunidad pueden seguir conservando transacciones históricas generadas por tu cuenta; sin embargo, tu información personal identificable, como tu nombre, correo electrónico y almacenamiento clave-valor, será eliminada. Se perderán todos tus activos digitales.",
+    "settings.manageData.deleteDisclosure": "Debido a la naturaleza inmutable de la tecnolog\xEDa de registro distribuido, los nodos de red operados por la comunidad pueden seguir conservando transacciones hist\xF3ricas generadas por tu cuenta; sin embargo, tu informaci\xF3n personal identificable, como tu nombre, correo electr\xF3nico y almacenamiento clave-valor, ser\xE1 eliminada. Se perder\xE1n todos tus activos digitales.",
     "settings.section.privacy": "Privacidad y datos",
     "settings.manageData.rowHint": "Descarga una copia de tus datos o elimina tu cuenta",
-    "settings.visibility.rowHint": "Elige quién puede ver tu perfil y tus documentos",
+    "settings.visibility.rowHint": "Elige qui\xE9n puede ver tu perfil y tus documentos",
     "settings.manageData.section.export": "Tus datos",
-    "settings.manageData.deleteConfirmTitle": "¿Eliminar tu cuenta?",
-    "settings.manageData.deleteConfirmDescription": "Esto elimina tu cuenta de forma permanente y cierra tu sesión. No se puede deshacer.",
+    "settings.manageData.deleteConfirmTitle": "\xBFEliminar tu cuenta?",
+    "settings.manageData.deleteConfirmDescription": "Esto elimina tu cuenta de forma permanente y cierra tu sesi\xF3n. No se puede deshacer.",
     "settings.manageData.deleting": "Eliminando...",
-    "settings.manageData.deleteFailed": "No pudimos eliminar tu cuenta. Inténtalo de nuevo.",
+    "settings.manageData.deleteFailed": "No pudimos eliminar tu cuenta. Int\xE9ntalo de nuevo.",
     "files.panel.title": "Archivos",
     "files.filter.all": "Todos",
     "files.filter.media": "Multimedia",
     "files.filter.documents": "Documentos",
     "files.filter.audio": "Audio",
     "files.search.placeholder": "Buscar archivos...",
-    "files.empty.title": "Aún no hay archivos",
-    "files.empty.subtitle": "Los archivos que subas aparecerán aquí.",
-    "files.noResults": "Ningún archivo coincide con tu búsqueda",
-    "files.noResults.moreAvailable": "Aún no se han cargado todos los archivos, carga más para seguir buscando",
+    "files.empty.title": "A\xFAn no hay archivos",
+    "files.empty.subtitle": "Los archivos que subas aparecer\xE1n aqu\xED.",
+    "files.noResults": "Ning\xFAn archivo coincide con tu b\xFAsqueda",
+    "files.noResults.moreAvailable": "A\xFAn no se han cargado todos los archivos, carga m\xE1s para seguir buscando",
     "files.loading": "Cargando archivos...",
     "files.error.title": "No se pudieron cargar los archivos",
     "files.action.retry": "Reintentar",
-    "files.action.loadMore": "Cargar más",
+    "files.action.loadMore": "Cargar m\xE1s",
     "files.action.preview": "Vista previa",
     "files.action.download": "Descargar",
     "files.action.delete": "Eliminar",
-    "files.delete.confirmTitle": "¿Eliminar este archivo?",
-    "files.delete.confirmMessage": "Este archivo se eliminará permanentemente. Esta acción no se puede deshacer.",
+    "files.delete.confirmTitle": "\xBFEliminar este archivo?",
+    "files.delete.confirmMessage": "Este archivo se eliminar\xE1 permanentemente. Esta acci\xF3n no se puede deshacer.",
     "files.delete.failed": "No se pudo eliminar el archivo",
     "modal.chatProfile.filesTitle": "Archivos",
     "modal.chatProfile.filesShowAll": "Ver todos",
-    "modal.chatProfile.filesEmpty": "Aún no hay archivos en este chat",
-    "modal.qr.title": "Código QR",
-    "modal.qr.hint": "Escanea este código o comparte el enlace para abrir este chat.",
+    "modal.chatProfile.filesEmpty": "A\xFAn no hay archivos en este chat",
+    "modal.qr.title": "C\xF3digo QR",
+    "modal.qr.hint": "Escanea este c\xF3digo o comparte el enlace para abrir este chat.",
     "action.copyLink": "Copiar enlace",
-    "error.boundary.title": "Algo salió mal",
-    "error.boundary.description": "El chat encontró un problema inesperado. Tus mensajes están a salvo.",
+    "error.boundary.title": "Algo sali\xF3 mal",
+    "error.boundary.description": "El chat encontr\xF3 un problema inesperado. Tus mensajes est\xE1n a salvo.",
     "error.boundary.retry": "Intentar de nuevo",
     "modal.profile.preferences": "Preferencias",
-    "modal.profile.languageHint": "Idioma usado para los textos y la traducción de mensajes",
+    "modal.profile.languageHint": "Idioma usado para los textos y la traducci\xF3n de mensajes",
     "modal.profile.actions": "Acciones",
     "modal.chatProfile.aboutSection": "Acerca de",
     "modal.chatProfile.membersSection": "Miembros",
@@ -55713,15 +55713,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "e2ee.otherDevice": "Criptografado para outro dispositivo",
     "e2ee.notEncrypted": "Sem criptografia",
     "e2ee.roomEncrypted": "Criptografado de ponta a ponta",
-    "e2ee.notEncryptedHint": "Enviado sem criptografia de ponta a ponta, porque nenhum destinatário publicou uma chave ainda.",
-    "e2ee.undecryptable": "Não foi possível descriptografar esta mensagem",
+    "e2ee.notEncryptedHint": "Enviado sem criptografia de ponta a ponta, porque nenhum destinat\xE1rio publicou uma chave ainda.",
+    "e2ee.undecryptable": "N\xE3o foi poss\xEDvel descriptografar esta mensagem",
     "room.created": "Sala criada",
-    "room.empty": "Este chat está vazio",
+    "room.empty": "Este chat est\xE1 vazio",
     "room.empty.hint": "Seja o primeiro a escrever.",
-    "media.unsupported": "Tipo de mídia não suportado",
+    "media.unsupported": "Tipo de m\xEDdia n\xE3o suportado",
     "media.audioPlay": "Reproduzir mensagem de voz",
     "media.audioPause": "Pausar mensagem de voz",
-    "media.audioSpeed": "Velocidade de reprodução",
+    "media.audioSpeed": "Velocidade de reprodu\xE7\xE3o",
     "search.messages.title": "Pesquisar mensagens",
     "search.clear": "Limpar pesquisa",
     "search.messages.placeholderChat": "Pesquisar nesta conversa",
@@ -55729,7 +55729,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "search.messages.scope": "Onde pesquisar",
     "search.messages.scopeChat": "Esta conversa",
     "search.messages.scopeAll": "Todas",
-    "search.messages.hint": "Digite para pesquisar o histórico",
+    "search.messages.hint": "Digite para pesquisar o hist\xF3rico",
     "search.messages.tooShort": "Digite pelo menos {count} caracteres",
     "search.messages.searching": "Pesquisando...",
     "search.messages.empty": "Nenhuma mensagem encontrada",
@@ -55737,63 +55737,63 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "search.messages.retry": "Tentar novamente",
     "search.messages.loadMore": "Mostrar mais",
     "search.messages.count": "{count} encontradas",
-    "search.messages.you": "Você",
-    "search.messages.someone": "Alguém",
+    "search.messages.you": "Voc\xEA",
+    "search.messages.someone": "Algu\xE9m",
     "search.messages.chat": "Conversa",
-    "search.messages.notFound": "Essa mensagem é antiga demais para ser carregada.",
+    "search.messages.notFound": "Essa mensagem \xE9 antiga demais para ser carregada.",
     "search.messages.archivedTitle": "Mensagem antiga",
-    "search.messages.archivedNote": "Esta mensagem é anterior ao histórico disponível nesta conversa, por isso não pode ser exibida no lugar.",
+    "search.messages.archivedNote": "Esta mensagem \xE9 anterior ao hist\xF3rico dispon\xEDvel nesta conversa, por isso n\xE3o pode ser exibida no lugar.",
     "search.messages.filters": "Filtros",
     "search.messages.filterSender": "De",
     "search.messages.filterSenderPlaceholder": "Nome do remetente",
     "search.messages.filterSince": "Desde",
-    "search.messages.filterUntil": "Até",
+    "search.messages.filterUntil": "At\xE9",
     "search.messages.filterClear": "Remover filtro",
     "search.messages.filterClearAll": "Limpar filtros",
-    "search.messages.dateOrder": "A data inicial é posterior à data final.",
+    "search.messages.dateOrder": "A data inicial \xE9 posterior \xE0 data final.",
     "publicChats.title": "Descobrir conversas",
     "publicChats.filter": "Filtrar conversas",
     "publicChats.loading": "Carregando conversas...",
-    "publicChats.error": "Não foi possível carregar as conversas públicas.",
-    "publicChats.empty": "Nenhuma conversa pública para mostrar",
-    "publicChats.emptyFilterMore": "Nenhuma correspondência entre as conversas carregadas. Mostre mais para continuar.",
+    "publicChats.error": "N\xE3o foi poss\xEDvel carregar as conversas p\xFAblicas.",
+    "publicChats.empty": "Nenhuma conversa p\xFAblica para mostrar",
+    "publicChats.emptyFilterMore": "Nenhuma correspond\xEAncia entre as conversas carregadas. Mostre mais para continuar.",
     "publicChats.join": "Entrar",
     "publicChats.open": "Abrir",
-    "media.sealedUnavailable": "Não foi possível abrir o anexo criptografado",
+    "media.sealedUnavailable": "N\xE3o foi poss\xEDvel abrir o anexo criptografado",
     "media.sealedFile": "Arquivo criptografado",
     "media.sealedDownload": "Baixar e descriptografar",
-    "media.sealedDownloading": "Descriptografando…",
+    "media.sealedDownloading": "Descriptografando\u2026",
     "media.sealedDownloadFailed": "Falha no download: toque para tentar novamente",
-    "media.imageUnavailable": "Imagem indisponível",
-    "media.imageUnavailableHint": "Não foi possível carregar o arquivo",
+    "media.imageUnavailable": "Imagem indispon\xEDvel",
+    "media.imageUnavailableHint": "N\xE3o foi poss\xEDvel carregar o arquivo",
     "media.retry": "Tentar novamente",
     "lastMessage.photo": "Foto",
     "lastMessage.photos": "{count} fotos",
-    "lastMessage.video": "Vídeo",
-    "lastMessage.videos": "{count} vídeos",
+    "lastMessage.video": "V\xEDdeo",
+    "lastMessage.videos": "{count} v\xEDdeos",
     "lastMessage.voice": "Mensagem de voz",
-    "lastMessage.audio": "Áudio",
+    "lastMessage.audio": "\xC1udio",
     "lastMessage.file": "Ficheiro",
     "lastMessage.attachment": "Anexo",
     "lastMessage.files": "{count} ficheiros",
-    "media.videoPlay": "Reproduzir vídeo",
+    "media.videoPlay": "Reproduzir v\xEDdeo",
     "media.download": "Baixar",
     "media.uploadProgress": "Enviando {percent}%",
     "common.or": "Ou",
-    "tabs.label": "Seções da barra lateral",
-    "call.disabled.roomType": "Chamadas disponíveis apenas em conversas 1:1",
-    "call.disabled.noLivekit": "Chamadas indisponíveis: serviço de vídeo não configurado",
-    "call.disabled.busy": "Outra chamada já está em andamento",
+    "tabs.label": "Se\xE7\xF5es da barra lateral",
+    "call.disabled.roomType": "Chamadas dispon\xEDveis apenas em conversas 1:1",
+    "call.disabled.noLivekit": "Chamadas indispon\xEDveis: servi\xE7o de v\xEDdeo n\xE3o configurado",
+    "call.disabled.busy": "Outra chamada j\xE1 est\xE1 em andamento",
     "date.today": "Hoje",
     "date.yesterday": "Ontem",
     "message.deleted": "Mensagem eliminada",
     "message.edited": "editado",
-    "message.notDelivered": "Não enviado",
+    "message.notDelivered": "N\xE3o enviado",
     "message.retry": "Tentar novamente",
     "message.retryAriaLabel": "Tentar enviar esta mensagem novamente",
     "message.remove": "Remover",
     "message.removeAriaLabel": "Remover esta mensagem",
-    "message.mediaLostNote": "Os arquivos foram perdidos ao recarregar a página, então esta mensagem não pode ser reenviada. Remova-a para limpar.",
+    "message.mediaLostNote": "Os arquivos foram perdidos ao recarregar a p\xE1gina, ent\xE3o esta mensagem n\xE3o pode ser reenviada. Remova-a para limpar.",
     "message.receipt.sent": "Enviada",
     "message.receipt.delivered": "Entregue",
     "message.receipt.read": "Lida",
@@ -55803,18 +55803,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "reaction.tooltip.two": "{first} e {second} reagiram com {emoji}",
     "reaction.tooltip.others": "{first}, {second} e mais {count} reagiram com {emoji}",
     "reaction.tooltip.other": "{first}, {second} e mais {count} reagiu com {emoji}",
-    "reaction.aria.mine": "{emoji} {count}, você reagiu",
+    "reaction.aria.mine": "{emoji} {count}, voc\xEA reagiu",
     "reaction.aria.theirs": "{emoji} {count}",
-    "reaction.more": "Mostrar mais {count} reações",
+    "reaction.more": "Mostrar mais {count} rea\xE7\xF5es",
     "presence.online": "online",
     "presence.offline": "offline",
     "presence.onlineCount": "{count} online",
-    "header.userCountSingular": "{count} usuário",
-    "header.userCountPlural": "{count} usuários",
+    "header.userCountSingular": "{count} usu\xE1rio",
+    "header.userCountPlural": "{count} usu\xE1rios",
     "avatar.altWithName": "Avatar de {name}",
     "avatar.altGeneric": "Avatar",
     "header.action.back": "Voltar",
-    "header.action.startAudioCall": "Iniciar chamada de áudio",
+    "header.action.startAudioCall": "Iniciar chamada de \xE1udio",
     "header.action.startVideoCall": "Iniciar videochamada",
     "header.logoAlt": "Logo",
     "header.menu": "Menu",
@@ -55838,60 +55838,60 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.translate": "Traduzir",
     "action.showOriginal": "Ver original",
     "action.scrollToBottom": "Rolar para o final",
-    "action.jumpToLatest": "Ir para as últimas mensagens",
+    "action.jumpToLatest": "Ir para as \xFAltimas mensagens",
     "action.newChat": "Novo chat",
     "action.addUsers": "Adicionar utilizadores",
     "action.addUsersCount": "Adicionar utilizadores ({count} selecionados)",
     "action.addMoreUsers": "Adicionar mais utilizadores",
     "action.add": "Adicionar",
-    "action.backToCreation": "Voltar à criação",
+    "action.backToCreation": "Voltar \xE0 cria\xE7\xE3o",
     "action.report": "Denunciar",
-    "action.mute": "Silenciar notificações",
-    "action.unmute": "Ativar notificações",
-    "status.connecting": "A ligar…",
-    "status.noInternet": "Sem ligação à internet",
-    "translation.translating": "A traduzir…",
-    "translation.failed": "Não foi possível traduzir",
+    "action.mute": "Silenciar notifica\xE7\xF5es",
+    "action.unmute": "Ativar notifica\xE7\xF5es",
+    "status.connecting": "A ligar\u2026",
+    "status.noInternet": "Sem liga\xE7\xE3o \xE0 internet",
+    "translation.translating": "A traduzir\u2026",
+    "translation.failed": "N\xE3o foi poss\xEDvel traduzir",
     "translation.enableToggleLabel": "Traduzir minhas mensagens",
-    "translation.enableToggleDisclaimer": "Se as traduções não estavam ativadas, apenas as novas mensagens enviadas a partir de agora serão traduzidas.",
-    "translation.modeLabel": "Exibição de traduções",
-    "translation.modeAuto": "Automático",
+    "translation.enableToggleDisclaimer": "Se as tradu\xE7\xF5es n\xE3o estavam ativadas, apenas as novas mensagens enviadas a partir de agora ser\xE3o traduzidas.",
+    "translation.modeLabel": "Exibi\xE7\xE3o de tradu\xE7\xF5es",
+    "translation.modeAuto": "Autom\xE1tico",
     "translation.modeManual": "Manual",
     "language.select": "Selecionar idioma",
     "modal.newChat.title": "Criar novo chat",
-    "modal.filePreview.unsupported": "Não é possível abrir o documento carregado. O formato do ficheiro não é suportado pelo sistema. Carregue um ficheiro num formato compatível. Ainda pode transferir este ficheiro.",
+    "modal.filePreview.unsupported": "N\xE3o \xE9 poss\xEDvel abrir o documento carregado. O formato do ficheiro n\xE3o \xE9 suportado pelo sistema. Carregue um ficheiro num formato compat\xEDvel. Ainda pode transferir este ficheiro.",
     "modal.newChat.roomNamePlaceholder": "Nome da sala",
     "modal.newChat.chatTypePlaceholder": "Selecione o tipo de chat",
-    "modal.newChat.typePublic": "Público",
+    "modal.newChat.typePublic": "P\xFAblico",
     "modal.newChat.typePrivate": "Privado",
     "modal.newChat.selectUsersTitle": "Selecione utilizadores para adicionar ao chat",
-    "modal.selectUsers.title": "Selecionar utilizadores (máx. 20)",
+    "modal.selectUsers.title": "Selecionar utilizadores (m\xE1x. 20)",
     "modal.selectUsers.searchPlaceholder": "Pesquisar utilizadores...",
-    "mention.pickerTitle": "Mencionar alguém",
+    "mention.pickerTitle": "Mencionar algu\xE9m",
     "mention.showAll": "Mostrar todos os {count}...",
     "mention.loadingMembers": "Carregando mais pessoas...",
     "modal.selectUsers.empty": "Nenhum utilizador encontrado",
-    "thread.title": "Tópico",
-    "thread.alsoSendTo": "Enviar também para",
-    "toast.roomCreationTitle": "Criação de sala",
-    "toast.roomCreating": "A sala está a ser criada...",
+    "thread.title": "T\xF3pico",
+    "thread.alsoSendTo": "Enviar tamb\xE9m para",
+    "toast.roomCreationTitle": "Cria\xE7\xE3o de sala",
+    "toast.roomCreating": "A sala est\xE1 a ser criada...",
     "toast.success": "Sucesso!",
     "toast.roomCreatedSuccess": "Sala criada com sucesso!",
     "toast.usersAddedSuccess": "Utilizadores adicionados com sucesso!",
-    "settings.menu.title": "Definições",
-    "modal.filePreview.title": "Pré-visualização do ficheiro",
-    "modal.filePreview.pdfPages": "Páginas do PDF",
-    "modal.filePreview.previousPage": "Página anterior",
-    "modal.filePreview.nextPage": "Próxima página",
+    "settings.menu.title": "Defini\xE7\xF5es",
+    "modal.filePreview.title": "Pr\xE9-visualiza\xE7\xE3o do ficheiro",
+    "modal.filePreview.pdfPages": "P\xE1ginas do PDF",
+    "modal.filePreview.previousPage": "P\xE1gina anterior",
+    "modal.filePreview.nextPage": "Pr\xF3xima p\xE1gina",
     "modal.filePreview.previousItem": "Item anterior",
-    "modal.filePreview.nextItem": "Próximo item",
+    "modal.filePreview.nextItem": "Pr\xF3ximo item",
     "modal.filePreview.position": "{current} de {total}",
     "modal.filePreview.zoomIn": "Ampliar",
     "modal.filePreview.zoomOut": "Reduzir",
     "modal.filePreview.resetZoom": "Repor o zoom",
     "modal.filePreview.imageAlt": "Imagem partilhada",
     "modal.filePreview.close": "Fechar",
-    "modal.filePreview.unavailable": "Este ficheiro não está disponível",
+    "modal.filePreview.unavailable": "Este ficheiro n\xE3o est\xE1 dispon\xEDvel",
     "modal.filePreview.retry": "Tentar novamente",
     "modal.filePreview.download": "Transferir",
     "modal.filePreview.loading": "A carregar imagem",
@@ -55899,11 +55899,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.filePreview.showItem": "Mostrar item {current} de {total}",
     "modal.filePreview.fileLabel": "Ficheiro",
     "attachment.remove": "Remover anexo",
-    "attachment.limit": "Pode anexar até {count} ficheiros por mensagem.",
+    "attachment.limit": "Pode anexar at\xE9 {count} ficheiros por mensagem.",
     "attachment.tooLarge": "Ignorado {files}: acima de {size} MB.",
     "action.attachFile": "Anexar arquivo",
     "action.startRecording": "Gravar mensagem de voz",
-    "action.stopRecording": "Cancelar gravação",
+    "action.stopRecording": "Cancelar grava\xE7\xE3o",
     "action.sendRecording": "Enviar mensagem de voz",
     "action.emoji": "Inserir emoji",
     "attachment.dropHint": "Solte os arquivos aqui para anexar",
@@ -55912,26 +55912,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "attachment.hiddenFailed": "{count} falharam, toque para tentar novamente",
     "attachment.moreCount": "+{count}",
     "modal.filePreview.openExternally": "Abrir num novo separador",
-    "modal.filePreview.pdfUnavailable": "Este PDF não pode ser apresentado aqui. Ainda pode abri-lo ou transferi-lo.",
+    "modal.filePreview.pdfUnavailable": "Este PDF n\xE3o pode ser apresentado aqui. Ainda pode abri-lo ou transferi-lo.",
     "toast.error": "Erro",
-    "toast.couldNotOpenPrivateChat": "Não foi possível abrir o novo chat privado",
-    "toast.couldNotResolveRecipient": "Não foi possível identificar o destinatário",
+    "toast.couldNotOpenPrivateChat": "N\xE3o foi poss\xEDvel abrir o novo chat privado",
+    "toast.couldNotResolveRecipient": "N\xE3o foi poss\xEDvel identificar o destinat\xE1rio",
     "toast.failedToCreatePrivateChat": "Falha ao criar o chat privado",
     "toast.failedToCreateCall": "Falha ao criar a chamada",
     "toast.failedToDeleteUser": "Falha ao eliminar o utilizador.",
     "toast.muteFailed": "Falha ao silenciar esta conversa.",
-    "toast.unmuteFailed": "Falha ao ativar as notificações desta conversa.",
+    "toast.unmuteFailed": "Falha ao ativar as notifica\xE7\xF5es desta conversa.",
     "toast.userRemovedFromRoom": "{userId} foi removido da sala.",
     "toast.failedToAddUser": "Falha ao adicionar o utilizador.",
     "user.unknown": "Utilizador desconhecido",
-    "toast.userAddedToRoom": "{userName} foi adicionado à sala.",
-    "toast.loginFailedTitle": "Falha ao iniciar sessão",
-    "toast.invalidCredentials": "Credenciais inválidas",
-    "toast.loginSuccessfulTitle": "Sessão iniciada",
+    "toast.userAddedToRoom": "{userName} foi adicionado \xE0 sala.",
+    "toast.loginFailedTitle": "Falha ao iniciar sess\xE3o",
+    "toast.invalidCredentials": "Credenciais inv\xE1lidas",
+    "toast.loginSuccessfulTitle": "Sess\xE3o iniciada",
     "toast.welcomeBack": "Bem-vindo de volta!",
-    "toast.loginErrorTitle": "Erro ao iniciar sessão",
-    "toast.loginErrorMessage": "Ocorreu um erro ao iniciar sessão",
-    "validation.invalidEmail": "Formato de email inválido",
+    "toast.loginErrorTitle": "Erro ao iniciar sess\xE3o",
+    "toast.loginErrorMessage": "Ocorreu um erro ao iniciar sess\xE3o",
+    "validation.invalidEmail": "Formato de email inv\xE1lido",
     "validation.passwordTooShort": "A palavra-passe deve ter pelo menos 6 caracteres",
     "validation.wrongCredentials": "Dados incorretos. Tente novamente",
     "field.email": "Email",
@@ -55939,37 +55939,37 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "field.firstName": "Nome",
     "field.lastName": "Apelido",
     "field.additionalDetails": "Detalhes adicionais",
-    "action.logOut": "Terminar sessão",
+    "action.logOut": "Terminar sess\xE3o",
     "action.message": "Mensagem",
     "action.encryptedMessage": "Mensagem criptografada",
     "action.videoCall": "Videochamada",
     "action.call": "Ligar",
-    "action.audioCall": "Chamada de áudio",
+    "action.audioCall": "Chamada de \xE1udio",
     "action.copyUserId": "Copiar ID do utilizador",
     "action.deleteChat": "Eliminar chat",
-    "action.moreOptions": "Mais opções",
+    "action.moreOptions": "Mais op\xE7\xF5es",
     "action.openChatList": "Abrir a lista de conversas",
     "action.showQr": "Mostrar QR",
     "action.addMembers": "Adicionar membros",
-    "action.no": "Não",
+    "action.no": "N\xE3o",
     "action.yes": "Sim",
     "action.deleteMyAccount": "Eliminar a minha conta",
     "auth.loginButton": "Entrar no Ethora Chat",
     "auth.loginWithGoogle": "Entrar com o Google",
     "auth.orDelimiter": "ou",
-    "auth.noAccount": "Ainda não tem conta?",
+    "auth.noAccount": "Ainda n\xE3o tem conta?",
     "auth.signUp": "Registar-se no Ethora",
     "auth.loginAnonymously": "Entrar anonimamente",
-    "auth.anonymousTextOnly": "Só é possível enviar mensagens de texto",
-    "auth.anonymousLoginMessage": "Iniciou sessão anonimamente!",
+    "auth.anonymousTextOnly": "S\xF3 \xE9 poss\xEDvel enviar mensagens de texto",
+    "auth.anonymousLoginMessage": "Iniciou sess\xE3o anonimamente!",
     "modal.profile.title": "Perfil",
     "action.editProfile": "Editar perfil",
     "modal.profile.about": "Sobre",
-    "modal.profile.noDescription": "Sem descrição",
+    "modal.profile.noDescription": "Sem descri\xE7\xE3o",
     "modal.chatProfile.title": "Perfil do chat",
-    "modal.chatProfile.description": "Descrição",
+    "modal.chatProfile.description": "Descri\xE7\xE3o",
     "modal.chatProfile.chatType": "Tipo de chat",
-    "modal.chatProfile.typePublic": "Público",
+    "modal.chatProfile.typePublic": "P\xFAblico",
     "modal.chatProfile.typePrivate": "Privado",
     "modal.chatProfile.typeGroup": "Grupo",
     "modal.chatProfile.memberCountSingular": "{count} membro",
@@ -55977,7 +55977,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.chatProfile.membersShowMore": "Mostrar mais {count}",
     "modal.chatProfile.membersLoadingAll": "Carregando todos os membros...",
     "modal.chatProfile.searchMembers": "Pesquisar membros",
-    "modal.chatProfile.notifications": "Notificações",
+    "modal.chatProfile.notifications": "Notifica\xE7\xF5es",
     "modal.deleteChat.title": "Eliminar este chat?",
     "modal.addMembers.title": "Adicionar novo membro",
     "modal.addMembers.userIdPlaceholder": "Introduza o ID do utilizador",
@@ -55985,9 +55985,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.leaveChat.description": "Tem a certeza de que quer sair deste chat?",
     "modal.report.chatTitle": "Denunciar chat",
     "modal.report.messageTitle": "Denunciar mensagem",
-    "modal.report.otherDetails": "Indique detalhes adicionais relevantes para a sua denúncia.",
+    "modal.report.otherDetails": "Indique detalhes adicionais relevantes para a sua den\xFAncia.",
     "report.category.spam": "Spam",
-    "report.category.violence": "Violência",
+    "report.category.violence": "Viol\xEAncia",
     "report.category.childAbuse": "Abuso infantil",
     "report.category.pornography": "Pornografia",
     "report.category.personalDetails": "Dados pessoais",
@@ -55996,67 +55996,67 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "notification.saved": "Guardado",
     "settings.visibility.title": "Visibilidade",
     "settings.visibility.profileLabel": "Visibilidade do perfil",
-    "settings.visibility.open": "Aberto (predefinição)",
-    "settings.visibility.openDescription": "O seu perfil pode ser visto por qualquer pessoa que siga a ligação do seu perfil ou o código QR.",
+    "settings.visibility.open": "Aberto (predefini\xE7\xE3o)",
+    "settings.visibility.openDescription": "O seu perfil pode ser visto por qualquer pessoa que siga a liga\xE7\xE3o do seu perfil ou o c\xF3digo QR.",
     "settings.visibility.restricted": "Restrito",
-    "settings.visibility.restrictedDescription": "Só os utilizadores com a sua permissão ou com uma ligação segura temporária podem ver o seu perfil.",
+    "settings.visibility.restrictedDescription": "S\xF3 os utilizadores com a sua permiss\xE3o ou com uma liga\xE7\xE3o segura tempor\xE1ria podem ver o seu perfil.",
     "settings.visibility.documentsLabel": "Visibilidade dos documentos",
-    "settings.visibility.full": "Total (predefinição)",
+    "settings.visibility.full": "Total (predefini\xE7\xE3o)",
     "settings.visibility.fullDescription": "Mostrar todos os documentos a quem pode ver o seu perfil.",
     "settings.visibility.individual": "Individual",
     "settings.visibility.individualDescription": "Tem de partilhar cada documento individualmente antes que outros o possam ver.",
     "settings.manageData.title": "Gerir dados",
     "settings.manageData.downloadLabel": "Transferir os seus dados",
-    "settings.manageData.downloadDescription": "Os dados são seus. Toque no botão abaixo para transferir uma cópia dos seus dados",
+    "settings.manageData.downloadDescription": "Os dados s\xE3o seus. Toque no bot\xE3o abaixo para transferir uma c\xF3pia dos seus dados",
     "settings.manageData.deleteLabel": "Eliminar a sua conta",
     "settings.manageData.deleteDescription": "Use isto apenas se quiser eliminar permanentemente a sua conta e os seus dados do nosso sistema.",
-    "settings.manageData.deleteDisclosure": "Devido à natureza imutável da tecnologia de registo distribuído, os nós da rede operados pela comunidade podem manter transações históricas geradas pela sua conta; no entanto, as suas informações de identificação pessoal, como nome, email e armazenamento chave-valor, serão removidas. Todos os seus ativos digitais serão perdidos.",
+    "settings.manageData.deleteDisclosure": "Devido \xE0 natureza imut\xE1vel da tecnologia de registo distribu\xEDdo, os n\xF3s da rede operados pela comunidade podem manter transa\xE7\xF5es hist\xF3ricas geradas pela sua conta; no entanto, as suas informa\xE7\xF5es de identifica\xE7\xE3o pessoal, como nome, email e armazenamento chave-valor, ser\xE3o removidas. Todos os seus ativos digitais ser\xE3o perdidos.",
     "settings.section.privacy": "Privacidade e dados",
-    "settings.manageData.rowHint": "Baixe uma cópia dos seus dados ou exclua sua conta",
+    "settings.manageData.rowHint": "Baixe uma c\xF3pia dos seus dados ou exclua sua conta",
     "settings.visibility.rowHint": "Escolha quem pode ver seu perfil e seus documentos",
     "settings.manageData.section.export": "Seus dados",
     "settings.manageData.deleteConfirmTitle": "Excluir sua conta?",
-    "settings.manageData.deleteConfirmDescription": "Isso exclui sua conta permanentemente e encerra sua sessão. Não é possível desfazer.",
+    "settings.manageData.deleteConfirmDescription": "Isso exclui sua conta permanentemente e encerra sua sess\xE3o. N\xE3o \xE9 poss\xEDvel desfazer.",
     "settings.manageData.deleting": "Excluindo...",
-    "settings.manageData.deleteFailed": "Não foi possível excluir sua conta. Tente novamente.",
+    "settings.manageData.deleteFailed": "N\xE3o foi poss\xEDvel excluir sua conta. Tente novamente.",
     "files.panel.title": "Arquivos",
     "files.filter.all": "Todos",
-    "files.filter.media": "Mídia",
+    "files.filter.media": "M\xEDdia",
     "files.filter.documents": "Documentos",
-    "files.filter.audio": "Áudio",
+    "files.filter.audio": "\xC1udio",
     "files.search.placeholder": "Pesquisar arquivos...",
-    "files.empty.title": "Ainda não há arquivos",
-    "files.empty.subtitle": "Os arquivos que você enviar aparecerão aqui.",
-    "files.noResults": "Nenhum arquivo corresponde à sua pesquisa",
+    "files.empty.title": "Ainda n\xE3o h\xE1 arquivos",
+    "files.empty.subtitle": "Os arquivos que voc\xEA enviar aparecer\xE3o aqui.",
+    "files.noResults": "Nenhum arquivo corresponde \xE0 sua pesquisa",
     "files.noResults.moreAvailable": "Nem todos os arquivos foram carregados, carregue mais para continuar a busca",
     "files.loading": "Carregando arquivos...",
-    "files.error.title": "Não foi possível carregar os arquivos",
+    "files.error.title": "N\xE3o foi poss\xEDvel carregar os arquivos",
     "files.action.retry": "Tentar novamente",
     "files.action.loadMore": "Carregar mais",
-    "files.action.preview": "Pré-visualizar",
+    "files.action.preview": "Pr\xE9-visualizar",
     "files.action.download": "Baixar",
     "files.action.delete": "Excluir",
     "files.delete.confirmTitle": "Excluir este arquivo?",
-    "files.delete.confirmMessage": "Este arquivo será excluído permanentemente. Esta ação não pode ser desfeita.",
+    "files.delete.confirmMessage": "Este arquivo ser\xE1 exclu\xEDdo permanentemente. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
     "files.delete.failed": "Falha ao excluir o arquivo",
     "modal.chatProfile.filesTitle": "Arquivos",
     "modal.chatProfile.filesShowAll": "Ver todos",
-    "modal.chatProfile.filesEmpty": "Ainda não há arquivos neste chat",
-    "modal.qr.title": "Código QR",
-    "modal.qr.hint": "Leia este código ou partilhe a ligação para abrir este chat.",
-    "action.copyLink": "Copiar ligação",
+    "modal.chatProfile.filesEmpty": "Ainda n\xE3o h\xE1 arquivos neste chat",
+    "modal.qr.title": "C\xF3digo QR",
+    "modal.qr.hint": "Leia este c\xF3digo ou partilhe a liga\xE7\xE3o para abrir este chat.",
+    "action.copyLink": "Copiar liga\xE7\xE3o",
     "error.boundary.title": "Algo correu mal",
-    "error.boundary.description": "O chat encontrou um problema inesperado. As suas mensagens estão seguras.",
+    "error.boundary.description": "O chat encontrou um problema inesperado. As suas mensagens est\xE3o seguras.",
     "error.boundary.retry": "Tentar novamente",
-    "modal.profile.preferences": "Preferências",
-    "modal.profile.languageHint": "Idioma usado nos textos e na tradução das mensagens",
-    "modal.profile.actions": "Ações",
+    "modal.profile.preferences": "Prefer\xEAncias",
+    "modal.profile.languageHint": "Idioma usado nos textos e na tradu\xE7\xE3o das mensagens",
+    "modal.profile.actions": "A\xE7\xF5es",
     "modal.chatProfile.aboutSection": "Sobre",
     "modal.chatProfile.membersSection": "Membros",
     "modal.chatProfile.filesShowLess": "Mostrar menos",
     "notification.newMessage": "Nova mensagem",
     "notification.photo": "Foto",
-    "notification.video": "Vídeo",
+    "notification.video": "V\xEDdeo",
     "notification.audio": "Mensagem de voz",
     "notification.file": "Arquivo",
     "notification.photos": "{count} fotos",
@@ -56066,40 +56066,40 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "tabs.chats": "Chat",
     "tabs.files": "Fichye",
     "files.empty": "Poko gen fichye",
-    "search.placeholder": "Chèche...",
+    "search.placeholder": "Ch\xE8che...",
     "select.noOptions": "Pa gen okenn opsyon jwenn",
     "input.placeholder": "Ekri yon mesaj",
-    "e2ee.otherDevice": "Chifre pou yon lòt aparèy",
+    "e2ee.otherDevice": "Chifre pou yon l\xF2t apar\xE8y",
     "e2ee.notEncrypted": "Pa chifre",
     "e2ee.roomEncrypted": "Chifre bout-a-bout",
     "e2ee.notEncryptedHint": "Voye san chifraj bout-a-bout, paske okenn moun ki resevwa a poko pibliye yon kle.",
     "e2ee.undecryptable": "Nou pa t kapab dechifre mesaj sa a",
     "room.created": "Sal la kreye",
     "room.empty": "Chat sa a vid",
-    "room.empty.hint": "Se ou menm premye pou kòmanse li.",
-    "media.unsupported": "Kalite medya sa a pa sipòte",
+    "room.empty.hint": "Se ou menm premye pou k\xF2manse li.",
+    "media.unsupported": "Kalite medya sa a pa sip\xF2te",
     "media.audioPlay": "Jwe mesaj vokal la",
     "media.audioPause": "Kanpe mesaj vokal la",
-    "media.audioSpeed": "Vitès lekti",
-    "search.messages.title": "Chèche mesaj",
-    "search.clear": "Efase rechèch",
-    "search.messages.placeholderChat": "Chèche nan chat sa a",
-    "search.messages.placeholderAll": "Chèche nan tout chat yo",
-    "search.messages.scope": "Ki kote pou chèche",
+    "media.audioSpeed": "Vit\xE8s lekti",
+    "search.messages.title": "Ch\xE8che mesaj",
+    "search.clear": "Efase rech\xE8ch",
+    "search.messages.placeholderChat": "Ch\xE8che nan chat sa a",
+    "search.messages.placeholderAll": "Ch\xE8che nan tout chat yo",
+    "search.messages.scope": "Ki kote pou ch\xE8che",
     "search.messages.scopeChat": "Chat sa a",
     "search.messages.scopeAll": "Tout",
-    "search.messages.hint": "Tape pou chèche nan istwa a",
-    "search.messages.tooShort": "Tape omwen {count} karaktè",
-    "search.messages.searching": "Y ap chèche...",
+    "search.messages.hint": "Tape pou ch\xE8che nan istwa a",
+    "search.messages.tooShort": "Tape omwen {count} karakt\xE8",
+    "search.messages.searching": "Y ap ch\xE8che...",
     "search.messages.empty": "Pa gen mesaj jwenn",
-    "search.messages.error": "Rechèch la echwe.",
-    "search.messages.retry": "Eseye ankò",
+    "search.messages.error": "Rech\xE8ch la echwe.",
+    "search.messages.retry": "Eseye ank\xF2",
     "search.messages.loadMore": "Montre plis",
     "search.messages.count": "{count} jwenn",
     "search.messages.you": "Ou",
     "search.messages.someone": "Yon moun",
     "search.messages.chat": "Chat",
-    "search.messages.notFound": "Mesaj sa a twò ansyen pou chaje.",
+    "search.messages.notFound": "Mesaj sa a tw\xF2 ansyen pou chaje.",
     "search.messages.archivedTitle": "Mesaj ki pi ansyen",
     "search.messages.archivedNote": "Mesaj sa a pi ansyen pase istwa ki disponib nan chat sa a, kidonk nou pa ka montre l kote li ye a.",
     "search.messages.filters": "Filt",
@@ -56109,7 +56109,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "search.messages.filterUntil": "Jiska",
     "search.messages.filterClear": "Retire filt la",
     "search.messages.filterClearAll": "Efase filt yo",
-    "search.messages.dateOrder": "Dat kòmansman an pi ta pase dat fen an.",
+    "search.messages.dateOrder": "Dat k\xF2mansman an pi ta pase dat fen an.",
     "publicChats.title": "Dekouvri chat",
     "publicChats.filter": "Filtre chat yo",
     "publicChats.loading": "Y ap chaje chat yo...",
@@ -56121,11 +56121,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "media.sealedUnavailable": "Nou pa t kapab louvri atachman chifre a",
     "media.sealedFile": "Fichye chifre",
     "media.sealedDownload": "Telechaje epi dechifre",
-    "media.sealedDownloading": "Ap dechifre…",
+    "media.sealedDownloading": "Ap dechifre\u2026",
     "media.sealedDownloadFailed": "Telechajman echwe: peze pou reeseye",
     "media.imageUnavailable": "Imaj pa disponib",
     "media.imageUnavailableHint": "Fichye a pa t ka chaje",
-    "media.retry": "Eseye ankò",
+    "media.retry": "Eseye ank\xF2",
     "lastMessage.photo": "Foto",
     "lastMessage.photos": "{count} foto",
     "lastMessage.video": "Videyo",
@@ -56133,18 +56133,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "lastMessage.voice": "Mesaj vokal",
     "lastMessage.audio": "Odyo",
     "lastMessage.file": "Fichye",
-    "lastMessage.attachment": "Pyès jwenn",
+    "lastMessage.attachment": "Py\xE8s jwenn",
     "lastMessage.files": "{count} fichye",
     "media.videoPlay": "Jwe videyo a",
     "media.download": "Telechaje",
     "media.uploadProgress": "Y ap voye {percent}%",
     "common.or": "Oswa",
-    "tabs.label": "Seksyon bò kote",
-    "call.disabled.roomType": "Apèl yo disponib sèlman nan chat 1:1",
-    "call.disabled.noLivekit": "Apèl pa disponib: sèvis videyo a pa konfigire",
-    "call.disabled.busy": "Gen yon lòt apèl k ap fèt deja",
+    "tabs.label": "Seksyon b\xF2 kote",
+    "call.disabled.roomType": "Ap\xE8l yo disponib s\xE8lman nan chat 1:1",
+    "call.disabled.noLivekit": "Ap\xE8l pa disponib: s\xE8vis videyo a pa konfigire",
+    "call.disabled.busy": "Gen yon l\xF2t ap\xE8l k ap f\xE8t deja",
     "date.today": "Jodi a",
-    "date.yesterday": "Yè",
+    "date.yesterday": "Y\xE8",
     "message.deleted": "Mesaj efase",
     "message.edited": "modifye",
     "message.notDelivered": "Pa voye",
@@ -56152,7 +56152,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "message.retryAriaLabel": "Reeseye voye mesaj sa a",
     "message.remove": "Retire",
     "message.removeAriaLabel": "Retire mesaj sa a",
-    "message.mediaLostNote": "Fichye yo te pèdi lè paj la te rechaje, konsa mesaj sa a pa ka reeseye. Retire li pou netwaye l.",
+    "message.mediaLostNote": "Fichye yo te p\xE8di l\xE8 paj la te rechaje, konsa mesaj sa a pa ka reeseye. Retire li pou netwaye l.",
     "message.receipt.sent": "Voye",
     "message.receipt.delivered": "Livre",
     "message.receipt.read": "Li",
@@ -56160,85 +56160,85 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "message.receipt.deliveredTo": "Livre a {names}",
     "reaction.tooltip.one": "{name} reyaji ak {emoji}",
     "reaction.tooltip.two": "{first} ak {second} reyaji ak {emoji}",
-    "reaction.tooltip.others": "{first}, {second} ak {count} lòt reyaji ak {emoji}",
-    "reaction.tooltip.other": "{first}, {second} ak {count} lòt reyaji ak {emoji}",
+    "reaction.tooltip.others": "{first}, {second} ak {count} l\xF2t reyaji ak {emoji}",
+    "reaction.tooltip.other": "{first}, {second} ak {count} l\xF2t reyaji ak {emoji}",
     "reaction.aria.mine": "{emoji} {count}, ou reyaji",
     "reaction.aria.theirs": "{emoji} {count}",
-    "reaction.more": "Montre {count} lòt reyaksyon",
+    "reaction.more": "Montre {count} l\xF2t reyaksyon",
     "presence.online": "an liy",
     "presence.offline": "pa an liy",
     "presence.onlineCount": "{count} an liy",
-    "header.userCountSingular": "{count} itilizatè",
-    "header.userCountPlural": "{count} itilizatè",
+    "header.userCountSingular": "{count} itilizat\xE8",
+    "header.userCountPlural": "{count} itilizat\xE8",
     "avatar.altWithName": "Avata {name}",
     "avatar.altGeneric": "Avata",
     "header.action.back": "Retounen",
-    "header.action.startAudioCall": "Kòmanse yon apèl odyo",
-    "header.action.startVideoCall": "Kòmanse yon apèl videyo",
+    "header.action.startAudioCall": "K\xF2manse yon ap\xE8l odyo",
+    "header.action.startVideoCall": "K\xF2manse yon ap\xE8l videyo",
     "header.logoAlt": "Logo",
     "header.menu": "Meni",
     "header.chatMenu": "Meni chat la",
-    "call.outgoing": "Apèl sòtan",
-    "call.incoming": "Apèl antran",
+    "call.outgoing": "Ap\xE8l s\xF2tan",
+    "call.incoming": "Ap\xE8l antran",
     "call.noAnswer": "Pa gen repons",
-    "call.missed": "Apèl ou rate",
+    "call.missed": "Ap\xE8l ou rate",
     "call.durationSec": "{n} segond",
     "call.durationMin": "{n} minit",
     "call.durationMinSec": "{m} minit {s} segond",
     "action.send": "Voye",
     "action.cancel": "Anile",
-    "action.close": "Fèmen",
+    "action.close": "F\xE8men",
     "action.back": "Tounen",
     "action.save": "Anrejistre",
     "action.delete": "Efase",
     "action.leave": "Kite",
     "action.create": "Kreye",
-    "action.submit": "Soumèt",
+    "action.submit": "Soum\xE8t",
     "action.translate": "Tradui",
     "action.showOriginal": "Montre orijinal la",
     "action.scrollToBottom": "Desann nan ba a",
-    "action.jumpToLatest": "Ale nan dènye mesaj yo",
+    "action.jumpToLatest": "Ale nan d\xE8nye mesaj yo",
     "action.newChat": "Nouvo chat",
-    "action.addUsers": "Ajoute itilizatè",
-    "action.addUsersCount": "Ajoute itilizatè ({count} chwazi)",
-    "action.addMoreUsers": "Ajoute plis itilizatè",
+    "action.addUsers": "Ajoute itilizat\xE8",
+    "action.addUsersCount": "Ajoute itilizat\xE8 ({count} chwazi)",
+    "action.addMoreUsers": "Ajoute plis itilizat\xE8",
     "action.add": "Ajoute",
     "action.backToCreation": "Retounen nan kreyasyon",
-    "action.report": "Rapòte",
+    "action.report": "Rap\xF2te",
     "action.mute": "Silans notifikasyon yo",
     "action.unmute": "Reyaktive notifikasyon yo",
-    "status.connecting": "Koneksyon…",
-    "status.noInternet": "Pa gen koneksyon entènèt",
-    "translation.translating": "Ap tradui…",
+    "status.connecting": "Koneksyon\u2026",
+    "status.noInternet": "Pa gen koneksyon ent\xE8n\xE8t",
+    "translation.translating": "Ap tradui\u2026",
     "translation.failed": "Pa t kapab tradui",
     "translation.enableToggleLabel": "Tradui mesaj mwen yo",
-    "translation.enableToggleDisclaimer": "Si tradiksyon yo pa t aktive, se sèlman nouvo mesaj ou voye apati kounye a ki pral tradui.",
+    "translation.enableToggleDisclaimer": "Si tradiksyon yo pa t aktive, se s\xE8lman nouvo mesaj ou voye apati kounye a ki pral tradui.",
     "translation.modeLabel": "Afichaj tradiksyon",
     "translation.modeAuto": "Otomatik",
-    "modal.filePreview.unsupported": "Nou pa ka louvri dokiman telechaje a. Fòma fichye a pa sipòte pa sistèm nan. Tanpri telechaje yon fichye nan yon fòma konpatib. Ou toujou ka telechaje fichye sa a.",
-    "translation.modeManual": "Manyèl",
+    "modal.filePreview.unsupported": "Nou pa ka louvri dokiman telechaje a. F\xF2ma fichye a pa sip\xF2te pa sist\xE8m nan. Tanpri telechaje yon fichye nan yon f\xF2ma konpatib. Ou toujou ka telechaje fichye sa a.",
+    "translation.modeManual": "Many\xE8l",
     "language.select": "Chwazi lang",
     "modal.newChat.title": "Kreye yon nouvo chat",
     "modal.newChat.roomNamePlaceholder": "Antre non sal la",
     "modal.newChat.chatTypePlaceholder": "Chwazi tip chat la",
     "modal.newChat.typePublic": "Piblik",
     "modal.newChat.typePrivate": "Prive",
-    "modal.newChat.selectUsersTitle": "Chwazi itilizatè pou ajoute nan chat la",
-    "modal.selectUsers.title": "Chwazi itilizatè (maksimòm 20)",
-    "modal.selectUsers.searchPlaceholder": "Chèche itilizatè...",
+    "modal.newChat.selectUsersTitle": "Chwazi itilizat\xE8 pou ajoute nan chat la",
+    "modal.selectUsers.title": "Chwazi itilizat\xE8 (maksim\xF2m 20)",
+    "modal.selectUsers.searchPlaceholder": "Ch\xE8che itilizat\xE8...",
     "mention.pickerTitle": "Mansyone yon moun",
     "mention.showAll": "Montre tout {count}...",
     "mention.loadingMembers": "N ap chaje plis moun...",
-    "modal.selectUsers.empty": "Pa gen itilizatè yo jwenn",
+    "modal.selectUsers.empty": "Pa gen itilizat\xE8 yo jwenn",
     "thread.title": "Fil diskisyon",
     "thread.alsoSendTo": "Voye tou nan",
     "toast.roomCreationTitle": "Kreyasyon sal",
     "toast.roomCreating": "Sal la ap kreye...",
-    "toast.success": "Siksè!",
-    "toast.roomCreatedSuccess": "Sal la kreye avèk siksè!",
-    "toast.usersAddedSuccess": "Itilizatè yo ajoute avèk siksè!",
-    "settings.menu.title": "Paramèt",
-    "modal.filePreview.title": "Apèsi fichye",
+    "toast.success": "Siks\xE8!",
+    "toast.roomCreatedSuccess": "Sal la kreye av\xE8k siks\xE8!",
+    "toast.usersAddedSuccess": "Itilizat\xE8 yo ajoute av\xE8k siks\xE8!",
+    "settings.menu.title": "Param\xE8t",
+    "modal.filePreview.title": "Ap\xE8si fichye",
     "modal.filePreview.pdfPages": "Paj PDF yo",
     "modal.filePreview.previousPage": "Paj anvan",
     "modal.filePreview.nextPage": "Pwochen paj",
@@ -56249,15 +56249,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.filePreview.zoomOut": "Zoume pi lwen",
     "modal.filePreview.resetZoom": "Remete zoum lan",
     "modal.filePreview.imageAlt": "Imaj pataje",
-    "modal.filePreview.close": "Fèmen",
+    "modal.filePreview.close": "F\xE8men",
     "modal.filePreview.unavailable": "Fichye sa a pa disponib",
-    "modal.filePreview.retry": "Eseye ankò",
+    "modal.filePreview.retry": "Eseye ank\xF2",
     "modal.filePreview.download": "Telechaje",
     "modal.filePreview.loading": "Ap chaje imaj la",
     "modal.filePreview.thumbnails": "Miniati yo",
     "modal.filePreview.showItem": "Montre atik {current} sou {total}",
     "modal.filePreview.fileLabel": "Fichye",
-    "attachment.remove": "Retire pyès jwent",
+    "attachment.remove": "Retire py\xE8s jwent",
     "attachment.limit": "Ou ka mete jiska {count} fichye nan yon mesaj.",
     "attachment.tooLarge": "Nou sote {files}: li depase {size} MB.",
     "action.attachFile": "Tache yon fichye",
@@ -56270,30 +56270,30 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "attachment.retryUpload": "Re-eseye telechaje {file}",
     "attachment.hiddenFailed": "{count} echwe, tape pou re-eseye",
     "attachment.moreCount": "+{count}",
-    "modal.filePreview.openExternally": "Louvri nan yon nouvo onglè",
+    "modal.filePreview.openExternally": "Louvri nan yon nouvo ongl\xE8",
     "modal.filePreview.pdfUnavailable": "Nou pa ka montre PDF sa a isit la. Ou toujou ka louvri l oswa telechaje l.",
-    "toast.error": "Erè",
+    "toast.error": "Er\xE8",
     "toast.couldNotOpenPrivateChat": "Pa t kapab louvri nouvo chat prive a",
-    "toast.couldNotResolveRecipient": "Pa t kapab jwenn destinatè a",
-    "toast.failedToCreatePrivateChat": "Echèk pou kreye chat prive a",
-    "toast.failedToCreateCall": "Echèk pou kreye apèl la",
-    "toast.failedToDeleteUser": "Echèk pou efase itilizatè a.",
-    "toast.muteFailed": "Echèk pou mete chat sa a an silans.",
-    "toast.unmuteFailed": "Echèk pou reyaktive notifikasyon pou chat sa a.",
+    "toast.couldNotResolveRecipient": "Pa t kapab jwenn destinat\xE8 a",
+    "toast.failedToCreatePrivateChat": "Ech\xE8k pou kreye chat prive a",
+    "toast.failedToCreateCall": "Ech\xE8k pou kreye ap\xE8l la",
+    "toast.failedToDeleteUser": "Ech\xE8k pou efase itilizat\xE8 a.",
+    "toast.muteFailed": "Ech\xE8k pou mete chat sa a an silans.",
+    "toast.unmuteFailed": "Ech\xE8k pou reyaktive notifikasyon pou chat sa a.",
     "toast.userRemovedFromRoom": "{userId} retire nan sal la.",
-    "toast.failedToAddUser": "Echèk pou ajoute itilizatè a.",
-    "user.unknown": "Itilizatè enkoni",
+    "toast.failedToAddUser": "Ech\xE8k pou ajoute itilizat\xE8 a.",
+    "user.unknown": "Itilizat\xE8 enkoni",
     "toast.userAddedToRoom": "{userName} ajoute nan sal la.",
     "toast.loginFailedTitle": "Koneksyon echwe",
-    "toast.invalidCredentials": "Enfòmasyon koneksyon yo pa valab",
+    "toast.invalidCredentials": "Enf\xF2masyon koneksyon yo pa valab",
     "toast.loginSuccessfulTitle": "Koneksyon reyisi",
-    "toast.welcomeBack": "Byenveni ankò!",
-    "toast.loginErrorTitle": "Erè koneksyon",
-    "toast.loginErrorMessage": "Yon erè rive pandan koneksyon an",
-    "validation.invalidEmail": "Fòma imèl la pa valab",
-    "validation.passwordTooShort": "Modpas la dwe gen omwen 6 karaktè",
-    "validation.wrongCredentials": "Ou antre move enfòmasyon. Eseye ankò",
-    "field.email": "Imèl",
+    "toast.welcomeBack": "Byenveni ank\xF2!",
+    "toast.loginErrorTitle": "Er\xE8 koneksyon",
+    "toast.loginErrorMessage": "Yon er\xE8 rive pandan koneksyon an",
+    "validation.invalidEmail": "F\xF2ma im\xE8l la pa valab",
+    "validation.passwordTooShort": "Modpas la dwe gen omwen 6 karakt\xE8",
+    "validation.wrongCredentials": "Ou antre move enf\xF2masyon. Eseye ank\xF2",
+    "field.email": "Im\xE8l",
     "field.password": "Modpas",
     "field.firstName": "Prenon",
     "field.lastName": "Siyati",
@@ -56301,14 +56301,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "action.logOut": "Dekonekte",
     "action.message": "Mesaj",
     "action.encryptedMessage": "Mesaj chifre",
-    "action.videoCall": "Apèl videyo",
+    "action.videoCall": "Ap\xE8l videyo",
     "action.call": "Rele",
-    "action.audioCall": "Apèl odyo",
-    "action.copyUserId": "Kopye ID itilizatè a",
+    "action.audioCall": "Ap\xE8l odyo",
+    "action.copyUserId": "Kopye ID itilizat\xE8 a",
     "action.deleteChat": "Efase chat la",
     "action.moreOptions": "Plis opsyon",
     "action.openChatList": "Louvri lis chat yo",
-    "action.showQr": "Montre kòd QR",
+    "action.showQr": "Montre k\xF2d QR",
     "action.addMembers": "Ajoute manm",
     "action.no": "Non",
     "action.yes": "Wi",
@@ -56319,11 +56319,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "auth.noAccount": "Ou pa gen yon kont?",
     "auth.signUp": "Enskri nan Ethora",
     "auth.loginAnonymously": "Konekte anonim",
-    "auth.anonymousTextOnly": "Ou ka voye sèlman mesaj tèks",
+    "auth.anonymousTextOnly": "Ou ka voye s\xE8lman mesaj t\xE8ks",
     "auth.anonymousLoginMessage": "Ou konekte anonim!",
     "modal.profile.title": "Pwofil",
     "action.editProfile": "Modifye pwofil",
-    "modal.profile.about": "Konsènan",
+    "modal.profile.about": "Kons\xE8nan",
     "modal.profile.noDescription": "Pa gen deskripsyon",
     "modal.chatProfile.title": "Pwofil chat la",
     "modal.chatProfile.description": "Deskripsyon",
@@ -56335,82 +56335,82 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "modal.chatProfile.memberCountPlural": "{count} manm",
     "modal.chatProfile.membersShowMore": "Montre {count} anplis",
     "modal.chatProfile.membersLoadingAll": "N ap chaje tout manm yo...",
-    "modal.chatProfile.searchMembers": "Chèche manm",
+    "modal.chatProfile.searchMembers": "Ch\xE8che manm",
     "modal.chatProfile.notifications": "Notifikasyon",
     "modal.deleteChat.title": "Efase chat sa a?",
     "modal.addMembers.title": "Ajoute yon nouvo manm",
-    "modal.addMembers.userIdPlaceholder": "Antre ID itilizatè a",
+    "modal.addMembers.userIdPlaceholder": "Antre ID itilizat\xE8 a",
     "modal.leaveChat.title": "Kite chat la",
-    "modal.leaveChat.description": "Èske ou sèten ou vle kite chat sa a?",
-    "modal.report.chatTitle": "Rapòte chat la",
-    "modal.report.messageTitle": "Rapòte mesaj la",
-    "modal.report.otherDetails": "Tanpri antre detay anplis ki gen rapò ak rapò ou a.",
+    "modal.leaveChat.description": "\xC8ske ou s\xE8ten ou vle kite chat sa a?",
+    "modal.report.chatTitle": "Rap\xF2te chat la",
+    "modal.report.messageTitle": "Rap\xF2te mesaj la",
+    "modal.report.otherDetails": "Tanpri antre detay anplis ki gen rap\xF2 ak rap\xF2 ou a.",
     "report.category.spam": "Spam",
     "report.category.violence": "Vyolans",
     "report.category.childAbuse": "Abi sou timoun",
-    "report.category.pornography": "Pònografi",
-    "report.category.personalDetails": "Enfòmasyon pèsonèl",
-    "report.category.illegalDrugs": "Dwòg ilegal",
-    "report.category.other": "Lòt",
+    "report.category.pornography": "P\xF2nografi",
+    "report.category.personalDetails": "Enf\xF2masyon p\xE8son\xE8l",
+    "report.category.illegalDrugs": "Dw\xF2g ilegal",
+    "report.category.other": "L\xF2t",
     "notification.saved": "Anrejistre",
     "settings.visibility.title": "Vizibilite",
     "settings.visibility.profileLabel": "Vizibilite pwofil la",
     "settings.visibility.open": "Louvri (default)",
-    "settings.visibility.openDescription": "Nenpòt moun ki swiv lyen pwofil ou a oswa kòd QR ou a ka wè pwofil ou.",
+    "settings.visibility.openDescription": "Nenp\xF2t moun ki swiv lyen pwofil ou a oswa k\xF2d QR ou a ka w\xE8 pwofil ou.",
     "settings.visibility.restricted": "Limite",
-    "settings.visibility.restrictedDescription": "Sèlman itilizatè ki gen pèmisyon ou oswa yon lyen sekirize tanporè ka wè pwofil ou.",
+    "settings.visibility.restrictedDescription": "S\xE8lman itilizat\xE8 ki gen p\xE8misyon ou oswa yon lyen sekirize tanpor\xE8 ka w\xE8 pwofil ou.",
     "settings.visibility.documentsLabel": "Vizibilite dokiman yo",
-    "settings.visibility.full": "Konplè (default)",
-    "settings.visibility.fullDescription": "Montre tout dokiman yo bay moun ki ka wè pwofil ou.",
-    "settings.visibility.individual": "Endividyèl",
-    "settings.visibility.individualDescription": "Ou dwe pataje chak dokiman endividyèlman anvan lòt moun ka wè yo.",
+    "settings.visibility.full": "Konpl\xE8 (default)",
+    "settings.visibility.fullDescription": "Montre tout dokiman yo bay moun ki ka w\xE8 pwofil ou.",
+    "settings.visibility.individual": "Endividy\xE8l",
+    "settings.visibility.individualDescription": "Ou dwe pataje chak dokiman endividy\xE8lman anvan l\xF2t moun ka w\xE8 yo.",
     "settings.manageData.title": "Jere done",
     "settings.manageData.downloadLabel": "Telechaje done ou yo",
     "settings.manageData.downloadDescription": "Done yo se pa ou. Peze bouton anba a pou telechaje yon kopi done ou yo",
     "settings.manageData.deleteLabel": "Efase kont ou",
-    "settings.manageData.deleteDescription": "Sèvi ak sa a sèlman si ou vle efase kont ou ak done ou yo nèt nan sistèm nou an.",
-    "settings.manageData.deleteDisclosure": "Akoz nati imityab teknoloji rejis distribiye a, nœud rezo kominote a opere yo ka toujou kenbe tranzaksyon istorik kont ou an te jenere; sepandan, enfòmasyon idantifyab pèsonèl ou yo tankou non ou, imèl ou ak depo kle-valè ou yo ap retire. Tout byen dijital ou yo ap pèdi.",
+    "settings.manageData.deleteDescription": "S\xE8vi ak sa a s\xE8lman si ou vle efase kont ou ak done ou yo n\xE8t nan sist\xE8m nou an.",
+    "settings.manageData.deleteDisclosure": "Akoz nati imityab teknoloji rejis distribiye a, n\u0153ud rezo kominote a opere yo ka toujou kenbe tranzaksyon istorik kont ou an te jenere; sepandan, enf\xF2masyon idantifyab p\xE8son\xE8l ou yo tankou non ou, im\xE8l ou ak depo kle-val\xE8 ou yo ap retire. Tout byen dijital ou yo ap p\xE8di.",
     "settings.section.privacy": "Konfidansyalite ak done",
     "settings.manageData.rowHint": "Telechaje yon kopi done ou yo, oswa efase kont ou",
-    "settings.visibility.rowHint": "Chwazi kiyès ki ka wè pwofil ou ak dokiman ou yo",
+    "settings.visibility.rowHint": "Chwazi kiy\xE8s ki ka w\xE8 pwofil ou ak dokiman ou yo",
     "settings.manageData.section.export": "Done ou yo",
     "settings.manageData.deleteConfirmTitle": "Efase kont ou?",
-    "settings.manageData.deleteConfirmDescription": "Sa efase kont ou nèt epi dekonekte ou. Ou pa ka defè l.",
+    "settings.manageData.deleteConfirmDescription": "Sa efase kont ou n\xE8t epi dekonekte ou. Ou pa ka def\xE8 l.",
     "settings.manageData.deleting": "N ap efase...",
-    "settings.manageData.deleteFailed": "Nou pa t kapab efase kont ou. Tanpri eseye ankò.",
+    "settings.manageData.deleteFailed": "Nou pa t kapab efase kont ou. Tanpri eseye ank\xF2.",
     "files.panel.title": "Fichye",
     "files.filter.all": "Tout",
     "files.filter.media": "Medya",
     "files.filter.documents": "Dokiman",
     "files.filter.audio": "Odyo",
-    "files.search.placeholder": "Chèche fichye...",
+    "files.search.placeholder": "Ch\xE8che fichye...",
     "files.empty.title": "Poko gen fichye",
-    "files.empty.subtitle": "Fichye ou telechaje yo ap parèt isit la.",
-    "files.noResults": "Pa gen fichye ki matche ak rechèch ou",
-    "files.noResults.moreAvailable": "Tout fichye yo poko chaje, chaje plis pou kontinye chèche",
+    "files.empty.subtitle": "Fichye ou telechaje yo ap par\xE8t isit la.",
+    "files.noResults": "Pa gen fichye ki matche ak rech\xE8ch ou",
+    "files.noResults.moreAvailable": "Tout fichye yo poko chaje, chaje plis pou kontinye ch\xE8che",
     "files.loading": "K ap chaje fichye...",
     "files.error.title": "Pa t kapab chaje fichye yo",
-    "files.action.retry": "Eseye ankò",
+    "files.action.retry": "Eseye ank\xF2",
     "files.action.loadMore": "Chaje plis",
-    "files.action.preview": "Apèsi",
+    "files.action.preview": "Ap\xE8si",
     "files.action.download": "Telechaje",
     "files.action.delete": "Efase",
     "files.delete.confirmTitle": "Efase fichye sa a?",
-    "files.delete.confirmMessage": "Fichye sa a ap efase pou tout tan. Ou pa ka defèt sa.",
-    "files.delete.failed": "Echèk nan efase fichye a",
+    "files.delete.confirmMessage": "Fichye sa a ap efase pou tout tan. Ou pa ka def\xE8t sa.",
+    "files.delete.failed": "Ech\xE8k nan efase fichye a",
     "modal.chatProfile.filesTitle": "Fichye",
-    "modal.chatProfile.filesShowAll": "Wè tout",
+    "modal.chatProfile.filesShowAll": "W\xE8 tout",
     "modal.chatProfile.filesEmpty": "Poko gen fichye nan chat sa a",
-    "modal.qr.title": "Kòd QR",
-    "modal.qr.hint": "Eskane kòd sa a oswa pataje lyen an pou ouvri chat sa a.",
+    "modal.qr.title": "K\xF2d QR",
+    "modal.qr.hint": "Eskane k\xF2d sa a oswa pataje lyen an pou ouvri chat sa a.",
     "action.copyLink": "Kopye lyen an",
     "error.boundary.title": "Gen yon bagay ki pa mache",
-    "error.boundary.description": "Chat la jwenn yon pwoblèm inatandi. Mesaj ou yo an sekirite.",
-    "error.boundary.retry": "Eseye ankò",
+    "error.boundary.description": "Chat la jwenn yon pwobl\xE8m inatandi. Mesaj ou yo an sekirite.",
+    "error.boundary.retry": "Eseye ank\xF2",
     "modal.profile.preferences": "Preferans",
-    "modal.profile.languageHint": "Lang yo itilize pou tèks yo ak tradiksyon mesaj yo",
+    "modal.profile.languageHint": "Lang yo itilize pou t\xE8ks yo ak tradiksyon mesaj yo",
     "modal.profile.actions": "Aksyon",
-    "modal.chatProfile.aboutSection": "Konsènan",
+    "modal.chatProfile.aboutSection": "Kons\xE8nan",
     "modal.chatProfile.membersSection": "Manm",
     "modal.chatProfile.filesShowLess": "Montre mwens",
     "notification.newMessage": "Nouvo mesaj",
@@ -56422,363 +56422,363 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     "notification.attachments": "{count} atachman"
   };
   const zh = {
-    "tabs.chats": "聊天",
-    "tabs.files": "文件",
-    "files.empty": "暂无文件",
-    "search.placeholder": "搜索...",
-    "select.noOptions": "未找到选项",
-    "input.placeholder": "输入消息",
-    "e2ee.otherDevice": "已为其他设备加密",
-    "e2ee.notEncrypted": "未加密",
-    "e2ee.roomEncrypted": "端到端加密",
-    "e2ee.notEncryptedHint": "未使用端到端加密发送，因为还没有收件人发布密钥。",
-    "e2ee.undecryptable": "无法解密此消息",
-    "room.created": "聊天室已创建",
-    "room.empty": "此聊天为空",
-    "room.empty.hint": "快来发送第一条消息吧。",
-    "media.unsupported": "不支持的媒体类型",
-    "media.audioPlay": "播放语音消息",
-    "media.audioPause": "暂停语音消息",
-    "media.audioSpeed": "播放速度",
-    "search.messages.title": "搜索消息",
-    "search.clear": "清除搜索",
-    "search.messages.placeholderChat": "在此聊天中搜索",
-    "search.messages.placeholderAll": "在所有聊天中搜索",
-    "search.messages.scope": "搜索范围",
-    "search.messages.scopeChat": "此聊天",
-    "search.messages.scopeAll": "全部",
-    "search.messages.hint": "输入以搜索聊天记录",
-    "search.messages.tooShort": "请至少输入 {count} 个字符",
-    "search.messages.searching": "搜索中...",
-    "search.messages.empty": "未找到消息",
-    "search.messages.error": "搜索失败。",
-    "search.messages.retry": "重试",
-    "search.messages.loadMore": "显示更多",
-    "search.messages.count": "找到 {count} 条",
-    "search.messages.you": "你",
-    "search.messages.someone": "某人",
-    "search.messages.chat": "聊天",
-    "search.messages.notFound": "该消息太久远，无法加载。",
-    "search.messages.archivedTitle": "较早的消息",
-    "search.messages.archivedNote": "这条消息早于此聊天中可用的历史记录，因此无法在原位显示。",
-    "search.messages.filters": "筛选",
-    "search.messages.filterSender": "发送者",
-    "search.messages.filterSenderPlaceholder": "发送者姓名",
-    "search.messages.filterSince": "开始日期",
-    "search.messages.filterUntil": "结束日期",
-    "search.messages.filterClear": "移除筛选",
-    "search.messages.filterClearAll": "清除筛选",
-    "search.messages.dateOrder": "开始日期晚于结束日期。",
-    "publicChats.title": "发现聊天",
-    "publicChats.filter": "筛选聊天",
-    "publicChats.loading": "正在加载聊天...",
-    "publicChats.error": "无法加载公共聊天。",
-    "publicChats.empty": "没有可显示的公共聊天",
-    "publicChats.emptyFilterMore": "已加载的聊天中没有匹配项。显示更多以继续查找。",
-    "publicChats.join": "加入",
-    "publicChats.open": "打开",
-    "media.sealedUnavailable": "无法打开加密附件",
-    "media.sealedFile": "加密文件",
-    "media.sealedDownload": "下载并解密",
-    "media.sealedDownloading": "正在解密…",
-    "media.sealedDownloadFailed": "下载失败：点击重试",
-    "media.imageUnavailable": "图片不可用",
-    "media.imageUnavailableHint": "无法加载该文件",
-    "media.retry": "重试",
-    "lastMessage.photo": "照片",
-    "lastMessage.photos": "{count} 张照片",
-    "lastMessage.video": "视频",
-    "lastMessage.videos": "{count} 个视频",
-    "lastMessage.voice": "语音消息",
-    "lastMessage.audio": "音频",
-    "lastMessage.file": "文件",
-    "lastMessage.attachment": "附件",
-    "lastMessage.files": "{count} 个文件",
-    "media.videoPlay": "播放视频",
-    "media.download": "下载",
-    "media.uploadProgress": "上传中 {percent}%",
-    "common.or": "或",
-    "tabs.label": "侧边栏分区",
-    "call.disabled.roomType": "通话仅在一对一聊天中可用",
-    "call.disabled.noLivekit": "通话不可用：未配置视频服务",
-    "call.disabled.busy": "已有另一通话正在进行",
-    "date.today": "今天",
-    "date.yesterday": "昨天",
-    "message.deleted": "消息已删除",
-    "message.edited": "已编辑",
-    "message.notDelivered": "未发送",
-    "message.retry": "重试",
-    "message.retryAriaLabel": "重新发送这条消息",
-    "message.remove": "移除",
-    "message.removeAriaLabel": "移除这条消息",
-    "message.mediaLostNote": "页面刷新后文件已丢失，此消息无法重新发送。请移除它。",
-    "message.receipt.sent": "已发送",
-    "message.receipt.delivered": "已送达",
-    "message.receipt.read": "已读",
-    "message.receipt.readBy": "已读：{names}",
-    "message.receipt.deliveredTo": "已送达：{names}",
-    "reaction.tooltip.one": "{name} 用 {emoji} 回应了",
-    "reaction.tooltip.two": "{first} 和 {second} 用 {emoji} 回应了",
-    "reaction.tooltip.others": "{first}、{second} 和另外 {count} 人用 {emoji} 回应了",
-    "reaction.tooltip.other": "{first}、{second} 和另外 {count} 人用 {emoji} 回应了",
-    "reaction.aria.mine": "{emoji} {count}，你已回应",
+    "tabs.chats": "\u804A\u5929",
+    "tabs.files": "\u6587\u4EF6",
+    "files.empty": "\u6682\u65E0\u6587\u4EF6",
+    "search.placeholder": "\u641C\u7D22...",
+    "select.noOptions": "\u672A\u627E\u5230\u9009\u9879",
+    "input.placeholder": "\u8F93\u5165\u6D88\u606F",
+    "e2ee.otherDevice": "\u5DF2\u4E3A\u5176\u4ED6\u8BBE\u5907\u52A0\u5BC6",
+    "e2ee.notEncrypted": "\u672A\u52A0\u5BC6",
+    "e2ee.roomEncrypted": "\u7AEF\u5230\u7AEF\u52A0\u5BC6",
+    "e2ee.notEncryptedHint": "\u672A\u4F7F\u7528\u7AEF\u5230\u7AEF\u52A0\u5BC6\u53D1\u9001\uFF0C\u56E0\u4E3A\u8FD8\u6CA1\u6709\u6536\u4EF6\u4EBA\u53D1\u5E03\u5BC6\u94A5\u3002",
+    "e2ee.undecryptable": "\u65E0\u6CD5\u89E3\u5BC6\u6B64\u6D88\u606F",
+    "room.created": "\u804A\u5929\u5BA4\u5DF2\u521B\u5EFA",
+    "room.empty": "\u6B64\u804A\u5929\u4E3A\u7A7A",
+    "room.empty.hint": "\u5FEB\u6765\u53D1\u9001\u7B2C\u4E00\u6761\u6D88\u606F\u5427\u3002",
+    "media.unsupported": "\u4E0D\u652F\u6301\u7684\u5A92\u4F53\u7C7B\u578B",
+    "media.audioPlay": "\u64AD\u653E\u8BED\u97F3\u6D88\u606F",
+    "media.audioPause": "\u6682\u505C\u8BED\u97F3\u6D88\u606F",
+    "media.audioSpeed": "\u64AD\u653E\u901F\u5EA6",
+    "search.messages.title": "\u641C\u7D22\u6D88\u606F",
+    "search.clear": "\u6E05\u9664\u641C\u7D22",
+    "search.messages.placeholderChat": "\u5728\u6B64\u804A\u5929\u4E2D\u641C\u7D22",
+    "search.messages.placeholderAll": "\u5728\u6240\u6709\u804A\u5929\u4E2D\u641C\u7D22",
+    "search.messages.scope": "\u641C\u7D22\u8303\u56F4",
+    "search.messages.scopeChat": "\u6B64\u804A\u5929",
+    "search.messages.scopeAll": "\u5168\u90E8",
+    "search.messages.hint": "\u8F93\u5165\u4EE5\u641C\u7D22\u804A\u5929\u8BB0\u5F55",
+    "search.messages.tooShort": "\u8BF7\u81F3\u5C11\u8F93\u5165 {count} \u4E2A\u5B57\u7B26",
+    "search.messages.searching": "\u641C\u7D22\u4E2D...",
+    "search.messages.empty": "\u672A\u627E\u5230\u6D88\u606F",
+    "search.messages.error": "\u641C\u7D22\u5931\u8D25\u3002",
+    "search.messages.retry": "\u91CD\u8BD5",
+    "search.messages.loadMore": "\u663E\u793A\u66F4\u591A",
+    "search.messages.count": "\u627E\u5230 {count} \u6761",
+    "search.messages.you": "\u4F60",
+    "search.messages.someone": "\u67D0\u4EBA",
+    "search.messages.chat": "\u804A\u5929",
+    "search.messages.notFound": "\u8BE5\u6D88\u606F\u592A\u4E45\u8FDC\uFF0C\u65E0\u6CD5\u52A0\u8F7D\u3002",
+    "search.messages.archivedTitle": "\u8F83\u65E9\u7684\u6D88\u606F",
+    "search.messages.archivedNote": "\u8FD9\u6761\u6D88\u606F\u65E9\u4E8E\u6B64\u804A\u5929\u4E2D\u53EF\u7528\u7684\u5386\u53F2\u8BB0\u5F55\uFF0C\u56E0\u6B64\u65E0\u6CD5\u5728\u539F\u4F4D\u663E\u793A\u3002",
+    "search.messages.filters": "\u7B5B\u9009",
+    "search.messages.filterSender": "\u53D1\u9001\u8005",
+    "search.messages.filterSenderPlaceholder": "\u53D1\u9001\u8005\u59D3\u540D",
+    "search.messages.filterSince": "\u5F00\u59CB\u65E5\u671F",
+    "search.messages.filterUntil": "\u7ED3\u675F\u65E5\u671F",
+    "search.messages.filterClear": "\u79FB\u9664\u7B5B\u9009",
+    "search.messages.filterClearAll": "\u6E05\u9664\u7B5B\u9009",
+    "search.messages.dateOrder": "\u5F00\u59CB\u65E5\u671F\u665A\u4E8E\u7ED3\u675F\u65E5\u671F\u3002",
+    "publicChats.title": "\u53D1\u73B0\u804A\u5929",
+    "publicChats.filter": "\u7B5B\u9009\u804A\u5929",
+    "publicChats.loading": "\u6B63\u5728\u52A0\u8F7D\u804A\u5929...",
+    "publicChats.error": "\u65E0\u6CD5\u52A0\u8F7D\u516C\u5171\u804A\u5929\u3002",
+    "publicChats.empty": "\u6CA1\u6709\u53EF\u663E\u793A\u7684\u516C\u5171\u804A\u5929",
+    "publicChats.emptyFilterMore": "\u5DF2\u52A0\u8F7D\u7684\u804A\u5929\u4E2D\u6CA1\u6709\u5339\u914D\u9879\u3002\u663E\u793A\u66F4\u591A\u4EE5\u7EE7\u7EED\u67E5\u627E\u3002",
+    "publicChats.join": "\u52A0\u5165",
+    "publicChats.open": "\u6253\u5F00",
+    "media.sealedUnavailable": "\u65E0\u6CD5\u6253\u5F00\u52A0\u5BC6\u9644\u4EF6",
+    "media.sealedFile": "\u52A0\u5BC6\u6587\u4EF6",
+    "media.sealedDownload": "\u4E0B\u8F7D\u5E76\u89E3\u5BC6",
+    "media.sealedDownloading": "\u6B63\u5728\u89E3\u5BC6\u2026",
+    "media.sealedDownloadFailed": "\u4E0B\u8F7D\u5931\u8D25\uFF1A\u70B9\u51FB\u91CD\u8BD5",
+    "media.imageUnavailable": "\u56FE\u7247\u4E0D\u53EF\u7528",
+    "media.imageUnavailableHint": "\u65E0\u6CD5\u52A0\u8F7D\u8BE5\u6587\u4EF6",
+    "media.retry": "\u91CD\u8BD5",
+    "lastMessage.photo": "\u7167\u7247",
+    "lastMessage.photos": "{count} \u5F20\u7167\u7247",
+    "lastMessage.video": "\u89C6\u9891",
+    "lastMessage.videos": "{count} \u4E2A\u89C6\u9891",
+    "lastMessage.voice": "\u8BED\u97F3\u6D88\u606F",
+    "lastMessage.audio": "\u97F3\u9891",
+    "lastMessage.file": "\u6587\u4EF6",
+    "lastMessage.attachment": "\u9644\u4EF6",
+    "lastMessage.files": "{count} \u4E2A\u6587\u4EF6",
+    "media.videoPlay": "\u64AD\u653E\u89C6\u9891",
+    "media.download": "\u4E0B\u8F7D",
+    "media.uploadProgress": "\u4E0A\u4F20\u4E2D {percent}%",
+    "common.or": "\u6216",
+    "tabs.label": "\u4FA7\u8FB9\u680F\u5206\u533A",
+    "call.disabled.roomType": "\u901A\u8BDD\u4EC5\u5728\u4E00\u5BF9\u4E00\u804A\u5929\u4E2D\u53EF\u7528",
+    "call.disabled.noLivekit": "\u901A\u8BDD\u4E0D\u53EF\u7528\uFF1A\u672A\u914D\u7F6E\u89C6\u9891\u670D\u52A1",
+    "call.disabled.busy": "\u5DF2\u6709\u53E6\u4E00\u901A\u8BDD\u6B63\u5728\u8FDB\u884C",
+    "date.today": "\u4ECA\u5929",
+    "date.yesterday": "\u6628\u5929",
+    "message.deleted": "\u6D88\u606F\u5DF2\u5220\u9664",
+    "message.edited": "\u5DF2\u7F16\u8F91",
+    "message.notDelivered": "\u672A\u53D1\u9001",
+    "message.retry": "\u91CD\u8BD5",
+    "message.retryAriaLabel": "\u91CD\u65B0\u53D1\u9001\u8FD9\u6761\u6D88\u606F",
+    "message.remove": "\u79FB\u9664",
+    "message.removeAriaLabel": "\u79FB\u9664\u8FD9\u6761\u6D88\u606F",
+    "message.mediaLostNote": "\u9875\u9762\u5237\u65B0\u540E\u6587\u4EF6\u5DF2\u4E22\u5931\uFF0C\u6B64\u6D88\u606F\u65E0\u6CD5\u91CD\u65B0\u53D1\u9001\u3002\u8BF7\u79FB\u9664\u5B83\u3002",
+    "message.receipt.sent": "\u5DF2\u53D1\u9001",
+    "message.receipt.delivered": "\u5DF2\u9001\u8FBE",
+    "message.receipt.read": "\u5DF2\u8BFB",
+    "message.receipt.readBy": "\u5DF2\u8BFB\uFF1A{names}",
+    "message.receipt.deliveredTo": "\u5DF2\u9001\u8FBE\uFF1A{names}",
+    "reaction.tooltip.one": "{name} \u7528 {emoji} \u56DE\u5E94\u4E86",
+    "reaction.tooltip.two": "{first} \u548C {second} \u7528 {emoji} \u56DE\u5E94\u4E86",
+    "reaction.tooltip.others": "{first}\u3001{second} \u548C\u53E6\u5916 {count} \u4EBA\u7528 {emoji} \u56DE\u5E94\u4E86",
+    "reaction.tooltip.other": "{first}\u3001{second} \u548C\u53E6\u5916 {count} \u4EBA\u7528 {emoji} \u56DE\u5E94\u4E86",
+    "reaction.aria.mine": "{emoji} {count}\uFF0C\u4F60\u5DF2\u56DE\u5E94",
     "reaction.aria.theirs": "{emoji} {count}",
-    "reaction.more": "显示另外 {count} 个回应",
-    "presence.online": "在线",
-    "presence.offline": "离线",
-    "presence.onlineCount": "{count} 人在线",
-    "header.userCountSingular": "{count} 位用户",
-    "header.userCountPlural": "{count} 位用户",
-    "avatar.altWithName": "{name}的头像",
-    "avatar.altGeneric": "头像",
-    "header.action.back": "返回",
-    "header.action.startAudioCall": "开始语音通话",
-    "header.action.startVideoCall": "开始视频通话",
-    "header.logoAlt": "标志",
-    "header.menu": "菜单",
-    "header.chatMenu": "聊天菜单",
-    "call.outgoing": "拨出通话",
-    "call.incoming": "来电",
-    "call.noAnswer": "无人接听",
-    "call.missed": "未接来电",
-    "call.durationSec": "{n} 秒",
-    "call.durationMin": "{n} 分钟",
-    "call.durationMinSec": "{m} 分 {s} 秒",
-    "action.send": "发送",
-    "action.cancel": "取消",
-    "action.close": "关闭",
-    "action.back": "返回",
-    "action.save": "保存",
-    "action.delete": "删除",
-    "action.leave": "退出",
-    "action.create": "创建",
-    "action.submit": "提交",
-    "action.translate": "翻译",
-    "action.showOriginal": "显示原文",
-    "action.scrollToBottom": "滚动到底部",
-    "action.jumpToLatest": "跳到最新消息",
-    "action.newChat": "新建聊天",
-    "action.addUsers": "添加用户",
-    "action.addUsersCount": "添加用户（已选 {count} 人）",
-    "action.addMoreUsers": "添加更多用户",
-    "action.add": "添加",
-    "action.backToCreation": "返回创建",
-    "action.report": "举报",
-    "action.mute": "静音通知",
-    "action.unmute": "取消静音",
-    "status.connecting": "连接中…",
-    "status.noInternet": "无网络连接",
-    "translation.translating": "翻译中…",
-    "translation.failed": "无法翻译",
-    "translation.enableToggleLabel": "翻译我的消息",
-    "translation.enableToggleDisclaimer": "如果之前未启用翻译，只有从现在开始发送的新消息才会被翻译。",
-    "translation.modeLabel": "翻译显示方式",
-    "translation.modeAuto": "自动",
-    "modal.filePreview.unsupported": "无法打开上传的文档。系统不支持该文件格式,请上传兼容格式的文件。您仍可以下载此文件。",
-    "translation.modeManual": "手动",
-    "language.select": "选择语言",
-    "modal.newChat.title": "创建新聊天",
-    "modal.newChat.roomNamePlaceholder": "输入聊天室名称",
-    "modal.newChat.chatTypePlaceholder": "选择聊天类型",
-    "modal.newChat.typePublic": "公开",
-    "modal.newChat.typePrivate": "私密",
-    "modal.newChat.selectUsersTitle": "选择要添加到聊天的用户",
-    "modal.selectUsers.title": "选择用户（最多 20 个）",
-    "modal.selectUsers.searchPlaceholder": "搜索用户...",
-    "mention.pickerTitle": "提及某人",
-    "mention.showAll": "显示全部 {count} 个...",
-    "mention.loadingMembers": "正在加载更多成员...",
-    "modal.selectUsers.empty": "未找到用户",
-    "thread.title": "话题",
-    "thread.alsoSendTo": "同时发送到",
-    "toast.roomCreationTitle": "创建聊天室",
-    "toast.roomCreating": "正在创建聊天室...",
-    "toast.success": "成功！",
-    "toast.roomCreatedSuccess": "聊天室创建成功！",
-    "toast.usersAddedSuccess": "用户添加成功！",
-    "settings.menu.title": "设置",
-    "modal.filePreview.title": "文件预览",
-    "modal.filePreview.pdfPages": "PDF 页面",
-    "modal.filePreview.previousPage": "上一页",
-    "modal.filePreview.nextPage": "下一页",
-    "modal.filePreview.previousItem": "上一项",
-    "modal.filePreview.nextItem": "下一项",
-    "modal.filePreview.position": "第 {current} 张，共 {total} 张",
-    "modal.filePreview.zoomIn": "放大",
-    "modal.filePreview.zoomOut": "缩小",
-    "modal.filePreview.resetZoom": "重置缩放",
-    "modal.filePreview.imageAlt": "共享的图片",
-    "modal.filePreview.close": "关闭",
-    "modal.filePreview.unavailable": "此文件不可用",
-    "modal.filePreview.retry": "重试",
-    "modal.filePreview.download": "下载",
-    "modal.filePreview.loading": "正在加载图片",
-    "modal.filePreview.thumbnails": "缩略图",
-    "modal.filePreview.showItem": "显示第 {current} 项，共 {total} 项",
-    "modal.filePreview.fileLabel": "文件",
-    "attachment.remove": "移除附件",
-    "attachment.limit": "每条消息最多可添加 {count} 个文件。",
-    "attachment.tooLarge": "已跳过 {files}：超过 {size} MB。",
-    "action.attachFile": "添加附件",
-    "action.startRecording": "录制语音消息",
-    "action.stopRecording": "取消录音",
-    "action.sendRecording": "发送语音消息",
-    "action.emoji": "插入表情",
-    "attachment.dropHint": "将文件拖放到此处以添加附件",
-    "attachment.uploadFailed": "上传失败",
-    "attachment.retryUpload": "重新上传 {file}",
-    "attachment.hiddenFailed": "{count} 个失败，点击重试",
+    "reaction.more": "\u663E\u793A\u53E6\u5916 {count} \u4E2A\u56DE\u5E94",
+    "presence.online": "\u5728\u7EBF",
+    "presence.offline": "\u79BB\u7EBF",
+    "presence.onlineCount": "{count} \u4EBA\u5728\u7EBF",
+    "header.userCountSingular": "{count} \u4F4D\u7528\u6237",
+    "header.userCountPlural": "{count} \u4F4D\u7528\u6237",
+    "avatar.altWithName": "{name}\u7684\u5934\u50CF",
+    "avatar.altGeneric": "\u5934\u50CF",
+    "header.action.back": "\u8FD4\u56DE",
+    "header.action.startAudioCall": "\u5F00\u59CB\u8BED\u97F3\u901A\u8BDD",
+    "header.action.startVideoCall": "\u5F00\u59CB\u89C6\u9891\u901A\u8BDD",
+    "header.logoAlt": "\u6807\u5FD7",
+    "header.menu": "\u83DC\u5355",
+    "header.chatMenu": "\u804A\u5929\u83DC\u5355",
+    "call.outgoing": "\u62E8\u51FA\u901A\u8BDD",
+    "call.incoming": "\u6765\u7535",
+    "call.noAnswer": "\u65E0\u4EBA\u63A5\u542C",
+    "call.missed": "\u672A\u63A5\u6765\u7535",
+    "call.durationSec": "{n} \u79D2",
+    "call.durationMin": "{n} \u5206\u949F",
+    "call.durationMinSec": "{m} \u5206 {s} \u79D2",
+    "action.send": "\u53D1\u9001",
+    "action.cancel": "\u53D6\u6D88",
+    "action.close": "\u5173\u95ED",
+    "action.back": "\u8FD4\u56DE",
+    "action.save": "\u4FDD\u5B58",
+    "action.delete": "\u5220\u9664",
+    "action.leave": "\u9000\u51FA",
+    "action.create": "\u521B\u5EFA",
+    "action.submit": "\u63D0\u4EA4",
+    "action.translate": "\u7FFB\u8BD1",
+    "action.showOriginal": "\u663E\u793A\u539F\u6587",
+    "action.scrollToBottom": "\u6EDA\u52A8\u5230\u5E95\u90E8",
+    "action.jumpToLatest": "\u8DF3\u5230\u6700\u65B0\u6D88\u606F",
+    "action.newChat": "\u65B0\u5EFA\u804A\u5929",
+    "action.addUsers": "\u6DFB\u52A0\u7528\u6237",
+    "action.addUsersCount": "\u6DFB\u52A0\u7528\u6237\uFF08\u5DF2\u9009 {count} \u4EBA\uFF09",
+    "action.addMoreUsers": "\u6DFB\u52A0\u66F4\u591A\u7528\u6237",
+    "action.add": "\u6DFB\u52A0",
+    "action.backToCreation": "\u8FD4\u56DE\u521B\u5EFA",
+    "action.report": "\u4E3E\u62A5",
+    "action.mute": "\u9759\u97F3\u901A\u77E5",
+    "action.unmute": "\u53D6\u6D88\u9759\u97F3",
+    "status.connecting": "\u8FDE\u63A5\u4E2D\u2026",
+    "status.noInternet": "\u65E0\u7F51\u7EDC\u8FDE\u63A5",
+    "translation.translating": "\u7FFB\u8BD1\u4E2D\u2026",
+    "translation.failed": "\u65E0\u6CD5\u7FFB\u8BD1",
+    "translation.enableToggleLabel": "\u7FFB\u8BD1\u6211\u7684\u6D88\u606F",
+    "translation.enableToggleDisclaimer": "\u5982\u679C\u4E4B\u524D\u672A\u542F\u7528\u7FFB\u8BD1\uFF0C\u53EA\u6709\u4ECE\u73B0\u5728\u5F00\u59CB\u53D1\u9001\u7684\u65B0\u6D88\u606F\u624D\u4F1A\u88AB\u7FFB\u8BD1\u3002",
+    "translation.modeLabel": "\u7FFB\u8BD1\u663E\u793A\u65B9\u5F0F",
+    "translation.modeAuto": "\u81EA\u52A8",
+    "modal.filePreview.unsupported": "\u65E0\u6CD5\u6253\u5F00\u4E0A\u4F20\u7684\u6587\u6863\u3002\u7CFB\u7EDF\u4E0D\u652F\u6301\u8BE5\u6587\u4EF6\u683C\u5F0F,\u8BF7\u4E0A\u4F20\u517C\u5BB9\u683C\u5F0F\u7684\u6587\u4EF6\u3002\u60A8\u4ECD\u53EF\u4EE5\u4E0B\u8F7D\u6B64\u6587\u4EF6\u3002",
+    "translation.modeManual": "\u624B\u52A8",
+    "language.select": "\u9009\u62E9\u8BED\u8A00",
+    "modal.newChat.title": "\u521B\u5EFA\u65B0\u804A\u5929",
+    "modal.newChat.roomNamePlaceholder": "\u8F93\u5165\u804A\u5929\u5BA4\u540D\u79F0",
+    "modal.newChat.chatTypePlaceholder": "\u9009\u62E9\u804A\u5929\u7C7B\u578B",
+    "modal.newChat.typePublic": "\u516C\u5F00",
+    "modal.newChat.typePrivate": "\u79C1\u5BC6",
+    "modal.newChat.selectUsersTitle": "\u9009\u62E9\u8981\u6DFB\u52A0\u5230\u804A\u5929\u7684\u7528\u6237",
+    "modal.selectUsers.title": "\u9009\u62E9\u7528\u6237\uFF08\u6700\u591A 20 \u4E2A\uFF09",
+    "modal.selectUsers.searchPlaceholder": "\u641C\u7D22\u7528\u6237...",
+    "mention.pickerTitle": "\u63D0\u53CA\u67D0\u4EBA",
+    "mention.showAll": "\u663E\u793A\u5168\u90E8 {count} \u4E2A...",
+    "mention.loadingMembers": "\u6B63\u5728\u52A0\u8F7D\u66F4\u591A\u6210\u5458...",
+    "modal.selectUsers.empty": "\u672A\u627E\u5230\u7528\u6237",
+    "thread.title": "\u8BDD\u9898",
+    "thread.alsoSendTo": "\u540C\u65F6\u53D1\u9001\u5230",
+    "toast.roomCreationTitle": "\u521B\u5EFA\u804A\u5929\u5BA4",
+    "toast.roomCreating": "\u6B63\u5728\u521B\u5EFA\u804A\u5929\u5BA4...",
+    "toast.success": "\u6210\u529F\uFF01",
+    "toast.roomCreatedSuccess": "\u804A\u5929\u5BA4\u521B\u5EFA\u6210\u529F\uFF01",
+    "toast.usersAddedSuccess": "\u7528\u6237\u6DFB\u52A0\u6210\u529F\uFF01",
+    "settings.menu.title": "\u8BBE\u7F6E",
+    "modal.filePreview.title": "\u6587\u4EF6\u9884\u89C8",
+    "modal.filePreview.pdfPages": "PDF \u9875\u9762",
+    "modal.filePreview.previousPage": "\u4E0A\u4E00\u9875",
+    "modal.filePreview.nextPage": "\u4E0B\u4E00\u9875",
+    "modal.filePreview.previousItem": "\u4E0A\u4E00\u9879",
+    "modal.filePreview.nextItem": "\u4E0B\u4E00\u9879",
+    "modal.filePreview.position": "\u7B2C {current} \u5F20\uFF0C\u5171 {total} \u5F20",
+    "modal.filePreview.zoomIn": "\u653E\u5927",
+    "modal.filePreview.zoomOut": "\u7F29\u5C0F",
+    "modal.filePreview.resetZoom": "\u91CD\u7F6E\u7F29\u653E",
+    "modal.filePreview.imageAlt": "\u5171\u4EAB\u7684\u56FE\u7247",
+    "modal.filePreview.close": "\u5173\u95ED",
+    "modal.filePreview.unavailable": "\u6B64\u6587\u4EF6\u4E0D\u53EF\u7528",
+    "modal.filePreview.retry": "\u91CD\u8BD5",
+    "modal.filePreview.download": "\u4E0B\u8F7D",
+    "modal.filePreview.loading": "\u6B63\u5728\u52A0\u8F7D\u56FE\u7247",
+    "modal.filePreview.thumbnails": "\u7F29\u7565\u56FE",
+    "modal.filePreview.showItem": "\u663E\u793A\u7B2C {current} \u9879\uFF0C\u5171 {total} \u9879",
+    "modal.filePreview.fileLabel": "\u6587\u4EF6",
+    "attachment.remove": "\u79FB\u9664\u9644\u4EF6",
+    "attachment.limit": "\u6BCF\u6761\u6D88\u606F\u6700\u591A\u53EF\u6DFB\u52A0 {count} \u4E2A\u6587\u4EF6\u3002",
+    "attachment.tooLarge": "\u5DF2\u8DF3\u8FC7 {files}\uFF1A\u8D85\u8FC7 {size} MB\u3002",
+    "action.attachFile": "\u6DFB\u52A0\u9644\u4EF6",
+    "action.startRecording": "\u5F55\u5236\u8BED\u97F3\u6D88\u606F",
+    "action.stopRecording": "\u53D6\u6D88\u5F55\u97F3",
+    "action.sendRecording": "\u53D1\u9001\u8BED\u97F3\u6D88\u606F",
+    "action.emoji": "\u63D2\u5165\u8868\u60C5",
+    "attachment.dropHint": "\u5C06\u6587\u4EF6\u62D6\u653E\u5230\u6B64\u5904\u4EE5\u6DFB\u52A0\u9644\u4EF6",
+    "attachment.uploadFailed": "\u4E0A\u4F20\u5931\u8D25",
+    "attachment.retryUpload": "\u91CD\u65B0\u4E0A\u4F20 {file}",
+    "attachment.hiddenFailed": "{count} \u4E2A\u5931\u8D25\uFF0C\u70B9\u51FB\u91CD\u8BD5",
     "attachment.moreCount": "+{count}",
-    "modal.filePreview.openExternally": "在新标签页中打开",
-    "modal.filePreview.pdfUnavailable": "此 PDF 无法在此显示，但仍可打开或下载。",
-    "toast.error": "错误",
-    "toast.couldNotOpenPrivateChat": "无法打开新的私聊",
-    "toast.couldNotResolveRecipient": "无法识别收件人",
-    "toast.failedToCreatePrivateChat": "创建私聊失败",
-    "toast.failedToCreateCall": "创建通话失败",
-    "toast.failedToDeleteUser": "删除用户失败。",
-    "toast.muteFailed": "静音此聊天失败。",
-    "toast.unmuteFailed": "取消静音失败。",
-    "toast.userRemovedFromRoom": "{userId} 已被移出聊天室。",
-    "toast.failedToAddUser": "添加用户失败。",
-    "user.unknown": "未知用户",
-    "toast.userAddedToRoom": "{userName} 已被添加到聊天室。",
-    "toast.loginFailedTitle": "登录失败",
-    "toast.invalidCredentials": "凭据无效",
-    "toast.loginSuccessfulTitle": "登录成功",
-    "toast.welcomeBack": "欢迎回来！",
-    "toast.loginErrorTitle": "登录错误",
-    "toast.loginErrorMessage": "登录过程中发生错误",
-    "validation.invalidEmail": "邮箱格式无效",
-    "validation.passwordTooShort": "密码至少需要 6 个字符",
-    "validation.wrongCredentials": "您输入的信息有误。请重试",
-    "field.email": "邮箱",
-    "field.password": "密码",
-    "field.firstName": "名字",
-    "field.lastName": "姓氏",
-    "field.additionalDetails": "补充信息",
-    "action.logOut": "退出登录",
-    "action.message": "发消息",
-    "action.encryptedMessage": "加密消息",
-    "action.videoCall": "视频通话",
-    "action.call": "通话",
-    "action.audioCall": "语音通话",
-    "action.copyUserId": "复制用户 ID",
-    "action.deleteChat": "删除聊天",
-    "action.moreOptions": "更多选项",
-    "action.openChatList": "打开聊天列表",
-    "action.showQr": "显示二维码",
-    "action.addMembers": "添加成员",
-    "action.no": "否",
-    "action.yes": "是",
-    "action.deleteMyAccount": "删除我的账户",
-    "auth.loginButton": "登录 Ethora Chat",
-    "auth.loginWithGoogle": "使用 Google 登录",
-    "auth.orDelimiter": "或",
-    "auth.noAccount": "还没有账户？",
-    "auth.signUp": "注册 Ethora",
-    "auth.loginAnonymously": "匿名登录",
-    "auth.anonymousTextOnly": "仅能发送文字消息",
-    "auth.anonymousLoginMessage": "您已匿名登录！",
-    "modal.profile.title": "个人资料",
-    "action.editProfile": "编辑资料",
-    "modal.profile.about": "简介",
-    "modal.profile.noDescription": "暂无简介",
-    "modal.chatProfile.title": "聊天资料",
-    "modal.chatProfile.description": "描述",
-    "modal.chatProfile.chatType": "聊天类型",
-    "modal.chatProfile.typePublic": "公开",
-    "modal.chatProfile.typePrivate": "私密",
-    "modal.chatProfile.typeGroup": "群组",
-    "modal.chatProfile.memberCountSingular": "{count} 位成员",
-    "modal.chatProfile.memberCountPlural": "{count} 位成员",
-    "modal.chatProfile.membersShowMore": "显示另外 {count} 位",
-    "modal.chatProfile.membersLoadingAll": "正在加载全部成员...",
-    "modal.chatProfile.searchMembers": "搜索成员",
-    "modal.chatProfile.notifications": "通知",
-    "modal.deleteChat.title": "删除此聊天？",
-    "modal.addMembers.title": "添加新成员",
-    "modal.addMembers.userIdPlaceholder": "输入用户 ID",
-    "modal.leaveChat.title": "退出聊天",
-    "modal.leaveChat.description": "确定要退出此聊天吗？",
-    "modal.report.chatTitle": "举报聊天",
-    "modal.report.messageTitle": "举报消息",
-    "modal.report.otherDetails": "请填写与您举报相关的补充信息。",
-    "report.category.spam": "垃圾信息",
-    "report.category.violence": "暴力",
-    "report.category.childAbuse": "虐待儿童",
-    "report.category.pornography": "色情内容",
-    "report.category.personalDetails": "个人信息",
-    "report.category.illegalDrugs": "违禁药物",
-    "report.category.other": "其他",
-    "notification.saved": "已保存",
-    "settings.visibility.title": "可见性",
-    "settings.visibility.profileLabel": "资料可见性",
-    "settings.visibility.open": "公开（默认）",
-    "settings.visibility.openDescription": "任何打开您资料链接或扫描您二维码的人都可以查看您的资料。",
-    "settings.visibility.restricted": "受限",
-    "settings.visibility.restrictedDescription": "只有获得您许可或持有临时安全链接的用户才能查看您的资料。",
-    "settings.visibility.documentsLabel": "文档可见性",
-    "settings.visibility.full": "全部（默认）",
-    "settings.visibility.fullDescription": "向所有能查看您资料的人显示全部文档。",
-    "settings.visibility.individual": "单独",
-    "settings.visibility.individualDescription": "您需要单独分享每个文档，其他人才能查看。",
-    "settings.manageData.title": "管理数据",
-    "settings.manageData.downloadLabel": "下载您的数据",
-    "settings.manageData.downloadDescription": "您的数据归您所有。点击下方按钮下载您的数据副本",
-    "settings.manageData.deleteLabel": "删除您的账户",
-    "settings.manageData.deleteDescription": "仅当您希望从我们的系统中永久删除您的账户及数据时才使用此功能。",
-    "settings.manageData.deleteDisclosure": "由于分布式账本技术的不可篡改特性，社区运营的网络节点可能仍会保留您账户生成的历史交易记录；但您的个人身份信息，如姓名、电子邮箱、键值存储等将被移除。您的所有数字资产都将丢失。",
-    "settings.section.privacy": "隐私与数据",
-    "settings.manageData.rowHint": "下载数据副本，或删除您的账户",
-    "settings.visibility.rowHint": "选择谁可以查看您的资料和文档",
-    "settings.manageData.section.export": "您的数据",
-    "settings.manageData.deleteConfirmTitle": "删除您的账户？",
-    "settings.manageData.deleteConfirmDescription": "此操作将永久删除您的账户并退出登录，且无法撤销。",
-    "settings.manageData.deleting": "正在删除...",
-    "settings.manageData.deleteFailed": "无法删除您的账户，请重试。",
-    "files.panel.title": "文件",
-    "files.filter.all": "全部",
-    "files.filter.media": "媒体",
-    "files.filter.documents": "文档",
-    "files.filter.audio": "音频",
-    "files.search.placeholder": "搜索文件...",
-    "files.empty.title": "暂无文件",
-    "files.empty.subtitle": "您上传的文件将显示在这里。",
-    "files.noResults": "没有匹配的文件",
-    "files.noResults.moreAvailable": "尚未加载全部文件，加载更多以继续搜索",
-    "files.loading": "正在加载文件...",
-    "files.error.title": "无法加载文件",
-    "files.action.retry": "重试",
-    "files.action.loadMore": "加载更多",
-    "files.action.preview": "预览",
-    "files.action.download": "下载",
-    "files.action.delete": "删除",
-    "files.delete.confirmTitle": "删除此文件？",
-    "files.delete.confirmMessage": "此文件将被永久删除，且无法恢复。",
-    "files.delete.failed": "删除文件失败",
-    "modal.chatProfile.filesTitle": "文件",
-    "modal.chatProfile.filesShowAll": "查看全部",
-    "modal.chatProfile.filesEmpty": "此聊天中还没有文件",
-    "modal.qr.title": "二维码",
-    "modal.qr.hint": "扫描此二维码或分享链接即可打开此聊天。",
-    "action.copyLink": "复制链接",
-    "error.boundary.title": "出了点问题",
-    "error.boundary.description": "聊天遇到了意外问题。您的消息是安全的。",
-    "error.boundary.retry": "重试",
-    "modal.profile.preferences": "偏好设置",
-    "modal.profile.languageHint": "用于界面文字和消息翻译的语言",
-    "modal.profile.actions": "操作",
-    "modal.chatProfile.aboutSection": "关于",
-    "modal.chatProfile.membersSection": "成员",
-    "modal.chatProfile.filesShowLess": "收起",
-    "notification.newMessage": "新消息",
-    "notification.photo": "照片",
-    "notification.video": "视频",
-    "notification.audio": "语音消息",
-    "notification.file": "文件",
-    "notification.photos": "{count} 张照片",
-    "notification.attachments": "{count} 个附件"
+    "modal.filePreview.openExternally": "\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00",
+    "modal.filePreview.pdfUnavailable": "\u6B64 PDF \u65E0\u6CD5\u5728\u6B64\u663E\u793A\uFF0C\u4F46\u4ECD\u53EF\u6253\u5F00\u6216\u4E0B\u8F7D\u3002",
+    "toast.error": "\u9519\u8BEF",
+    "toast.couldNotOpenPrivateChat": "\u65E0\u6CD5\u6253\u5F00\u65B0\u7684\u79C1\u804A",
+    "toast.couldNotResolveRecipient": "\u65E0\u6CD5\u8BC6\u522B\u6536\u4EF6\u4EBA",
+    "toast.failedToCreatePrivateChat": "\u521B\u5EFA\u79C1\u804A\u5931\u8D25",
+    "toast.failedToCreateCall": "\u521B\u5EFA\u901A\u8BDD\u5931\u8D25",
+    "toast.failedToDeleteUser": "\u5220\u9664\u7528\u6237\u5931\u8D25\u3002",
+    "toast.muteFailed": "\u9759\u97F3\u6B64\u804A\u5929\u5931\u8D25\u3002",
+    "toast.unmuteFailed": "\u53D6\u6D88\u9759\u97F3\u5931\u8D25\u3002",
+    "toast.userRemovedFromRoom": "{userId} \u5DF2\u88AB\u79FB\u51FA\u804A\u5929\u5BA4\u3002",
+    "toast.failedToAddUser": "\u6DFB\u52A0\u7528\u6237\u5931\u8D25\u3002",
+    "user.unknown": "\u672A\u77E5\u7528\u6237",
+    "toast.userAddedToRoom": "{userName} \u5DF2\u88AB\u6DFB\u52A0\u5230\u804A\u5929\u5BA4\u3002",
+    "toast.loginFailedTitle": "\u767B\u5F55\u5931\u8D25",
+    "toast.invalidCredentials": "\u51ED\u636E\u65E0\u6548",
+    "toast.loginSuccessfulTitle": "\u767B\u5F55\u6210\u529F",
+    "toast.welcomeBack": "\u6B22\u8FCE\u56DE\u6765\uFF01",
+    "toast.loginErrorTitle": "\u767B\u5F55\u9519\u8BEF",
+    "toast.loginErrorMessage": "\u767B\u5F55\u8FC7\u7A0B\u4E2D\u53D1\u751F\u9519\u8BEF",
+    "validation.invalidEmail": "\u90AE\u7BB1\u683C\u5F0F\u65E0\u6548",
+    "validation.passwordTooShort": "\u5BC6\u7801\u81F3\u5C11\u9700\u8981 6 \u4E2A\u5B57\u7B26",
+    "validation.wrongCredentials": "\u60A8\u8F93\u5165\u7684\u4FE1\u606F\u6709\u8BEF\u3002\u8BF7\u91CD\u8BD5",
+    "field.email": "\u90AE\u7BB1",
+    "field.password": "\u5BC6\u7801",
+    "field.firstName": "\u540D\u5B57",
+    "field.lastName": "\u59D3\u6C0F",
+    "field.additionalDetails": "\u8865\u5145\u4FE1\u606F",
+    "action.logOut": "\u9000\u51FA\u767B\u5F55",
+    "action.message": "\u53D1\u6D88\u606F",
+    "action.encryptedMessage": "\u52A0\u5BC6\u6D88\u606F",
+    "action.videoCall": "\u89C6\u9891\u901A\u8BDD",
+    "action.call": "\u901A\u8BDD",
+    "action.audioCall": "\u8BED\u97F3\u901A\u8BDD",
+    "action.copyUserId": "\u590D\u5236\u7528\u6237 ID",
+    "action.deleteChat": "\u5220\u9664\u804A\u5929",
+    "action.moreOptions": "\u66F4\u591A\u9009\u9879",
+    "action.openChatList": "\u6253\u5F00\u804A\u5929\u5217\u8868",
+    "action.showQr": "\u663E\u793A\u4E8C\u7EF4\u7801",
+    "action.addMembers": "\u6DFB\u52A0\u6210\u5458",
+    "action.no": "\u5426",
+    "action.yes": "\u662F",
+    "action.deleteMyAccount": "\u5220\u9664\u6211\u7684\u8D26\u6237",
+    "auth.loginButton": "\u767B\u5F55 Ethora Chat",
+    "auth.loginWithGoogle": "\u4F7F\u7528 Google \u767B\u5F55",
+    "auth.orDelimiter": "\u6216",
+    "auth.noAccount": "\u8FD8\u6CA1\u6709\u8D26\u6237\uFF1F",
+    "auth.signUp": "\u6CE8\u518C Ethora",
+    "auth.loginAnonymously": "\u533F\u540D\u767B\u5F55",
+    "auth.anonymousTextOnly": "\u4EC5\u80FD\u53D1\u9001\u6587\u5B57\u6D88\u606F",
+    "auth.anonymousLoginMessage": "\u60A8\u5DF2\u533F\u540D\u767B\u5F55\uFF01",
+    "modal.profile.title": "\u4E2A\u4EBA\u8D44\u6599",
+    "action.editProfile": "\u7F16\u8F91\u8D44\u6599",
+    "modal.profile.about": "\u7B80\u4ECB",
+    "modal.profile.noDescription": "\u6682\u65E0\u7B80\u4ECB",
+    "modal.chatProfile.title": "\u804A\u5929\u8D44\u6599",
+    "modal.chatProfile.description": "\u63CF\u8FF0",
+    "modal.chatProfile.chatType": "\u804A\u5929\u7C7B\u578B",
+    "modal.chatProfile.typePublic": "\u516C\u5F00",
+    "modal.chatProfile.typePrivate": "\u79C1\u5BC6",
+    "modal.chatProfile.typeGroup": "\u7FA4\u7EC4",
+    "modal.chatProfile.memberCountSingular": "{count} \u4F4D\u6210\u5458",
+    "modal.chatProfile.memberCountPlural": "{count} \u4F4D\u6210\u5458",
+    "modal.chatProfile.membersShowMore": "\u663E\u793A\u53E6\u5916 {count} \u4F4D",
+    "modal.chatProfile.membersLoadingAll": "\u6B63\u5728\u52A0\u8F7D\u5168\u90E8\u6210\u5458...",
+    "modal.chatProfile.searchMembers": "\u641C\u7D22\u6210\u5458",
+    "modal.chatProfile.notifications": "\u901A\u77E5",
+    "modal.deleteChat.title": "\u5220\u9664\u6B64\u804A\u5929\uFF1F",
+    "modal.addMembers.title": "\u6DFB\u52A0\u65B0\u6210\u5458",
+    "modal.addMembers.userIdPlaceholder": "\u8F93\u5165\u7528\u6237 ID",
+    "modal.leaveChat.title": "\u9000\u51FA\u804A\u5929",
+    "modal.leaveChat.description": "\u786E\u5B9A\u8981\u9000\u51FA\u6B64\u804A\u5929\u5417\uFF1F",
+    "modal.report.chatTitle": "\u4E3E\u62A5\u804A\u5929",
+    "modal.report.messageTitle": "\u4E3E\u62A5\u6D88\u606F",
+    "modal.report.otherDetails": "\u8BF7\u586B\u5199\u4E0E\u60A8\u4E3E\u62A5\u76F8\u5173\u7684\u8865\u5145\u4FE1\u606F\u3002",
+    "report.category.spam": "\u5783\u573E\u4FE1\u606F",
+    "report.category.violence": "\u66B4\u529B",
+    "report.category.childAbuse": "\u8650\u5F85\u513F\u7AE5",
+    "report.category.pornography": "\u8272\u60C5\u5185\u5BB9",
+    "report.category.personalDetails": "\u4E2A\u4EBA\u4FE1\u606F",
+    "report.category.illegalDrugs": "\u8FDD\u7981\u836F\u7269",
+    "report.category.other": "\u5176\u4ED6",
+    "notification.saved": "\u5DF2\u4FDD\u5B58",
+    "settings.visibility.title": "\u53EF\u89C1\u6027",
+    "settings.visibility.profileLabel": "\u8D44\u6599\u53EF\u89C1\u6027",
+    "settings.visibility.open": "\u516C\u5F00\uFF08\u9ED8\u8BA4\uFF09",
+    "settings.visibility.openDescription": "\u4EFB\u4F55\u6253\u5F00\u60A8\u8D44\u6599\u94FE\u63A5\u6216\u626B\u63CF\u60A8\u4E8C\u7EF4\u7801\u7684\u4EBA\u90FD\u53EF\u4EE5\u67E5\u770B\u60A8\u7684\u8D44\u6599\u3002",
+    "settings.visibility.restricted": "\u53D7\u9650",
+    "settings.visibility.restrictedDescription": "\u53EA\u6709\u83B7\u5F97\u60A8\u8BB8\u53EF\u6216\u6301\u6709\u4E34\u65F6\u5B89\u5168\u94FE\u63A5\u7684\u7528\u6237\u624D\u80FD\u67E5\u770B\u60A8\u7684\u8D44\u6599\u3002",
+    "settings.visibility.documentsLabel": "\u6587\u6863\u53EF\u89C1\u6027",
+    "settings.visibility.full": "\u5168\u90E8\uFF08\u9ED8\u8BA4\uFF09",
+    "settings.visibility.fullDescription": "\u5411\u6240\u6709\u80FD\u67E5\u770B\u60A8\u8D44\u6599\u7684\u4EBA\u663E\u793A\u5168\u90E8\u6587\u6863\u3002",
+    "settings.visibility.individual": "\u5355\u72EC",
+    "settings.visibility.individualDescription": "\u60A8\u9700\u8981\u5355\u72EC\u5206\u4EAB\u6BCF\u4E2A\u6587\u6863\uFF0C\u5176\u4ED6\u4EBA\u624D\u80FD\u67E5\u770B\u3002",
+    "settings.manageData.title": "\u7BA1\u7406\u6570\u636E",
+    "settings.manageData.downloadLabel": "\u4E0B\u8F7D\u60A8\u7684\u6570\u636E",
+    "settings.manageData.downloadDescription": "\u60A8\u7684\u6570\u636E\u5F52\u60A8\u6240\u6709\u3002\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u4E0B\u8F7D\u60A8\u7684\u6570\u636E\u526F\u672C",
+    "settings.manageData.deleteLabel": "\u5220\u9664\u60A8\u7684\u8D26\u6237",
+    "settings.manageData.deleteDescription": "\u4EC5\u5F53\u60A8\u5E0C\u671B\u4ECE\u6211\u4EEC\u7684\u7CFB\u7EDF\u4E2D\u6C38\u4E45\u5220\u9664\u60A8\u7684\u8D26\u6237\u53CA\u6570\u636E\u65F6\u624D\u4F7F\u7528\u6B64\u529F\u80FD\u3002",
+    "settings.manageData.deleteDisclosure": "\u7531\u4E8E\u5206\u5E03\u5F0F\u8D26\u672C\u6280\u672F\u7684\u4E0D\u53EF\u7BE1\u6539\u7279\u6027\uFF0C\u793E\u533A\u8FD0\u8425\u7684\u7F51\u7EDC\u8282\u70B9\u53EF\u80FD\u4ECD\u4F1A\u4FDD\u7559\u60A8\u8D26\u6237\u751F\u6210\u7684\u5386\u53F2\u4EA4\u6613\u8BB0\u5F55\uFF1B\u4F46\u60A8\u7684\u4E2A\u4EBA\u8EAB\u4EFD\u4FE1\u606F\uFF0C\u5982\u59D3\u540D\u3001\u7535\u5B50\u90AE\u7BB1\u3001\u952E\u503C\u5B58\u50A8\u7B49\u5C06\u88AB\u79FB\u9664\u3002\u60A8\u7684\u6240\u6709\u6570\u5B57\u8D44\u4EA7\u90FD\u5C06\u4E22\u5931\u3002",
+    "settings.section.privacy": "\u9690\u79C1\u4E0E\u6570\u636E",
+    "settings.manageData.rowHint": "\u4E0B\u8F7D\u6570\u636E\u526F\u672C\uFF0C\u6216\u5220\u9664\u60A8\u7684\u8D26\u6237",
+    "settings.visibility.rowHint": "\u9009\u62E9\u8C01\u53EF\u4EE5\u67E5\u770B\u60A8\u7684\u8D44\u6599\u548C\u6587\u6863",
+    "settings.manageData.section.export": "\u60A8\u7684\u6570\u636E",
+    "settings.manageData.deleteConfirmTitle": "\u5220\u9664\u60A8\u7684\u8D26\u6237\uFF1F",
+    "settings.manageData.deleteConfirmDescription": "\u6B64\u64CD\u4F5C\u5C06\u6C38\u4E45\u5220\u9664\u60A8\u7684\u8D26\u6237\u5E76\u9000\u51FA\u767B\u5F55\uFF0C\u4E14\u65E0\u6CD5\u64A4\u9500\u3002",
+    "settings.manageData.deleting": "\u6B63\u5728\u5220\u9664...",
+    "settings.manageData.deleteFailed": "\u65E0\u6CD5\u5220\u9664\u60A8\u7684\u8D26\u6237\uFF0C\u8BF7\u91CD\u8BD5\u3002",
+    "files.panel.title": "\u6587\u4EF6",
+    "files.filter.all": "\u5168\u90E8",
+    "files.filter.media": "\u5A92\u4F53",
+    "files.filter.documents": "\u6587\u6863",
+    "files.filter.audio": "\u97F3\u9891",
+    "files.search.placeholder": "\u641C\u7D22\u6587\u4EF6...",
+    "files.empty.title": "\u6682\u65E0\u6587\u4EF6",
+    "files.empty.subtitle": "\u60A8\u4E0A\u4F20\u7684\u6587\u4EF6\u5C06\u663E\u793A\u5728\u8FD9\u91CC\u3002",
+    "files.noResults": "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6",
+    "files.noResults.moreAvailable": "\u5C1A\u672A\u52A0\u8F7D\u5168\u90E8\u6587\u4EF6\uFF0C\u52A0\u8F7D\u66F4\u591A\u4EE5\u7EE7\u7EED\u641C\u7D22",
+    "files.loading": "\u6B63\u5728\u52A0\u8F7D\u6587\u4EF6...",
+    "files.error.title": "\u65E0\u6CD5\u52A0\u8F7D\u6587\u4EF6",
+    "files.action.retry": "\u91CD\u8BD5",
+    "files.action.loadMore": "\u52A0\u8F7D\u66F4\u591A",
+    "files.action.preview": "\u9884\u89C8",
+    "files.action.download": "\u4E0B\u8F7D",
+    "files.action.delete": "\u5220\u9664",
+    "files.delete.confirmTitle": "\u5220\u9664\u6B64\u6587\u4EF6\uFF1F",
+    "files.delete.confirmMessage": "\u6B64\u6587\u4EF6\u5C06\u88AB\u6C38\u4E45\u5220\u9664\uFF0C\u4E14\u65E0\u6CD5\u6062\u590D\u3002",
+    "files.delete.failed": "\u5220\u9664\u6587\u4EF6\u5931\u8D25",
+    "modal.chatProfile.filesTitle": "\u6587\u4EF6",
+    "modal.chatProfile.filesShowAll": "\u67E5\u770B\u5168\u90E8",
+    "modal.chatProfile.filesEmpty": "\u6B64\u804A\u5929\u4E2D\u8FD8\u6CA1\u6709\u6587\u4EF6",
+    "modal.qr.title": "\u4E8C\u7EF4\u7801",
+    "modal.qr.hint": "\u626B\u63CF\u6B64\u4E8C\u7EF4\u7801\u6216\u5206\u4EAB\u94FE\u63A5\u5373\u53EF\u6253\u5F00\u6B64\u804A\u5929\u3002",
+    "action.copyLink": "\u590D\u5236\u94FE\u63A5",
+    "error.boundary.title": "\u51FA\u4E86\u70B9\u95EE\u9898",
+    "error.boundary.description": "\u804A\u5929\u9047\u5230\u4E86\u610F\u5916\u95EE\u9898\u3002\u60A8\u7684\u6D88\u606F\u662F\u5B89\u5168\u7684\u3002",
+    "error.boundary.retry": "\u91CD\u8BD5",
+    "modal.profile.preferences": "\u504F\u597D\u8BBE\u7F6E",
+    "modal.profile.languageHint": "\u7528\u4E8E\u754C\u9762\u6587\u5B57\u548C\u6D88\u606F\u7FFB\u8BD1\u7684\u8BED\u8A00",
+    "modal.profile.actions": "\u64CD\u4F5C",
+    "modal.chatProfile.aboutSection": "\u5173\u4E8E",
+    "modal.chatProfile.membersSection": "\u6210\u5458",
+    "modal.chatProfile.filesShowLess": "\u6536\u8D77",
+    "notification.newMessage": "\u65B0\u6D88\u606F",
+    "notification.photo": "\u7167\u7247",
+    "notification.video": "\u89C6\u9891",
+    "notification.audio": "\u8BED\u97F3\u6D88\u606F",
+    "notification.file": "\u6587\u4EF6",
+    "notification.photos": "{count} \u5F20\u7167\u7247",
+    "notification.attachments": "{count} \u4E2A\u9644\u4EF6"
   };
   const BUILTIN_STRINGS = {
     en,
@@ -57203,7 +57203,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const kind = String(raw.kind || "").toLowerCase() === "audio" ? "audio" : "video";
     let body;
     if (durationMs > 0) {
-      body = `${isOutgoing ? "Outgoing" : "Incoming"} call · ${formatCallDuration(durationMs)}`;
+      body = `${isOutgoing ? "Outgoing" : "Incoming"} call \xB7 ${formatCallDuration(durationMs)}`;
     } else {
       body = isOutgoing ? "No answer" : "Missed call";
     }
@@ -57232,7 +57232,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const seconds = totalSeconds % 60;
     const duration = totalSeconds < 60 ? t2("call.durationSec", { n: totalSeconds }) : seconds === 0 ? t2("call.durationMin", { n: minutes }) : t2("call.durationMinSec", { m: minutes, s: seconds });
     const direction = callLog.direction === "outgoing" ? t2("call.outgoing") : t2("call.incoming");
-    return `${direction} · ${duration}`;
+    return `${direction} \xB7 ${duration}`;
   };
   const transformArrayToObject = (array) => {
     return array.reduce((acc, item) => {
@@ -63147,7 +63147,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   const truncate = (text2) => {
     const clean2 = text2.replace(/\s+/g, " ").trim();
-    return clean2.length > MAX_NOTIFICATION_BODY_LENGTH ? `${clean2.slice(0, MAX_NOTIFICATION_BODY_LENGTH - 1).trimEnd()}…` : clean2;
+    return clean2.length > MAX_NOTIFICATION_BODY_LENGTH ? `${clean2.slice(0, MAX_NOTIFICATION_BODY_LENGTH - 1).trimEnd()}\u2026` : clean2;
   };
   const getNotificationTag = (roomJID) => roomJID ? `ethora-room-${toLocalPart(roomJID)}` : "ethora-notification";
   const buildNotificationContent = (input) => {
@@ -63360,7 +63360,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       _subscriptionRegistrationPromise = (async () => {
         try {
           if (config?.useStoreConsoleEnabled) {
-            ethoraLogger.log("[PushNotifications] Initializing FCM push notifications…");
+            ethoraLogger.log("[PushNotifications] Initializing FCM push notifications\u2026");
           }
           const fcmToken = await initPushNotifications({
             vapidPublicKey,
@@ -63378,7 +63378,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             return;
           }
           if (config?.useStoreConsoleEnabled) {
-            ethoraLogger.log("[PushNotifications] Registering FCM token with Ethora backend (API)…");
+            ethoraLogger.log("[PushNotifications] Registering FCM token with Ethora backend (API)\u2026");
           }
           await registerPushToken(fcmToken);
           _subscriptionRegistered = true;
@@ -63387,14 +63387,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           setStoredFcmToken(fcmToken);
           if (config?.useStoreConsoleEnabled) {
             ethoraLogger.log(
-              "%c[PushNotifications] ✅ User subscribed via API",
+              "%c[PushNotifications] \u2705 User subscribed via API",
               "color: #22c55e; font-weight: bold"
             );
           }
           if (userXmppUsername) {
             if (config?.useStoreConsoleEnabled) {
               ethoraLogger.log(
-                `%c[PushNotifications] ✅ Device linked to XMPP – JID: ${userXmppUsername}`,
+                `%c[PushNotifications] \u2705 Device linked to XMPP \u2013 JID: ${userXmppUsername}`,
                 "color: #3b82f6; font-weight: bold"
               );
             }
@@ -64785,15 +64785,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const mimetype = first?.mimetype ?? message.mimetype;
     const name2 = first ? getAttachmentName(first) : message.originalName || message.fileName;
     if (mimetype?.startsWith("image/") && !isSvgFile(mimetype, name2)) {
-      return "📷 Photo";
+      return "\u{1F4F7} Photo";
     }
     if (mimetype?.startsWith("video/")) {
-      return "🎥 Video";
+      return "\u{1F3A5} Video";
     }
     if (mimetype?.startsWith("audio/")) {
-      return "🎵 Audio";
+      return "\u{1F3B5} Audio";
     }
-    return "📎 File";
+    return "\u{1F4CE} File";
   };
   const getMessagePreview = (message) => {
     if (isMediaMessage(message)) {
@@ -64853,7 +64853,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const senderEntry = usersSet[senderLocal] ?? usersSet[senderUserId];
     const userPhotoURL = senderEntry?.profileImage || message.user?.photoURL || message.user?.profileImage;
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(ToastContainer$1, { $isClosing: isClosing, onClick: handleClick, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton$2, { onClick: handleCloseClick, "aria-label": "Close notification", children: "×" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton$2, { onClick: handleCloseClick, "aria-label": "Close notification", children: "\xD7" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Header, { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(RoomName, { title: roomName, children: roomName }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(Timestamp, { children: formatTime$1(timestamp) })
@@ -67446,7 +67446,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     info: "var(--ethora-color-primary, #0052CD)"
   };
   const TYPE_ICON = {
-    success: "✓",
+    success: "\u2713",
     error: "!",
     info: "i"
   };
@@ -71020,7 +71020,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
     const scope = globalThis;
     if (scope.pdfjsWorker) return;
-    scope.pdfjsWorker = await Promise.resolve().then(() => pdfjs$1);
+    scope.pdfjsWorker = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
   };
   const loadPdfjs = async (workerSrc, libUrl) => {
     if (typeof window === "undefined") return null;
@@ -71030,7 +71030,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           const module = libUrl ? await import(
             /* @vite-ignore */
             libUrl
-          ) : await Promise.resolve().then(() => pdfjs$1);
+          ) : await import("pdfjs-dist/legacy/build/pdf.mjs");
           const lib2 = module?.default ?? module;
           await setupWorker(lib2, workerSrc);
           return lib2;
@@ -71118,9 +71118,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       let document2;
       const run = async () => {
         setStatus("loading");
-        const pdfjs2 = await loadPdfjs(workerSrc, libUrl);
+        const pdfjs = await loadPdfjs(workerSrc, libUrl);
         if (cancelled) return;
-        if (!pdfjs2) {
+        if (!pdfjs) {
           setStatus("error");
           return;
         }
@@ -71128,7 +71128,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         slotHeld = true;
         if (cancelled) return;
         try {
-          loadingTask = pdfjs2.getDocument({ url, isEvalSupported: false });
+          loadingTask = pdfjs.getDocument({ url, isEvalSupported: false });
           document2 = await loadingTask.promise;
           if (cancelled) return;
           const page = await document2.getPage(1);
@@ -72081,7 +72081,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 e2.stopPropagation();
                 remove.onRemoveClick();
               },
-              children: "×"
+              children: "\xD7"
             }
           )
         ]
@@ -72364,7 +72364,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             "aria-label": t2("mention.pickerTitle"),
             style: { width: "90%", maxWidth: 420, maxHeight: "70vh" },
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, { onClick: onClose, "aria-label": t2("action.close"), children: "×" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, { onClick: onClose, "aria-label": t2("action.close"), children: "\xD7" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 UsersList,
                 {
@@ -73966,7 +73966,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             onClick: handleCloseModal,
             style: { fontSize: 24 },
             "aria-label": t2("action.close"),
-            children: "×"
+            children: "\xD7"
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(ModalTitle, { children: t2("modal.newChat.title") }),
@@ -74512,12 +74512,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ] });
   };
   const FIXED_EMOJIS = {
-    joy: "😂",
-    heart: "❤️",
-    fire: "🔥",
-    "+1": "👍",
-    smile: "😄",
-    scream: "😱"
+    joy: "\u{1F602}",
+    heart: "\u2764\uFE0F",
+    fire: "\u{1F525}",
+    "+1": "\u{1F44D}",
+    smile: "\u{1F604}",
+    scream: "\u{1F631}"
   };
   let emojiData$2 = null;
   let emojiDataPromise = null;
@@ -75469,8 +75469,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       if (space2 > start + MAX_LENGTH / 2 && space2 > at2 + needle.length)
         end = space2;
     }
-    const prefix2 = start > 0 ? "…" : "";
-    const suffix = end < text2.length ? "…" : "";
+    const prefix2 = start > 0 ? "\u2026" : "";
+    const suffix = end < text2.length ? "\u2026" : "";
     const slice2 = text2.slice(start, end);
     if (at2 === -1 || at2 < start || at2 + needle.length > end) {
       return [{ text: `${prefix2}${slice2}${suffix}`, match: false }];
@@ -75676,7 +75676,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         onClick: () => onOpen(hit),
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(ResultHead, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: showRoom ? `${rooms[hit.room]?.title || t2("search.messages.chat")} · ${senderName(hit)}` : senderName(hit) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: showRoom ? `${rooms[hit.room]?.title || t2("search.messages.chat")} \xB7 ${senderName(hit)}` : senderName(hit) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: formatWhen(hit.createdAt) })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Snippet, { children: buildSnippet(hit.body, query).map(
@@ -76320,7 +76320,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 /* @__PURE__ */ jsxRuntimeExports.jsx(RowName, { children: repairFilenameEncoding(file.originalname) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs(RowMeta, { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(RowMetaText, { children: formatBytes(file.size) }),
-                  file.createdAt && /* @__PURE__ */ jsxRuntimeExports.jsx(RowMetaText, { children: "·" }),
+                  file.createdAt && /* @__PURE__ */ jsxRuntimeExports.jsx(RowMetaText, { children: "\xB7" }),
                   /* @__PURE__ */ jsxRuntimeExports.jsx(RowMetaText, { children: formatDate(file.createdAt) }),
                   roomTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(RoomTag, { title: roomTitle, children: roomTitle })
                 ] })
@@ -76946,7 +76946,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           "aria-label": t2("action.openChatList"),
           "aria-expanded": open,
           onClick: () => setOpen(!open),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { "aria-hidden": "true", children: "☰" })
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { "aria-hidden": "true", children: "\u2630" })
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -77401,7 +77401,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           onClick: handleCloseModal,
           style: { fontSize: 24 },
           "aria-label": resolvedCloseLabel,
-          children: "×"
+          children: "\xD7"
         }
       ),
       IconTitle ? /* @__PURE__ */ jsxRuntimeExports.jsx(IconTitle, {}) : /* @__PURE__ */ jsxRuntimeExports.jsx(ModalTitle, { children: title }),
@@ -77447,7 +77447,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     { name: "English", id: "en-CA" },
     { name: "Spanish", id: "es-US" },
     // { name: 'Portuguese', id: 'pt' },
-    { name: "Français", id: "fr-CA" }
+    { name: "Fran\xE7ais", id: "fr-CA" }
     // { name: 'Haitian Creole', id: 'ht' },
     // { name: 'Chinese', id: 'zh' },
   ];
@@ -77673,7 +77673,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 ref: containerRef,
                 onClick: (e2) => e2.stopPropagation(),
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, { onClick: () => setIsOpen(false), "aria-label": t2("action.cancel"), children: "×" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, { onClick: () => setIsOpen(false), "aria-label": t2("action.cancel"), children: "\xD7" }),
                   /* @__PURE__ */ jsxRuntimeExports.jsx(ModalTitle, { children: t2("language.select") }),
                   translatesEnabled && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(TranslateToggleRow, { children: [
@@ -77729,7 +77729,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                         onClick: () => handleSelect(option.id),
                         children: [
                           option.name,
-                          selected && /* @__PURE__ */ jsxRuntimeExports.jsx(Checkmark, { "aria-hidden": "true", children: "✓" })
+                          selected && /* @__PURE__ */ jsxRuntimeExports.jsx(Checkmark, { "aria-hidden": "true", children: "\u2713" })
                         ]
                       },
                       option.id
@@ -78137,7 +78137,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                       return base;
                     })() }),
                     showOnlineSuffix && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(HeaderSubtitleSep, { children: " · " }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(HeaderSubtitleSep, { children: " \xB7 " }),
                       /* @__PURE__ */ jsxRuntimeExports.jsx(
                         OnlineUsersPopover,
                         {
@@ -78348,7 +78348,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           /* @__PURE__ */ jsxRuntimeExports.jsx(EditText, { children: text2 })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(EditCloseButton, { onClick: onClose, children: "×" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(EditCloseButton, { onClick: onClose, children: "\xD7" })
     ] });
   };
   const EmptyChatIllustration = ({
@@ -81317,7 +81317,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           "aria-label": t2("media.audioSpeed"),
           children: [
             playbackRate,
-            "×"
+            "\xD7"
           ]
         }
       )
@@ -84284,7 +84284,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
     return id2;
   }
-  const SENDER_NAME_PLACEHOLDER = "…";
+  const SENDER_NAME_PLACEHOLDER = "\u2026";
   const EditedLabel = gt.span`
   font-style: italic;
 `;
@@ -85704,7 +85704,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           onClick: handleCloseModal,
           style: { fontSize: 24 },
           "aria-label": t2("action.close"),
-          children: "×"
+          children: "\xD7"
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ModalTitle, { children: title }),
@@ -87650,7 +87650,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const dismissible = banner.dismissible !== false;
     const position2 = banner.position || "bottom-right";
     const title = isBlocked ? banner.blockedTitle || "Notifications are blocked" : banner.enableTitle || "Enable notifications";
-    const description = isBlocked ? banner.blockedDescription || "To get message alerts, click the icon left of the address bar → Notifications → Allow, then reload." : banner.enableDescription || "Get notified about new messages even when this tab is closed.";
+    const description = isBlocked ? banner.blockedDescription || "To get message alerts, click the icon left of the address bar \u2192 Notifications \u2192 Allow, then reload." : banner.enableDescription || "Get notified about new messages even when this tab is closed.";
     const buttonLabel = banner.enableButtonLabel || "Enable notifications";
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       BannerRoot,
@@ -87706,7 +87706,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   cursor: busy ? "progress" : "pointer",
                   opacity: busy ? 0.7 : 1
                 },
-                children: busy ? "Requesting…" : buttonLabel
+                children: busy ? "Requesting\u2026" : buttonLabel
               }
             )
           ] }),
@@ -87729,7 +87729,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 lineHeight: "22px",
                 cursor: "pointer"
               },
-              children: "×"
+              children: "\xD7"
             }
           )
         ]
@@ -87979,7 +87979,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     if (!jid2 || !jid2.includes("@")) return "";
     return jid2.split("@")[1] || "";
   };
-  function resolveSession(envelope, overrides = {}) {
+  const EMPTY_ENVELOPE = {
+    visitor: { xmppUsername: "", xmppPassword: "", uuid: "" },
+    room: { name: "" },
+    bot: { xmppUsername: "" }
+  };
+  function resolveSession(envelopeOrNull, overrides = {}) {
+    const envelope = envelopeOrNull || EMPTY_ENVELOPE;
     const host = envelope.xmpp?.host || hostFromJid(envelope.bot.jid) || hostFromJid(envelope.visitor.jid) || hostFromJid(envelope.bot.xmppUsername);
     const conference = envelope.xmpp?.service || (host ? `conference.${host}` : "");
     const devServer = envelope.xmpp?.wsUrl || (host ? `wss://${host}/ws` : "");
@@ -88735,6 +88741,16 @@ ${CHROME_KEYFRAMES}
   font-size: 13px;
 }
 .ew-status-title { font-size: 15px; font-weight: 600; color: var(--ew-text); }
+.ew-retry {
+  border: 1px solid var(--ew-hair);
+  border-radius: 8px;
+  background: var(--ew-surface);
+  color: var(--ew-text);
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.ew-retry:hover { background: var(--ew-hover); }
 
 /* Empty state: mirrors the engine's own placeholder layout. */
 .ew-empty {
@@ -88869,8 +88885,8 @@ ${CHROME_KEYFRAMES}
   };
   const WIDGET_LANGUAGES = [
     { id: "en-CA", name: "English" },
-    { id: "es-US", name: "Español" },
-    { id: "fr-CA", name: "Français" }
+    { id: "es-US", name: "Espa\xF1ol" },
+    { id: "fr-CA", name: "Fran\xE7ais" }
   ];
   const WIDGET_STRINGS = {
     en: {
@@ -88889,25 +88905,25 @@ ${CHROME_KEYFRAMES}
       "widget.open": "Ouvrir {name}",
       "widget.close": "Fermer le chat de l'assistant",
       "widget.expand": "Agrandir",
-      "widget.collapse": "Réduire",
+      "widget.collapse": "R\xE9duire",
       "widget.cta": "Posez-moi vos questions !",
-      "widget.resize": "Glisser pour redimensionner, double-clic pour réinitialiser",
-      "widget.online": "En ligne, répond instantanément",
+      "widget.resize": "Glisser pour redimensionner, double-clic pour r\xE9initialiser",
+      "widget.online": "En ligne, r\xE9pond instantan\xE9ment",
       "widget.emptyTitle": "Posez-moi une question",
-      "widget.emptyBody": "Répond en quelques secondes",
-      "widget.greeting": "Bonjour ! Comment puis-je vous aider aujourd’hui ?"
+      "widget.emptyBody": "R\xE9pond en quelques secondes",
+      "widget.greeting": "Bonjour ! Comment puis-je vous aider aujourd\u2019hui ?"
     },
     es: {
       "widget.open": "Abrir {name}",
       "widget.close": "Cerrar el chat del asistente",
       "widget.expand": "Ampliar",
       "widget.collapse": "Reducir",
-      "widget.cta": "¡Pregúntame lo que quieras!",
-      "widget.resize": "Arrastra para cambiar el tamaño, doble clic para restablecer",
-      "widget.online": "En línea, responde al instante",
-      "widget.emptyTitle": "Pregúntame lo que quieras",
+      "widget.cta": "\xA1Preg\xFAntame lo que quieras!",
+      "widget.resize": "Arrastra para cambiar el tama\xF1o, doble clic para restablecer",
+      "widget.online": "En l\xEDnea, responde al instante",
+      "widget.emptyTitle": "Preg\xFAntame lo que quieras",
       "widget.emptyBody": "Suele responder en unos segundos",
-      "widget.greeting": "¡Hola! ¿En qué puedo ayudarte hoy?"
+      "widget.greeting": "\xA1Hola! \xBFEn qu\xE9 puedo ayudarte hoy?"
     }
   };
   const DEFAULT_COPY = {
@@ -88990,12 +89006,34 @@ ${CHROME_KEYFRAMES}
     }
   }
   const HiddenSystemMessage = () => null;
+  function provisionErrorMessage(e2) {
+    const code2 = e2?.code;
+    if (code2 === "AI_BOT_NOT_CONFIGURED") return "AI assistant is not configured for this site yet.";
+    if (code2 === "APP_NOT_FOUND") return "Chat configuration error: app not recognised.";
+    return "Chat is temporarily unavailable. Please try again in a moment.";
+  }
   function Assistant({
-    envelope,
+    provision,
     apiBase,
+    assetBase,
     overrides,
     appearance
   }) {
+    const [envelope, setEnvelope] = reactExports.useState(null);
+    const [provisionError, setProvisionError] = reactExports.useState(null);
+    const provisionInFlight = reactExports.useRef(null);
+    const startProvision = reactExports.useCallback(() => {
+      if (envelope || provisionInFlight.current) return;
+      setProvisionError(null);
+      provisionInFlight.current = provision().then((env2) => {
+        setEnvelope(env2);
+      }).catch((e2) => {
+        console.error("[ethora-widget] session provisioning failed:", e2);
+        setProvisionError(provisionErrorMessage(e2));
+      }).finally(() => {
+        provisionInFlight.current = null;
+      });
+    }, [envelope, provision]);
     const session = reactExports.useMemo(
       () => resolveSession(envelope, overrides),
       [envelope, overrides]
@@ -89009,13 +89047,13 @@ ${CHROME_KEYFRAMES}
         return false;
       }
     });
-    const [hasMounted, setHasMounted] = reactExports.useState(open);
+    const [hasMounted, setHasMounted] = reactExports.useState(false);
     const [closing, setClosing] = reactExports.useState(false);
     const closeTimer = reactExports.useRef(void 0);
     const launcherRef = reactExports.useRef(null);
     const returnFocusOnClose = reactExports.useRef(false);
     reactExports.useEffect(() => {
-      if (open) setHasMounted(true);
+      if (open) startProvision();
       try {
         window.localStorage.setItem(OPEN_STATE_KEY, open ? "1" : "0");
       } catch {
@@ -89024,7 +89062,10 @@ ${CHROME_KEYFRAMES}
         returnFocusOnClose.current = false;
         launcherRef.current?.focus();
       }
-    }, [open]);
+    }, [open, startProvision]);
+    reactExports.useEffect(() => {
+      if (open && envelope) setHasMounted(true);
+    }, [open, envelope]);
     reactExports.useEffect(
       () => () => {
         if (closeTimer.current) window.clearTimeout(closeTimer.current);
@@ -89163,6 +89204,12 @@ ${CHROME_KEYFRAMES}
         userLogin: { enabled: true, user },
         xmppSettings,
         defaultRooms: [{ jid: roomJID, pinned: true }],
+        ...assetBase ? {
+          pdfPreview: {
+            libUrl: `${assetBase}/pdfjs/pdf.min.mjs`,
+            workerSrc: `${assetBase}/pdfjs/pdf.worker.min.mjs`
+          }
+        } : {},
         newArch: false,
         disableRooms: true,
         disableHeader: true,
@@ -89235,7 +89282,8 @@ ${CHROME_KEYFRAMES}
         fontFamily,
         EmptyState2,
         uiLocale,
-        persona.botXmppUsername
+        persona.botXmppUsername,
+        assetBase
       ]
     );
     const scheme = useResolvedScheme(appearance.colorScheme);
@@ -89422,6 +89470,8 @@ ${CHROME_KEYFRAMES}
                 className: appearance.launcherGlow ? "ew-launcher ew-launcher--glow" : "ew-launcher",
                 "aria-label": t2("widget.open", { name: headerTitle }),
                 onClick: () => setOpen(true),
+                onMouseEnter: startProvision,
+                onFocus: startProvision,
                 style: {
                   width: launcherSize,
                   height: launcherSize,
@@ -89439,7 +89489,7 @@ ${CHROME_KEYFRAMES}
               }
             )
           ] }),
-          hasMounted && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          (open || hasMounted) && /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
               ref: panelRef,
@@ -89542,7 +89592,7 @@ ${CHROME_KEYFRAMES}
                     )
                   ] })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "ew-body", children: /* @__PURE__ */ jsxRuntimeExports.jsx(XmppProvider, { config, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "ew-body", children: hasMounted ? /* @__PURE__ */ jsxRuntimeExports.jsx(XmppProvider, { config, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                   ReduxWrapper,
                   {
                     user: { email: "", password: "" },
@@ -89550,7 +89600,10 @@ ${CHROME_KEYFRAMES}
                     config,
                     MainComponentStyles: { height: "100%" }
                   }
-                ) }) })
+                ) }) : provisionError ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ew-status", role: "status", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "ew-status-title", children: provisionError }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "ew-retry", onClick: startProvision, children: "Try again" })
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(StatusScreen, { color: appearance.primaryColor, mode: "connecting" }) })
               ]
             }
           )
@@ -89649,7 +89702,7 @@ ${CHROME_KEYFRAMES}
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ew-status", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Spinner$1, { color: color2 }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: mode2 === "reconnecting" ? "Reconnecting…" : "Connecting…" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: mode2 === "reconnecting" ? "Reconnecting\u2026" : "Connecting\u2026" })
     ] });
   }
   const Spinner$1 = ({ color: color2 }) => /* @__PURE__ */ jsxRuntimeExports.jsx("svg", { width: "30", height: "30", viewBox: "0 0 50 50", "aria-hidden": "true", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -89733,12 +89786,23 @@ ${CHROME_KEYFRAMES}
       throw new Error("provisionWidgetSession: apiBase is required");
     }
     let resumeXmppUsername;
-    {
+    if (input.resumeXmppUsername === null) {
       resumeXmppUsername = void 0;
+    } else if (typeof input.resumeXmppUsername === "string") {
+      resumeXmppUsername = input.resumeXmppUsername;
+    } else {
+      const persisted = readPersistedVisitor(appId);
+      if (persisted) {
+        resumeXmppUsername = persisted.xmppUsername;
+      }
     }
     const url = joinUrl(apiBase, "/v2/widget/sessions");
     const body = { appId };
     if (resumeXmppUsername) body.resumeXmppUsername = resumeXmppUsername;
+    try {
+      if (typeof window !== "undefined" && window.location?.href) body.pageUrl = window.location.href;
+    } catch {
+    }
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -89859,6 +89923,30 @@ ${CHROME_KEYFRAMES}
       expandedInset: size(get2("data-expanded-inset"), "0px")
     };
   }
+  const TIMEOUT_MS = 1500;
+  const IDENTITY_ATTRIBUTES = /* @__PURE__ */ new Set(["data-app-id", "data-api-base", "data-api-url", "data-bot-id"]);
+  async function fetchStoredAppearance({ appId, apiBase }) {
+    if (!appId || !apiBase || typeof fetch !== "function") return {};
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), TIMEOUT_MS) : null;
+    try {
+      const url = `${joinUrl(apiBase, "/v2/widget/config")}?appId=${encodeURIComponent(appId)}`;
+      const resp = await fetch(url, { signal: controller?.signal, credentials: "omit" });
+      if (!resp.ok) return {};
+      const body = await resp.json();
+      const raw = body && typeof body.appearance === "object" && body.appearance ? body.appearance : {};
+      const out = {};
+      for (const [attr, value] of Object.entries(raw)) {
+        if (!attr.startsWith("data-") || IDENTITY_ATTRIBUTES.has(attr)) continue;
+        if (typeof value === "string") out[attr] = value;
+      }
+      return out;
+    } catch {
+      return {};
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
   const WIDGET_ATTRIBUTES = [
     // --- core -------------------------------------------------------------
     {
@@ -89941,7 +90029,7 @@ ${CHROME_KEYFRAMES}
       name: "data-language-selector",
       group: "copy",
       example: "false",
-      doc: "Globe in the header that lets the reader pick the UI language (English, Español, Français). Default true; the choice is remembered. Set false to hide it."
+      doc: "Globe in the header that lets the reader pick the UI language (English, Espa\xF1ol, Fran\xE7ais). Default true; the choice is remembered. Set false to hide it."
     },
     {
       name: "data-color-scheme",
@@ -90091,7 +90179,7 @@ ${CHROME_KEYFRAMES}
     } catch {
     }
   }
-  const ETHORA_CHAT_ASSISTANT_VERSION = "26.7.1";
+  const ETHORA_CHAT_ASSISTANT_VERSION = "26.10.0";
   const APP_ID_STORAGE_KEY = "ethora-widget-app-id";
   const PERSIST_KEYS = [
     "persist:root",
@@ -90112,17 +90200,10 @@ ${CHROME_KEYFRAMES}
     } catch {
       return;
     }
-    let inconsistent = false;
-    try {
-      const hasVisitor = !!window.localStorage.getItem("ethora-widget-visitor");
-      const hasRooms = !!window.localStorage.getItem("persist:rooms") || !!window.localStorage.getItem("persist:roomMessages");
-      inconsistent = hasRooms && !hasVisitor;
-    } catch {
-    }
     try {
       OPEN_STATE_KEYS.forEach((k2) => window.localStorage.removeItem(k2));
       PERSIST_KEYS.forEach((k2) => window.localStorage.removeItem(k2));
-      __widgetSessionStorage.clear();
+      if (previousAppId && previousAppId !== newAppId) __widgetSessionStorage.clear();
       window.localStorage.setItem(APP_ID_STORAGE_KEY, newAppId);
     } catch (e2) {
       console.warn("[ethora-widget] Failed to clear storage on app change", e2);
@@ -90142,6 +90223,14 @@ ${CHROME_KEYFRAMES}
     }
     return VITE_APP_API_URL;
   }
+  function resolveAssetBase(scriptTag) {
+    const src = scriptTag?.src || "";
+    try {
+      return src ? new URL(".", src).href.replace(/\/$/, "") : "";
+    } catch {
+      return "";
+    }
+  }
   function resolveAppId(scriptTag) {
     const explicit = scriptTag?.getAttribute("data-app-id")?.trim();
     if (explicit) return explicit;
@@ -90154,25 +90243,6 @@ ${CHROME_KEYFRAMES}
       }
     }
     return void 0;
-  }
-  function mountErrorState(message) {
-    const node2 = document.createElement("div");
-    node2.setAttribute("role", "status");
-    node2.style.cssText = [
-      "position:fixed",
-      "right:24px",
-      "bottom:24px",
-      "padding:8px 12px",
-      "border-radius:8px",
-      "background:#fff3cd",
-      "color:#664d03",
-      "font:12px/1.4 system-ui, sans-serif",
-      "box-shadow:0 2px 8px rgba(0,0,0,0.12)",
-      "max-width:320px",
-      "z-index:2147483647"
-    ].join(";");
-    node2.textContent = message;
-    document.body.appendChild(node2);
   }
   function readOverrides(get2) {
     return {
@@ -90188,7 +90258,7 @@ ${CHROME_KEYFRAMES}
       hideSystemMessages: get2("data-hide-system-messages") !== "false"
     };
   }
-  function makeCosmeticGetter(scriptTag) {
+  function makeCosmeticGetter(scriptTag, stored = {}) {
     let url;
     try {
       url = new URLSearchParams(window.location.search);
@@ -90199,7 +90269,9 @@ ${CHROME_KEYFRAMES}
       const fromUrl = url.get("ethora-" + dataAttr.replace(/^data-/, ""));
       if (fromUrl != null && fromUrl.length) return fromUrl;
       const v2 = scriptTag?.getAttribute(dataAttr);
-      return v2 && v2.length ? v2 : void 0;
+      if (v2 && v2.length) return v2;
+      const s2 = stored[dataAttr];
+      return s2 && s2.length ? s2 : void 0;
     };
   }
   async function bootstrap() {
@@ -90212,13 +90284,16 @@ ${CHROME_KEYFRAMES}
     const scriptTag = document.getElementById("chat-content-assistant");
     const appId = resolveAppId(scriptTag);
     const apiBase = resolveApiBase(scriptTag);
+    const assetBase = resolveAssetBase(scriptTag);
     if (!appId) {
       console.error(
         '[ethora-widget] missing data-app-id (or a data-bot-id to derive it from) on the embed <script id="chat-content-assistant">; widget cannot start.'
       );
       return;
     }
-    const cosmeticGet = makeCosmeticGetter(scriptTag);
+    const stored = await fetchStoredAppearance({ appId, apiBase });
+    if (document.getElementById("chat-widget")) return;
+    const cosmeticGet = makeCosmeticGetter(scriptTag, stored);
     const overrides = readOverrides(cosmeticGet);
     const appearance = readAppearance(cosmeticGet);
     clearStorageForNewApp(appId);
@@ -90232,25 +90307,7 @@ ${CHROME_KEYFRAMES}
     shadow.appendChild(staticStyle);
     const appRoot = document.createElement("div");
     shadow.appendChild(appRoot);
-    let envelope;
-    try {
-      envelope = await provisionWidgetSession({
-        appId,
-        apiBase,
-        resumeXmppUsername: null
-      });
-    } catch (e2) {
-      const code2 = e2?.code;
-      let message = "Chat is temporarily unavailable.";
-      if (code2 === "AI_BOT_NOT_CONFIGURED") {
-        message = "AI assistant is not configured for this site yet.";
-      } else if (code2 === "APP_NOT_FOUND") {
-        message = "Chat configuration error: app not recognised.";
-      }
-      console.error("[ethora-widget] session provisioning failed:", e2);
-      mountErrorState(message);
-      return;
-    }
+    const provision = () => provisionWidgetSession({ appId, apiBase });
     const reactRoot = ReactDOM.createRoot(appRoot);
     registerTeardown(() => {
       reactRoot.unmount();
@@ -90261,8 +90318,9 @@ ${CHROME_KEYFRAMES}
       /* @__PURE__ */ jsxRuntimeExports.jsx(tt, { target: shadow, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         Assistant,
         {
-          envelope,
+          provision,
           apiBase,
+          assetBase,
           overrides,
           appearance
         }
@@ -90308,17 +90366,6 @@ ${CHROME_KEYFRAMES}
   const videoCallOverlay = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     VideoCallOverlay
-  }, Symbol.toStringTag, { value: "Module" }));
-  const GlobalWorkerOptions = { workerSrc: "" };
-  const getDocument = () => {
-    throw new Error("pdf.js is not bundled in the assistant widget");
-  };
-  const pdfjs = { GlobalWorkerOptions, getDocument };
-  const pdfjs$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-    __proto__: null,
-    GlobalWorkerOptions,
-    default: pdfjs,
-    getDocument
   }, Symbol.toStringTag, { value: "Module" }));
   function Picker() {
     return null;
@@ -92514,7 +92561,7 @@ ${CHROME_KEYFRAMES}
       // Out of range
       code2 > 1114111
     ) {
-      return "�";
+      return "\uFFFD";
     }
     return String.fromCodePoint(code2);
   }
@@ -92571,7 +92618,7 @@ ${CHROME_KEYFRAMES}
           replace2 = String.fromCharCode(code2, next2);
           skip = 1;
         } else {
-          replace2 = "�";
+          replace2 = "\uFFFD";
         }
       } else {
         replace2 = String.fromCharCode(code2);
@@ -96690,7 +96737,7 @@ ${CHROME_KEYFRAMES}
         throw new Error("Cannot close `" + token2.type + "` (" + stringifyPosition({
           start: token2.start,
           end: token2.end
-        }) + "): it’s not open");
+        }) + "): it\u2019s not open");
       } else if (open[0].type !== token2.type) {
         if (onExitError) {
           onExitError.call(this, token2, open[0]);
@@ -97807,7 +97854,7 @@ ${CHROME_KEYFRAMES}
     (any, options) => options && ("json" in options || "lossy" in options) ? deserialize(serialize$1(any, options)) : structuredClone(any)
   ) : (any, options) => deserialize(serialize$1(any, options));
   function defaultFootnoteBackContent(_2, rereferenceIndex) {
-    const result = [{ type: "text", value: "↩" }];
+    const result = [{ type: "text", value: "\u21A9" }];
     if (rereferenceIndex > 1) {
       result.push({
         type: "element",
@@ -105413,7 +105460,7 @@ ${CHROME_KEYFRAMES}
           "aria-expanded": isOpen,
           children: [
             selected ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: selected.name }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Placeholder, { children: placeholder2 }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { style: { color: accentColor }, $isOpen: isOpen, children: "▼" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { style: { color: accentColor }, $isOpen: isOpen, children: "\u25BC" })
           ]
         }
       ),
@@ -108031,7 +108078,7 @@ ${CHROME_KEYFRAMES}
           onClick: handleCloseModal,
           style: { fontSize: 24 },
           "aria-label": t2("action.close"),
-          children: "×"
+          children: "\xD7"
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ModalTitle, { children: t2("modal.deleteChat.title") }),
@@ -108126,7 +108173,7 @@ ${CHROME_KEYFRAMES}
             onClick: handleCloseModal,
             style: { fontSize: 24 },
             "aria-label": t2("action.close"),
-            children: "×"
+            children: "\xD7"
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -109428,7 +109475,7 @@ ${CHROME_KEYFRAMES}
                     type: "button",
                     "aria-label": t2("search.messages.filterClear"),
                     onClick: () => setSender(null),
-                    children: "×"
+                    children: "\xD7"
                   }
                 )
               ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -110122,14 +110169,14 @@ ${CHROME_KEYFRAMES}
       currentPageRef.current = 1;
       setCurrentPage(1);
       (async () => {
-        const pdfjs2 = await loadPdfjs(config?.pdfPreview?.workerSrc, config?.pdfPreview?.libUrl);
+        const pdfjs = await loadPdfjs(config?.pdfPreview?.workerSrc, config?.pdfPreview?.libUrl);
         if (cancelled) return;
-        if (!pdfjs2 || !pdfUrl) {
+        if (!pdfjs || !pdfUrl) {
           setStatus("error");
           return;
         }
         try {
-          loadingTask = pdfjs2.getDocument({ url: pdfUrl, isEvalSupported: false });
+          loadingTask = pdfjs.getDocument({ url: pdfUrl, isEvalSupported: false });
           const opened = await loadingTask.promise;
           if (cancelled) {
             opened.destroy().catch(() => void 0);
@@ -111780,7 +111827,7 @@ ${CHROME_KEYFRAMES}
               ),
               /* @__PURE__ */ jsxRuntimeExports.jsxs(SenderText, { children: [
                 senderName && /* @__PURE__ */ jsxRuntimeExports.jsx(SenderName, { children: senderName }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SubLine, { children: [dateText, displayName2].filter(Boolean).join(" · ") || t2("modal.filePreview.title") })
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SubLine, { children: [dateText, displayName2].filter(Boolean).join(" \xB7 ") || t2("modal.filePreview.title") })
               ] })
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ActionGroup, { children: [

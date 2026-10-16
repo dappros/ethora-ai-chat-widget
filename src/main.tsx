@@ -15,6 +15,7 @@ import {
 } from './utils/provisionWidgetSession';
 import type { EmbedOverrides } from './widget/resolveSession';
 import { readAppearance } from './widget/appearance';
+import { fetchStoredAppearance, type StoredAppearance } from './widget/storedAppearance';
 import {
   installPublicApi,
   registerTeardown,
@@ -45,37 +46,19 @@ function clearStorageForNewApp(newAppId?: string) {
   } catch {
     return;
   }
-  // Same app is NOT enough to skip the wipe. The visitor identity and the
-  // cached rooms map are written independently, so they can disagree: a host
-  // that clears only the visitor (the admin preview used to) leaves a rooms
-  // map pointing at rooms that no longer exist, and the chat then fires MAM
-  // history requests at them - the "Conference room does not exist" noise.
-  // Treat that mismatch as a reason to wipe, regardless of the app id.
-  let inconsistent = false;
-  try {
-    const hasVisitor = !!window.localStorage.getItem('ethora-widget-visitor');
-    const hasRooms =
-      !!window.localStorage.getItem('persist:rooms') ||
-      !!window.localStorage.getItem('persist:roomMessages');
-    inconsistent = hasRooms && !hasVisitor;
-  } catch {
-    // storage unreadable; fall through to the app-id comparison
-  }
-
-  // ALWAYS wipe the engine's persisted state, same app or not. The server
-  // mints a NEW room on every /v2/widget/sessions call (verified against
-  // production), so a rehydrated rooms map can only ever point at rooms from
-  // previous sessions - and rehydrating it is exactly what left resumed
-  // visitors stuck on "Connecting…" while first-time visitors worked. Only
-  // the visitor identity (ethora-widget-visitor) is worth keeping across
-  // loads, and it is not in these lists.
-  void previousAppId;
-  void inconsistent;
-
+  // The engine's persisted state (rooms map, cached messages) is wiped on
+  // every load: the session call returns the room to use and MAM refills the
+  // history, while a rehydrated map from an earlier session once left
+  // visitors stuck on "Connecting…". The open-state keys go too, so a load
+  // never auto-opens the panel (and never provisions a session) by itself.
+  //
+  // The visitor identity (ethora-widget-visitor) is the one thing kept: it is
+  // the resume key that gets the same account and conversation back. It only
+  // goes when the embed now points at a different app, where it is useless.
   try {
     OPEN_STATE_KEYS.forEach((k) => window.localStorage.removeItem(k));
     PERSIST_KEYS.forEach((k) => window.localStorage.removeItem(k));
-    __widgetSessionStorage.clear();
+    if (previousAppId && previousAppId !== newAppId) __widgetSessionStorage.clear();
     window.localStorage.setItem(APP_ID_STORAGE_KEY, newAppId);
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -103,6 +86,20 @@ function resolveApiBase(scriptTag: HTMLElement | null): string {
     }
   }
   return VITE_APP_API_URL;
+}
+
+// Directory the widget script was loaded from, without the trailing slash;
+// pdf.js is served beside the script under pdfjs/. Using the directory rather
+// than the origin keeps the hosted build unchanged (assistant.js sits at the
+// host root) and lets a copy served from a sub-path, such as the WordPress
+// plugin's assets/js/, find its own pdfjs/ folder.
+function resolveAssetBase(scriptTag: HTMLElement | null): string {
+  const src = (scriptTag as HTMLScriptElement | null)?.src || '';
+  try {
+    return src ? new URL('.', src).href.replace(/\/$/, '') : '';
+  } catch {
+    return '';
+  }
 }
 
 // Resolve the appId for the widget-session call. Precedence:
@@ -164,10 +161,11 @@ function readOverrides(get: (name: string) => string | undefined): EmbedOverride
 
 // Cosmetic config getter: a URL query param (`ethora-<name>`) overrides the
 // embed `data-<name>` attribute, so the look can be tuned per-link without
-// editing the page. Restricted to cosmetic/appearance keys - appId / apiBase /
-// botId are intentionally NOT URL-overridable (a URL must never repoint the
-// widget at a different bot or backend).
-function makeCosmeticGetter(scriptTag: HTMLElement | null) {
+// editing the page, and both override what the App saved in the admin's AI
+// Widget tab (`stored`). Restricted to cosmetic/appearance keys - appId /
+// apiBase / botId are intentionally NOT URL-overridable (a URL must never
+// repoint the widget at a different bot or backend).
+function makeCosmeticGetter(scriptTag: HTMLElement | null, stored: StoredAppearance = {}) {
   let url: URLSearchParams;
   try {
     url = new URLSearchParams(window.location.search);
@@ -178,7 +176,9 @@ function makeCosmeticGetter(scriptTag: HTMLElement | null) {
     const fromUrl = url.get('ethora-' + dataAttr.replace(/^data-/, ''));
     if (fromUrl != null && fromUrl.length) return fromUrl;
     const v = scriptTag?.getAttribute(dataAttr);
-    return v && v.length ? v : undefined;
+    if (v && v.length) return v;
+    const s = stored[dataAttr];
+    return s && s.length ? s : undefined;
   };
 }
 
@@ -196,6 +196,7 @@ async function bootstrap() {
   const scriptTag = document.getElementById('chat-content-assistant');
   const appId = resolveAppId(scriptTag);
   const apiBase = resolveApiBase(scriptTag);
+  const assetBase = resolveAssetBase(scriptTag);
 
   if (!appId) {
     // eslint-disable-next-line no-console
@@ -205,7 +206,9 @@ async function bootstrap() {
     return;
   }
 
-  const cosmeticGet = makeCosmeticGetter(scriptTag);
+  const stored = await fetchStoredAppearance({ appId, apiBase });
+  if (document.getElementById('chat-widget')) return;
+  const cosmeticGet = makeCosmeticGetter(scriptTag, stored);
   const overrides = readOverrides(cosmeticGet);
   const appearance = readAppearance(cosmeticGet);
   clearStorageForNewApp(appId);
@@ -233,33 +236,14 @@ async function bootstrap() {
   const appRoot = document.createElement('div');
   shadow.appendChild(appRoot);
 
-  let envelope: WidgetSessionEnvelope;
-  try {
-    // resumeXmppUsername: null = mint a fresh visitor every load. Resume is
-    // deliberately OFF: the server creates a NEW room on every session call,
-    // so resuming the visitor identity gives no conversation continuity - it
-    // only exercised an engine path that came up blank (header, no messages,
-    // no empty state) while first visits worked end to end. When the server
-    // learns to return the SAME room for a resumed visitor, flip this back
-    // to reading the persisted identity.
-    envelope = await provisionWidgetSession({
-      appId,
-      apiBase,
-      resumeXmppUsername: null,
-    });
-  } catch (e: any) {
-    const code = e?.code;
-    let message = 'Chat is temporarily unavailable.';
-    if (code === 'AI_BOT_NOT_CONFIGURED') {
-      message = 'AI assistant is not configured for this site yet.';
-    } else if (code === 'APP_NOT_FOUND') {
-      message = 'Chat configuration error: app not recognised.';
-    }
-    // eslint-disable-next-line no-console
-    console.error('[ethora-widget] session provisioning failed:', e);
-    mountErrorState(message);
-    return;
-  }
+  // The session (visitor account, room, bot invite) is provisioned on demand
+  // by <Assistant>, the first time the launcher is hovered or the panel
+  // opens, not here at page load: most page views never open the chat, and
+  // crawlers never do, so minting a visitor per view only filled the
+  // database. The persisted identity (localStorage) is sent as the resume
+  // key; the server returns the visitor's existing room, so a returning
+  // visitor continues the same conversation.
+  const provision = () => provisionWidgetSession({ appId, apiBase });
 
   const reactRoot = ReactDOM.createRoot(appRoot);
   registerTeardown(() => {
@@ -270,8 +254,9 @@ async function bootstrap() {
     // Pin chat-component's (single-instance) styled-components into the shadow.
     <StyleSheetManager target={shadow as unknown as HTMLElement}>
       <Assistant
-        envelope={envelope}
+        provision={provision}
         apiBase={apiBase}
+        assetBase={assetBase}
         overrides={overrides}
         appearance={appearance}
       />

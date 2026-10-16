@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { XmppProvider, Chat } from '@ethora/chat-component';
 import { WidgetSessionEnvelope } from './utils/provisionWidgetSession';
 import { resolveSession, EmbedOverrides } from './widget/resolveSession';
@@ -131,10 +131,30 @@ function prefersReducedMotion(): boolean {
 const HiddenSystemMessage = () => null;
 
 interface AssistantProps {
-  envelope: WidgetSessionEnvelope;
+  /**
+   * Provisions (or resumes) the visitor session on demand. Called once, the
+   * first time the panel opens or the launcher is hovered, never at page
+   * load: a visitor who only reads the page costs the platform nothing, and
+   * crawlers never trigger it at all.
+   */
+  provision: () => Promise<WidgetSessionEnvelope>;
   apiBase: string;
+  /**
+   * Origin the widget script was loaded from. pdf.js is served from there
+   * (`/pdfjs/`) and loaded only when a PDF is shown, instead of being part
+   * of the bundle.
+   */
+  assetBase?: string;
   overrides?: EmbedOverrides;
   appearance: Appearance;
+}
+
+// Copy for the panel when the session could not be provisioned.
+function provisionErrorMessage(e: any): string {
+  const code = e?.code;
+  if (code === 'AI_BOT_NOT_CONFIGURED') return 'AI assistant is not configured for this site yet.';
+  if (code === 'APP_NOT_FOUND') return 'Chat configuration error: app not recognised.';
+  return 'Chat is temporarily unavailable. Please try again in a moment.';
 }
 
 /**
@@ -155,11 +175,36 @@ interface AssistantProps {
  * The chrome itself is styled by widget/chromeCss.ts.
  */
 export default function Assistant({
-  envelope,
+  provision,
   apiBase,
+  assetBase,
   overrides,
   appearance,
 }: AssistantProps) {
+  // The session arrives lazily (see AssistantProps.provision). Until then the
+  // persona resolves from the embed overrides and defaults, which is all the
+  // launcher and the panel header need.
+  const [envelope, setEnvelope] = useState<WidgetSessionEnvelope | null>(null);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
+  const provisionInFlight = useRef<Promise<void> | null>(null);
+
+  const startProvision = useCallback(() => {
+    if (envelope || provisionInFlight.current) return;
+    setProvisionError(null);
+    provisionInFlight.current = provision()
+      .then((env) => {
+        setEnvelope(env);
+      })
+      .catch((e: any) => {
+        // eslint-disable-next-line no-console
+        console.error('[ethora-widget] session provisioning failed:', e);
+        setProvisionError(provisionErrorMessage(e));
+      })
+      .finally(() => {
+        provisionInFlight.current = null;
+      });
+  }, [envelope, provision]);
+
   const session = useMemo(
     () => resolveSession(envelope, overrides),
     [envelope, overrides]
@@ -175,8 +220,9 @@ export default function Assistant({
       return false;
     }
   });
-  // Once opened, keep the chat engine mounted (visibility toggles, no remount).
-  const [hasMounted, setHasMounted] = useState<boolean>(open);
+  // Once the panel is open and the session exists, keep the chat engine
+  // mounted (visibility toggles, no remount).
+  const [hasMounted, setHasMounted] = useState<boolean>(false);
   // The panel plays its close animation before it is hidden.
   const [closing, setClosing] = useState(false);
   const closeTimer = useRef<number | undefined>(undefined);
@@ -186,7 +232,7 @@ export default function Assistant({
   const returnFocusOnClose = useRef(false);
 
   useEffect(() => {
-    if (open) setHasMounted(true);
+    if (open) startProvision();
     try {
       window.localStorage.setItem(OPEN_STATE_KEY, open ? '1' : '0');
     } catch {
@@ -196,7 +242,11 @@ export default function Assistant({
       returnFocusOnClose.current = false;
       launcherRef.current?.focus();
     }
-  }, [open]);
+  }, [open, startProvision]);
+
+  useEffect(() => {
+    if (open && envelope) setHasMounted(true);
+  }, [open, envelope]);
 
   useEffect(
     () => () => {
@@ -415,6 +465,14 @@ export default function Assistant({
       userLogin: { enabled: true, user },
       xmppSettings,
       defaultRooms: [{ jid: roomJID, pinned: true }],
+      ...(assetBase
+        ? {
+            pdfPreview: {
+              libUrl: `${assetBase}/pdfjs/pdf.min.mjs`,
+              workerSrc: `${assetBase}/pdfjs/pdf.worker.min.mjs`,
+            },
+          }
+        : {}),
       newArch: false,
       disableRooms: true,
       disableHeader: true,
@@ -500,6 +558,7 @@ export default function Assistant({
       EmptyState,
       uiLocale,
       persona.botXmppUsername,
+      assetBase,
     ]
   );
 
@@ -734,6 +793,11 @@ export default function Assistant({
             className={appearance.launcherGlow ? 'ew-launcher ew-launcher--glow' : 'ew-launcher'}
             aria-label={t('widget.open', { name: headerTitle })}
             onClick={() => setOpen(true)}
+            // Hover / focus is a strong signal a person is about to open the
+            // panel; starting the session now hides its round trip behind the
+            // click. Crawlers do neither.
+            onMouseEnter={startProvision}
+            onFocus={startProvision}
             style={{
               width: launcherSize,
               height: launcherSize,
@@ -759,8 +823,9 @@ export default function Assistant({
         </>
       )}
 
-      {/* Popup panel: mounted on first open, then hidden (not unmounted). */}
-      {hasMounted && (
+      {/* Popup panel: shown while the session provisions, then the chat engine
+          mounts into it on first open and stays mounted (hidden, not unmounted). */}
+      {(open || hasMounted) && (
         <div
           ref={panelRef}
           role="dialog"
@@ -868,14 +933,25 @@ export default function Assistant({
           </header>
 
           <div className="ew-body">
-            <XmppProvider config={config}>
-              <Chat
-                user={{ email: '', password: '' }}
-                roomJID={roomJID}
-                config={config}
-                MainComponentStyles={{ height: '100%' }}
-              />
-            </XmppProvider>
+            {hasMounted ? (
+              <XmppProvider config={config}>
+                <Chat
+                  user={{ email: '', password: '' }}
+                  roomJID={roomJID}
+                  config={config}
+                  MainComponentStyles={{ height: '100%' }}
+                />
+              </XmppProvider>
+            ) : provisionError ? (
+              <div className="ew-status" role="status">
+                <span className="ew-status-title">{provisionError}</span>
+                <button type="button" className="ew-retry" onClick={startProvision}>
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <StatusScreen color={appearance.primaryColor} mode="connecting" />
+            )}
           </div>
         </div>
       )}
