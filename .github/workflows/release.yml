@@ -179,3 +179,20 @@ jobs:
           NOTES="Built with ethora-chat-component $(cat chat-component.ref) at $CC_SHA"
           gh release create "$TAG" dist/ethora_assistant.js \
             --title "$TAG" --notes "$NOTES" --verify-tag
+
+      # Starts the WordPress plugin update: that workflow takes the bundle from this
+      # release and opens a pull request in the plugin repository. It needs a token that
+      # can run workflows there (secret WP_REPO_TOKEN). Without the secret this step only
+      # prints what to run by hand. A failure here does not undo the release.
+      - name: Start the WordPress plugin update
+        continue-on-error: true
+        env:
+          WP_REPO_TOKEN: ${{ secrets.WP_REPO_TOKEN }}
+          TAG: ${{ needs.tag.outputs.tag || github.ref_name }}
+        run: |
+          if [ -z "$WP_REPO_TOKEN" ]; then
+            echo "WP_REPO_TOKEN is not set. Run the update-widget workflow in dappros/ethora-wp-plugin with widget_tag=$TAG."
+            exit 0
+          fi
+          GH_TOKEN="$WP_REPO_TOKEN" gh workflow run update-widget.yml \
+            --repo dappros/ethora-wp-plugin -f widget_tag="$TAG"
