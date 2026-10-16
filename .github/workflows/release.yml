@@ -113,7 +113,10 @@ jobs:
         run: node scripts/check-bundle.mjs dist/ethora_assistant.js
 
   publish:
-    needs: verify
+    # Depends on tag as well as verify, so a manual run sees the tag it created.
+    # Without it the tag output is empty and a manual run would publish "main".
+    needs: [tag, verify]
+    if: ${{ always() && needs.verify.result == 'success' }}
     runs-on: ubuntu-latest
     # Optional approval gate. Create the environment in repo settings with
     # required reviewers to approve every publish.
