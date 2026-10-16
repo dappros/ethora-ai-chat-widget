@@ -98,3 +98,28 @@ Publishing uses the `npm-release` environment. Add required reviewers there if y
 - Local builds use whatever is checked out in the sibling `../ethora-chat-component`. That is not reproducible, which is why the build is not part of `ci:local`.
 - The bundle is built with `--minify false` because the WordPress.org review requires readable JavaScript.
 - `npm run typecheck` is not part of the gate yet. Some `@ethora/chat-component` subpath imports do not resolve for types from the published package (its `exports` map has no extension mapping). Re-enable it in `ci:local` once that is fixed.
+
+## Release from your terminal (no npm login)
+
+```bash
+npm run release:ci              # next version: the day after the current one
+npm run release:ci -- 26.10.20  # or an explicit version
+```
+
+This starts the Release workflow on GitHub Actions with the GitHub CLI. The publish runs in CI with the `NPM_TOKEN` secret, and it attaches the readable bundle `ethora_assistant.js` to the GitHub release.
+
+## Handing the bundle to the WordPress plugin
+
+The WordPress plugin ships the bundle from a widget release. After a release (for example `v26.10.1`), run the WordPress publish workflow from its repository:
+
+```bash
+# dry run: validates the version and the bundle, reads SVN, uploads nothing
+gh workflow run publish-wp.yml -R dappros/ethora-wp-plugin --ref main \
+  -f version=1.8.0 -f widget_tag=v26.10.1 -f publish=false
+
+# publish: needs approval in the wordpress-org environment
+gh workflow run publish-wp.yml -R dappros/ethora-wp-plugin --ref main \
+  -f version=1.8.0 -f widget_tag=v26.10.1 -f publish=true
+```
+
+`version` must match the `Version` header and the `Stable tag` of the plugin on the ref you run it from. The plugin version is SemVer `1.x.y`, separate from the widget version.
