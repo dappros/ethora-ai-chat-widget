@@ -511,6 +511,52 @@ export default function Assistant({
   // widget/quickReplies.ts). The root element is the observation point: the
   // chat mounts inside it, so new bot button rows are caught as they arrive.
   const rootRef = useRef<HTMLDivElement>(null);
+  // Grow the composer's textarea with its content. Listens on the widget root,
+  // so it needs no hook into the engine; Enter is covered too, because sending
+  // clears the field without firing an input event.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const fit = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLTextAreaElement)) return;
+      requestAnimationFrame(() => {
+        target.style.height = 'auto';
+        // Two lines or more: the text hugs the field (2px above and below),
+        // one line keeps the roomier padding. Measured from the content, so
+        // switching the padding never changes the answer.
+        const cs = window.getComputedStyle(target);
+        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        const lineH = parseFloat(cs.lineHeight) || 20;
+        const lines = Math.round((target.scrollHeight - padY) / lineH);
+        if (lines >= 2) target.setAttribute('data-multiline', '');
+        else target.removeAttribute('data-multiline');
+        target.style.height = 'auto';
+        target.style.height = `${Math.min(target.scrollHeight, 140)}px`;
+      });
+    };
+    const onEvent = (e: Event) => fit(e.target);
+    root.addEventListener('input', onEvent);
+    root.addEventListener('keyup', onEvent);
+    // The engine renders the textarea with rows=2. With an auto height that
+    // would make the EMPTY field two lines tall, so pin it to one row as soon
+    // as it mounts and size it from there.
+    const pinRows = () => {
+      root.querySelectorAll('textarea').forEach((t) => {
+        if (t.rows !== 1) {
+          t.rows = 1;
+          fit(t);
+        }
+      });
+    };
+    const mo = new MutationObserver(pinRows);
+    mo.observe(root, { childList: true, subtree: true });
+    pinRows();
+    return () => {
+      mo.disconnect();
+      root.removeEventListener('input', onEvent);
+      root.removeEventListener('keyup', onEvent);
+    };
+  }, []);
   useEffect(() => {
     if (!rootRef.current) return;
     return attachQuickReplyLayout(rootRef.current);

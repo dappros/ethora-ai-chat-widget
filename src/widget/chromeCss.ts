@@ -383,6 +383,39 @@ ${CHROME_KEYFRAMES}
 .ew-empty-title { font-size: 16px; font-weight: 600; }
 .ew-empty-body { max-width: 260px; font-size: 14px; line-height: 1.5; color: var(--ew-text-2); }
 
+/* Composer: the engine pins the field to 40px, which clips a second line of
+   text. Let the field grow with its content (up to ~5 lines, then scroll) and
+   give the text real vertical padding. The textarea's height is set by a small
+   listener in Assistant.tsx. */
+.ew-root div:has(> textarea) {
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: 150px !important;
+  box-sizing: border-box !important;
+  align-items: stretch !important;
+}
+.ew-root div:has(> div > textarea) {
+  max-height: none !important;
+  height: auto !important;
+  align-items: flex-end !important;
+}
+.ew-root textarea {
+  box-sizing: border-box !important;
+  min-height: 34px !important;
+  max-height: 140px !important;
+  display: block !important;
+  padding: 7px 12px !important;
+  line-height: 20px !important;
+  overflow-y: auto;
+}
+/* Two lines or more: only 2px above and below the text. */
+.ew-root textarea[data-multiline] {
+  min-height: 0 !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+.ew-root div:has(> textarea[data-multiline]) { min-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+
 /* The composer's emoji picker is not offered in the assistant. */
 .ew-root div:has(> div > textarea) > button[aria-expanded] { display: none !important; }
 
