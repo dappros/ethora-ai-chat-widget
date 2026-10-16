@@ -110,16 +110,16 @@ This starts the Release workflow on GitHub Actions with the GitHub CLI. The publ
 
 ## Handing the bundle to the WordPress plugin
 
-The WordPress plugin ships the bundle from a widget release. After a release (for example `v26.10.1`), run the WordPress publish workflow from its repository:
+The WordPress plugin ships the bundle from a widget release. After a release (for example `v26.10.1`) the plugin is updated in two steps.
 
-```bash
-# dry run: validates the version and the bundle, reads SVN, uploads nothing
-gh workflow run publish-wp.yml -R dappros/ethora-wp-plugin --ref main \
-  -f version=1.8.0 -f widget_tag=v26.10.1 -f publish=false
+1. The release workflow starts the plugin repository's *Update the bundled widget* workflow when this repository has the `WP_REPO_TOKEN` secret. That secret is a token that can run workflows in `dappros/ethora-wp-plugin`. Without the secret, start it by hand:
 
-# publish: needs approval in the wordpress-org environment
-gh workflow run publish-wp.yml -R dappros/ethora-wp-plugin --ref main \
-  -f version=1.8.0 -f widget_tag=v26.10.1 -f publish=true
-```
+   ```bash
+   gh workflow run update-widget.yml -R dappros/ethora-wp-plugin -f widget_tag=v26.10.1
+   ```
 
-`version` must match the `Version` header and the `Stable tag` of the plugin on the ref you run it from. The plugin version is SemVer `1.x.y`, separate from the widget version.
+   It opens a pull request there with the new bundle, the plugin version and a changelog line. It never publishes.
+
+2. After that pull request is merged, publish with the plugin's *Publish to WordPress.org* workflow: a dry run first, then with `publish=true`. The steps are in `.github/RELEASING.md` of the plugin repository.
+
+The plugin version is SemVer `1.x.y`, separate from the widget version.
