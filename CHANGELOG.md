@@ -7,6 +7,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+## [26.10.1] - 2026-10-21
+
 ### Added
 
 - Language picker, resizable panel, quick-reply buttons and a new typing indicator.
