@@ -70,7 +70,8 @@ A manual run takes an optional `chat_component_ref` to build against another cha
 
 Versions are the UTC date written as `yy.m.d` with no leading zeros, for example `26.10.14`. npm rejects `26.10.01`.
 
-- The default is the day after the current version (the higher of `package.json` and npm): `26.10.0` becomes `26.10.1`, `26.9.26` becomes `26.9.27`. It does not depend on today's date.
+- If today's version is newer than the current version (the higher of `package.json` and npm), the release uses today's date.
+- If today's version is not newer (a second release on the same day), the release uses the next day: `26.9.26` becomes `26.9.27`.
 - An explicit version must be newer than what is on npm and must not be published yet.
 - Future dates are allowed.
 
