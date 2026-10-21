@@ -1,0 +1,81 @@
+name: Widget build environment
+description: >
+  Node, the chat-component source the widget compiles (vite.config.ts aliases
+  ../ethora-chat-component/src) and the widget dependencies. Run actions/checkout
+  for this repository first.
+
+inputs:
+  chat-component-ref:
+    description: >
+      Branch, tag or commit of dappros/ethora-chat-component to build from.
+      Empty means the ref in chat-component.ref.
+    required: false
+    default: ''
+  registry-url:
+    description: Passed to actions/setup-node (needed by npm publish only).
+    required: false
+    default: ''
+
+outputs:
+  chat-component-ref:
+    description: The chat-component ref that was requested.
+    value: ${{ steps.ref.outputs.ref }}
+  chat-component-sha:
+    description: The chat-component commit that was built.
+    value: ${{ steps.sha.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve the chat-component ref
+      id: ref
+      shell: bash
+      env:
+        OVERRIDE: ${{ inputs.chat-component-ref }}
+      run: |
+        ref="$OVERRIDE"
+        if [ -z "$ref" ]; then
+          ref="$(tr -d '[:space:]' < chat-component.ref)"
+        fi
+        if [ -z "$ref" ]; then
+          echo "::error::chat-component.ref is empty"
+          exit 1
+        fi
+        echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+    - name: Check out ethora-chat-component
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: dappros/ethora-chat-component
+        ref: ${{ steps.ref.outputs.ref }}
+        path: .ci/ethora-chat-component
+        persist-credentials: false
+
+    - name: Record the chat-component commit
+      id: sha
+      shell: bash
+      run: echo "sha=$(git -C .ci/ethora-chat-component rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Node
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      with:
+        node-version: '22'
+        registry-url: ${{ inputs.registry-url }}
+        cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          .ci/ethora-chat-component/package-lock.json
+
+    - name: Install chat-component dependencies
+      shell: bash
+      working-directory: .ci/ethora-chat-component
+      run: npm ci --ignore-scripts
+
+    # vite.config.ts looks for the component one level above the widget checkout.
+    - name: Link chat-component where vite.config.ts looks for it
+      shell: bash
+      run: ln -sfn "$GITHUB_WORKSPACE/.ci/ethora-chat-component" "$GITHUB_WORKSPACE/../ethora-chat-component"
+
+    - name: Install widget dependencies
+      shell: bash
+      run: npm ci
