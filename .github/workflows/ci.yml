@@ -1,56 +1,52 @@
 name: CI
 
-# Server CI runs when dev has been merged into main. Feature, fix and hotfix
-# branches are checked locally before they reach dev (npm run ci:local, run by
-# .githooks/pre-push). See docs/WORKFLOW.md.
+# Runs on pull requests into main or dev, on pushes to main and by hand.
+# Feature branches are also checked locally before they reach dev
+# (npm run ci:local, run by .githooks/pre-push). See docs/WORKFLOW.md.
+#
+# The widget compiles ethora-chat-component from source, so every run checks out
+# the chat-component ref from chat-component.ref (see .github/actions/build-env).
+# A manual run can build against another ref with the chat_component_ref input.
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      chat_component_ref:
+        description: 'ethora-chat-component branch, tag or commit to build against. Empty = chat-component.ref.'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
 
+# A new push to a pull request cancels the superseded run of that pull request.
+# Runs on main are never cancelled by a pull request.
 concurrency:
-  group: ci-main
-  cancel-in-progress: true
+  group: ci-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
-    name: Lint, attributes, rules, build
+    name: Lint, types, rules, build, bundle
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Read the chat-component ref
-        id: ref
-        run: echo "ref=$(tr -d '[:space:]' < chat-component.ref)" >> "$GITHUB_OUTPUT"
-
-      # The widget compiles chat-component from source (vite.config.ts alias to
-      # ../ethora-chat-component/src), so the checkout must sit next to this one.
-      - name: Check out ethora-chat-component at the pinned ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: dappros/ethora-chat-component
-          ref: ${{ steps.ref.outputs.ref }}
-          path: .ci/ethora-chat-component
+          persist-credentials: false
 
-      - name: Install chat-component dependencies
-        working-directory: .ci/ethora-chat-component
-        run: npm ci --ignore-scripts
-
-      - name: Link chat-component where vite.config.ts looks for it
-        run: ln -sfn "$GITHUB_WORKSPACE/.ci/ethora-chat-component" "$GITHUB_WORKSPACE/../ethora-chat-component"
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Build environment (chat-component source, Node, dependencies)
+        id: env
+        uses: ./.github/actions/build-env
         with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
+          chat-component-ref: ${{ inputs.chat_component_ref }}
 
       - name: Lint
         run: npm run lint
@@ -58,7 +54,12 @@ jobs:
       - name: Attribute contract
         run: npm run check:attributes
 
-      - name: Release script rules
+      # tsc reports known errors from chat-component subpath imports. The ratchet
+      # fails on any error beyond scripts/typecheck-baseline.json.
+      - name: Type check (no new errors)
+        run: npm run check:types
+
+      - name: Release script rules and changelog helpers
         run: npm run test:release
 
       # Readable, not minified: the WordPress.org review requires human-readable JS.
@@ -67,3 +68,29 @@ jobs:
 
       - name: Check the bundle is readable
         run: node scripts/check-bundle.mjs dist/ethora_assistant.js
+
+      # What npm would publish: the dist folder with the bundle and pdf.js. A dry run
+      # packs the files without uploading anything.
+      - name: Check the package contents
+        run: npm run check:package
+
+      - name: Summary
+        env:
+          CC_REF: ${{ steps.env.outputs.chat-component-ref }}
+          CC_SHA: ${{ steps.env.outputs.chat-component-sha }}
+        run: |
+          {
+            echo "### Widget build"
+            echo
+            echo "- chat-component: \`$CC_REF\` at \`$CC_SHA\`"
+            echo "- bundle: $(wc -l < dist/ethora_assistant.js) lines, $(du -h dist/ethora_assistant.js | cut -f1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The built bundle, for testing a pull request without building it locally.
+      - name: Upload the bundle
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: widget-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 7

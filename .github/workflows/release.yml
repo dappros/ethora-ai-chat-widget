@@ -1,26 +1,48 @@
 name: Release
 
-# Publishes @ethora/ai-chat-widget to npm and attaches the readable bundle
-# (dist/ethora_assistant.js) to the GitHub release. The WordPress publish
-# workflow downloads that asset from here.
+run-name: Release ${{ inputs.version || github.ref_name }}${{ inputs.dry_run && ' (dry run)' || '' }}
+
+# Publishes @ethora/ai-chat-widget to npm, attaches the readable bundle to a GitHub
+# release and starts the WordPress plugin update.
+#
+#   tag job      (manual runs) bumps package.json and the lockfile, moves CHANGELOG.md
+#                [Unreleased] into the new version, commits, tags and pushes main
+#   verify job   checks the tag, runs the CI checks, builds the bundle, checks it and the
+#                package, uploads the build as an artifact
+#   publish job  npm publish with provenance, GitHub release (bundle, pdf.js, checksums,
+#                notes from CHANGELOG.md). Runs in the npm-release environment, add
+#                required reviewers there for an approval step.
+#   notify job   starts "Update the bundled widget" in dappros/ethora-wp-plugin
 #
 # Two ways in:
 #   - Push a tag vYY.M.D on main (npm run release -- --yes --push does this locally).
-#   - Run this workflow by hand (Actions > Release > Run workflow). It bumps and
-#     tags main, then publishes that tag in the same run.
+#   - Run this workflow by hand (Actions > Release > Run workflow).
+#
+# Dry run (manual only): runs everything except the pushes and the publishing. The version
+# bump is rehearsed on the runner, the build and the package are checked, and
+# `npm publish --dry-run` packs the tarball. Nothing is pushed, published or released.
 on:
   push:
     tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       version:
-        description: 'yy.m.d without leading zeros. Empty = the next date-based version.'
+        description: 'yy.m.d without leading zeros. Empty = the day after the current version.'
         required: false
+        type: string
+      dry_run:
+        description: 'Run every check and rehearse the release, but do not push, publish or release.'
+        required: false
+        default: false
+        type: boolean
+      chat_component_ref:
+        description: 'ethora-chat-component branch, tag or commit to build against. Empty = chat-component.ref.'
+        required: false
+        default: ''
         type: string
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: release
@@ -28,21 +50,25 @@ concurrency:
 
 jobs:
   # Manual runs only. A tag pushed with GITHUB_TOKEN does not start other
-  # workflows, so the publish jobs live in this file and run after this job.
+  # workflows, so the jobs that publish live in this file and run after this job.
   tag:
-    if: github.event_name == 'workflow_dispatch'
+    name: Bump, tag and push
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.dry_run }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.bump.outputs.tag }}
     steps:
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '22'
 
@@ -61,138 +87,227 @@ jobs:
           echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
   verify:
+    name: Verify and build
     needs: tag
     if: ${{ always() && (needs.tag.result == 'success' || needs.tag.result == 'skipped') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Checkout the release tag
-        uses: actions/checkout@v4
+      # The tag job's tag (manual run), the pushed tag (tag run), or main (dry run).
+      - name: Checkout the release ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ needs.tag.outputs.tag || github.ref_name }}
+          ref: ${{ needs.tag.outputs.tag || (inputs.dry_run && 'main' || github.ref_name) }}
           fetch-depth: 0
 
-      - name: Read the chat-component ref
-        id: ref
-        run: echo "ref=$(tr -d '[:space:]' < chat-component.ref)" >> "$GITHUB_OUTPUT"
-
-      - name: Check out ethora-chat-component at the pinned ref
-        uses: actions/checkout@v4
+      - name: Build environment (chat-component source, Node, dependencies)
+        id: env
+        uses: ./.github/actions/build-env
         with:
-          repository: dappros/ethora-chat-component
-          ref: ${{ steps.ref.outputs.ref }}
-          path: .ci/ethora-chat-component
+          chat-component-ref: ${{ inputs.chat_component_ref }}
 
-      - name: Install chat-component dependencies
-        working-directory: .ci/ethora-chat-component
-        run: npm ci --ignore-scripts
+      # Dry run: do what the tag job does, on this runner only. Nothing is pushed.
+      - name: Rehearse the version bump (dry run)
+        if: ${{ inputs.dry_run }}
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$REQUESTED" ]; then
+            node scripts/release.mjs --yes "$REQUESTED"
+          else
+            node scripts/release.mjs --yes
+          fi
 
-      - name: Link chat-component where vite.config.ts looks for it
-        run: ln -sfn "$GITHUB_WORKSPACE/.ci/ethora-chat-component" "$GITHUB_WORKSPACE/../ethora-chat-component"
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Read the version
+        id: version
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
 
       - name: Check tag, version, npm and origin/main
+        if: ${{ !inputs.dry_run }}
         env:
-          TAG: ${{ needs.tag.outputs.tag || github.ref_name }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: node scripts/release.mjs verify "$TAG"
 
-      - name: Local CI checks
+      - name: Release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node scripts/changelog.mjs notes "$VERSION" | tee "$RUNNER_TEMP/notes.md"
+          {
+            echo "### Release notes for $VERSION"
+            echo
+            cat "$RUNNER_TEMP/notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: CI checks (lint, attributes, types, release rules)
         run: npm run ci:local
 
+      # Readable, not minified: the WordPress.org review requires human-readable JS.
       - name: Build the widget bundle
         run: npx vite build --minify false
 
       - name: Check the bundle is readable
         run: node scripts/check-bundle.mjs dist/ethora_assistant.js
 
+      - name: Check the package contents
+        run: npm run check:package
+
+      - name: Record the build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CC_REF: ${{ steps.env.outputs.chat-component-ref }}
+          CC_SHA: ${{ steps.env.outputs.chat-component-sha }}
+        run: |
+          node -e '
+            const [version, ref, sha, commit] = process.argv.slice(1);
+            require("fs").writeFileSync("build-info.json", JSON.stringify({ version, chatComponentRef: ref, chatComponentSha: sha, widgetCommit: commit }, null, 2) + "\n");
+          ' "$VERSION" "$CC_REF" "$CC_SHA" "$(git rev-parse HEAD)"
+          cat build-info.json
+
+      # Packs the tarball and runs npm's own publish checks. Uploads nothing.
+      - name: npm publish dry run
+        run: npm publish --dry-run --access public --ignore-scripts
+
+      - name: Upload the build
+        if: ${{ !inputs.dry_run }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: widget-build
+          path: |
+            dist
+            build-info.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "### Dry run complete"
+            echo
+            echo "Would release \`v$VERSION\`. Nothing was pushed, published or released."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   publish:
-    # Depends on tag as well as verify, so a manual run sees the tag it created.
-    # Without it the tag output is empty and a manual run would publish "main".
+    name: Publish to npm and GitHub
     needs: [tag, verify]
-    if: ${{ always() && needs.verify.result == 'success' }}
+    # Depends on tag as well as verify, so the job sees the tag output of a manual run.
+    if: ${{ always() && needs.verify.result == 'success' && !inputs.dry_run }}
     runs-on: ubuntu-latest
-    # Optional approval gate. Create the environment in repo settings with
+    timeout-minutes: 20
+    # Optional approval gate. Create the environment in the repository settings with
     # required reviewers to approve every publish.
     environment: npm-release
+    permissions:
+      contents: write
+      id-token: write
+    outputs:
+      tag: ${{ needs.verify.outputs.tag }}
     steps:
       - name: Checkout the release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ needs.tag.outputs.tag || github.ref_name }}
-          fetch-depth: 0
+          ref: ${{ needs.verify.outputs.tag }}
+          persist-credentials: false
 
-      - name: Read the chat-component ref
-        id: ref
-        run: echo "ref=$(tr -d '[:space:]' < chat-component.ref)" >> "$GITHUB_OUTPUT"
-
-      - name: Check out ethora-chat-component at the pinned ref
-        uses: actions/checkout@v4
-        with:
-          repository: dappros/ethora-chat-component
-          ref: ${{ steps.ref.outputs.ref }}
-          path: .ci/ethora-chat-component
-
-      - name: Install chat-component dependencies
-        working-directory: .ci/ethora-chat-component
-        run: npm ci --ignore-scripts
-
-      - name: Link chat-component where vite.config.ts looks for it
-        run: ln -sfn "$GITHUB_WORKSPACE/.ci/ethora-chat-component" "$GITHUB_WORKSPACE/../ethora-chat-component"
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '22'
           registry-url: https://registry.npmjs.org
 
-      # npm trusted publishing (OIDC) needs npm 11.5.1 or newer.
-      - name: Use npm 11 for trusted publishing
+      # npm trusted publishing (OIDC) and --provenance need npm 11.5.1 or newer.
+      - name: Use npm 11 for provenance
         run: npm install -g npm@^11.5.1
 
-      - name: Install dependencies
-        run: npm ci
+      # The build that was verified is the build that ships: nothing is rebuilt here.
+      - name: Download the verified build
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: widget-build
+          path: .
 
-      - name: Build the widget bundle
-        run: npx vite build --minify false
+      - name: Check the downloaded build
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          test "$(node -p "require('./package.json').version")" = "$VERSION"
+          test "$(node -p "require('./build-info.json').version")" = "$VERSION"
+          node scripts/check-bundle.mjs dist/ethora_assistant.js
+          node scripts/check-package.mjs
 
-      - name: Check the bundle is readable
-        run: node scripts/check-bundle.mjs dist/ethora_assistant.js
-
+      # Safe to run again after a failure further down: a version that is already on
+      # npm is skipped, so "Re-run failed jobs" continues with the GitHub release.
       - name: Publish with provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --provenance --access public
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+            echo "$name@$VERSION is already on npm, not publishing again."
+          else
+            npm publish --provenance --access public
+          fi
 
       - name: GitHub release with the bundle attached
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.tag.outputs.tag || github.ref_name }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          VERSION: ${{ needs.verify.outputs.version }}
         run: |
-          CC_SHA="$(git -C .ci/ethora-chat-component rev-parse HEAD)"
-          NOTES="Built with ethora-chat-component $(cat chat-component.ref) at $CC_SHA"
-          gh release create "$TAG" dist/ethora_assistant.js \
-            --title "$TAG" --notes "$NOTES" --verify-tag
+          assets="$RUNNER_TEMP/assets"
+          mkdir -p "$assets"
+          cp dist/ethora_assistant.js dist/pdfjs/pdf.min.mjs dist/pdfjs/pdf.worker.min.mjs "$assets/"
+          (cd "$assets" && sha256sum ethora_assistant.js pdf.min.mjs pdf.worker.min.mjs > SHA256SUMS)
 
-      # Starts the WordPress plugin update: that workflow takes the bundle from this
-      # release and opens a pull request in the plugin repository. It needs a token that
-      # can run workflows there (secret WP_REPO_TOKEN). Without the secret this step only
-      # prints what to run by hand. A failure here does not undo the release.
-      - name: Start the WordPress plugin update
-        continue-on-error: true
+          {
+            node scripts/changelog.mjs notes "$VERSION"
+            echo
+            echo "Built with ethora-chat-component $(node -p "require('./build-info.json').chatComponentRef") at $(node -p "require('./build-info.json').chatComponentSha")."
+          } > "$RUNNER_TEMP/notes.md"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$assets"/* --clobber
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$TAG" "$assets"/* \
+              --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
+          fi
+
+  # Starts the WordPress plugin update: that workflow takes the bundle from this release
+  # and opens a pull request in the plugin repository. It needs a token that can run
+  # workflows there (secret WP_REPO_TOKEN). Without the secret this job only prints what
+  # to run by hand. A failure here does not undo the release.
+  notify-wordpress:
+    name: Start the WordPress plugin update
+    needs: publish
+    if: ${{ needs.publish.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions: {}
+    steps:
+      - name: Start the update workflow in dappros/ethora-wp-plugin
         env:
           WP_REPO_TOKEN: ${{ secrets.WP_REPO_TOKEN }}
-          TAG: ${{ needs.tag.outputs.tag || github.ref_name }}
+          TAG: ${{ needs.publish.outputs.tag }}
         run: |
           if [ -z "$WP_REPO_TOKEN" ]; then
             echo "WP_REPO_TOKEN is not set. Run the update-widget workflow in dappros/ethora-wp-plugin with widget_tag=$TAG."
             exit 0
           fi
           GH_TOKEN="$WP_REPO_TOKEN" gh workflow run update-widget.yml \
-            --repo dappros/ethora-wp-plugin -f widget_tag="$TAG"
+            --repo dappros/ethora-wp-plugin --ref main -f widget_tag="$TAG"
