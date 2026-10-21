@@ -12,6 +12,7 @@
 // `roomJID` (active) + `defaultRooms` (force MUC join) + `disableRooms`.
 
 import type { WidgetSessionEnvelope } from '../utils/provisionWidgetSession';
+import { VITE_APP_XMPP_BASEDOMAIN } from '../config';
 
 /** Shown when neither the embed nor the Agent supplies an opening line. */
 const DEFAULT_GREETING_MESSAGE = 'Hi, how can I help you?';
@@ -51,6 +52,15 @@ export interface ResolvedPersona {
   greetingMessage: string;
   /** Bot's xmpp username, needed to attribute the starter bubble to the bot. */
   botXmppUsername: string;
+  /**
+   * True when `botName` was actually chosen - by the embed (data-bot-name) or
+   * by the Agent's displayName - rather than being the generic fallback. Only
+   * a chosen name may override the name the bot stamps on its own messages;
+   * the fallback must never paper over the bot's real name.
+   */
+  botNameExplicit: boolean;
+  /** True when the embed set data-title. */
+  titleExplicit: boolean;
 }
 
 export interface ResolvedXmppSettings {
@@ -121,9 +131,11 @@ export function resolveSession(
   const devServer =
     envelope.xmpp?.wsUrl || (host ? `wss://${host}/ws` : '');
 
+  // chat-component silently drops a room whose JID has no "@" (addRoom is a
+  // no-op), which shows up as a permanent "No room". Always hand it a full JID.
   const roomJID =
     envelope.room.jid ||
-    (conference ? `${envelope.room.name}@${conference}` : envelope.room.name);
+    `${envelope.room.name}@${conference || `conference.${VITE_APP_XMPP_BASEDOMAIN}`}`;
 
   // The visitor identity used for the SASL bind. xmppUsername + xmppPassword
   // are appId-prefixed (`${appId}_widget-<uuid>`) so mod_ethora's per-app
@@ -173,6 +185,8 @@ export function resolveSession(
       greeting,
       greetingMessage,
       botXmppUsername: envelope.bot.xmppUsername,
+      botNameExplicit: !!(overrides.botName || envelope.bot.displayName),
+      titleExplicit: !!overrides.title,
     },
   };
 }
