@@ -3,12 +3,14 @@
 //
 //   npm run release                    show the next version, change nothing
 //   npm run release -- 26.10.20        show the plan for an explicit version
-//   npm run release -- --yes           bump package.json, commit, tag v<version> (local only)
+//   npm run release -- --yes           bump package.json and package-lock.json, move CHANGELOG.md
+//                                      [Unreleased] into the new version, commit, tag v<version> (local only)
 //   npm run release -- --yes --push    also push main and the tag; the tag push publishes
 //   node scripts/release.mjs verify v26.10.14
 //                                      run by CI before publishing: tag, version, npm, origin/main
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { hasEntries, promote } from './lib/changelog.mjs';
 import { checkExplicit, latestOf, nextVersion, parseVersion } from './lib/version.mjs';
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
@@ -95,7 +97,8 @@ function release(args) {
     if (check.error) fail(check.error);
     version = requested;
   } else {
-    version = nextVersion(latest);
+    // The day after the current version: package.json, or npm if that is newer.
+    version = nextVersion(latestOf([pkg.version, ...published]));
   }
 
   const tag = `v${version}`;
@@ -119,10 +122,16 @@ function release(args) {
   }
 
   // The tree was clean when we started, so if anything fails below we can put
-  // back exactly the files that npm version touched, and nothing else.
+  // back exactly the files a release touches, and nothing else.
+  const touched = ['package.json', 'package-lock.json', 'CHANGELOG.md'];
   let changed = [];
   try {
     sh('npm', ['version', version, '--no-git-tag-version'], { stdio: 'inherit' });
+    const changelog = readFileSync('CHANGELOG.md', 'utf8');
+    if (!hasEntries(changelog)) {
+      console.log('note: CHANGELOG.md has no entries under [Unreleased], the notes will say "No notable changes."');
+    }
+    writeFileSync('CHANGELOG.md', promote(changelog, version, new Date().toISOString().slice(0, 10)));
     changed = git('diff', '--name-only').split('\n').filter(Boolean);
     if (changed.length === 0) throw new Error('npm version changed nothing');
     git('add', '--', ...changed);
@@ -130,8 +139,8 @@ function release(args) {
     git('tag', '-a', tag, '-m', tag);
   } catch (err) {
     try {
-      git('reset', '-q', '--', ...changed);
-      git('checkout', '--', ...changed);
+      git('reset', '-q', '--', ...touched);
+      git('checkout', '--', ...touched);
     } catch {
       // Nothing to restore, or already restored.
     }
