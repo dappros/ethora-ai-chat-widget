@@ -36,6 +36,12 @@ const DEFAULT_GRADIENT_TO = '#ad1deb';
 const CTA_VISIBLE_MS = 5000;
 /** Length of the panel's close animation (see .ew-panel.ew-closing). */
 const CLOSE_MS = 170;
+/**
+ * Least time between two session calls for a visitor coming back to the
+ * panel. Well under the server's quiet-room window (AI_BOT_ROOM_IDLE_SEC,
+ * 30 min by default), so the bot is back before the visitor's next message.
+ */
+const SESSION_REFRESH_MS = 5 * 60 * 1000;
 
 /**
  * chat-component publishes its font on `--ethora-font-family`, but its default
@@ -187,10 +193,12 @@ export default function Assistant({
   const [envelope, setEnvelope] = useState<WidgetSessionEnvelope | null>(null);
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const provisionInFlight = useRef<Promise<void> | null>(null);
+  const lastSessionCallAt = useRef(0);
 
   const startProvision = useCallback(() => {
     if (envelope || provisionInFlight.current) return;
     setProvisionError(null);
+    lastSessionCallAt.current = Date.now();
     provisionInFlight.current = provision()
       .then((env) => {
         setEnvelope(env);
@@ -203,6 +211,22 @@ export default function Assistant({
       .finally(() => {
         provisionInFlight.current = null;
       });
+  }, [envelope, provision]);
+
+  // The bot leaves a widget room that has gone quiet (ai-service keeps each
+  // bot under ejabberd's per-user room cap) and joins it again on the next
+  // session call for this visitor. A visitor who keeps the tab open makes no
+  // such call by themselves, so repeat it whenever they come back to the
+  // panel, at most every SESSION_REFRESH_MS. The answer is the same visitor
+  // and room; only the call's effect matters, so the live session is kept.
+  const refreshSession = useCallback(() => {
+    if (!envelope || provisionInFlight.current) return;
+    if (Date.now() - lastSessionCallAt.current < SESSION_REFRESH_MS) return;
+    lastSessionCallAt.current = Date.now();
+    provision().catch((e: any) => {
+      // eslint-disable-next-line no-console
+      console.warn('[ethora-widget] session refresh failed:', e);
+    });
   }, [envelope, provision]);
 
   const session = useMemo(
@@ -247,6 +271,18 @@ export default function Assistant({
   useEffect(() => {
     if (open && envelope) setHasMounted(true);
   }, [open, envelope]);
+
+  // Coming back: the panel reopened, or the tab shown again with it open.
+  useEffect(() => {
+    if (open) refreshSession();
+  }, [open, refreshSession]);
+  useEffect(() => {
+    const onVisible = () => {
+      if (open && document.visibilityState === 'visible') refreshSession();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [open, refreshSession]);
 
   useEffect(
     () => () => {
@@ -840,6 +876,9 @@ export default function Assistant({
           onKeyDown={(e) => {
             if (e.key === 'Escape') closePanel();
           }}
+          // Typing or clicking in a panel left open: about to write again.
+          onKeyDownCapture={refreshSession}
+          onPointerDownCapture={refreshSession}
           style={{ ...panelStyle, display: panelVisible ? 'flex' : 'none' }}
         >
           {!isExpanded && (
