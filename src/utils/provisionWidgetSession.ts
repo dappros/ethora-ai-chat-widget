@@ -28,8 +28,11 @@ export interface WidgetVisitor {
 export interface WidgetRoom {
   name: string;
   chatId: string;
+  createdAt?: string | null;
   // Fully-qualified MUC room JID, e.g. `${appId}_<roomUuid>@conference.example.com`.
   jid?: string;
+  /** Whether the server found an existing conversation for this visitor. */
+  resumed?: boolean;
 }
 
 export interface WidgetBot {

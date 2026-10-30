@@ -9,6 +9,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ### Fixed
 
+- Keep the opening greeting once at the beginning when a visitor reloads or moves between pages.
+- Draw the launcher from cached appearance immediately and refresh its configuration in the background.
 - A visitor coming back to a panel left open (reopening it, returning to the tab, or typing) renews the session at most every 5 minutes, so the bot is back in the conversation after the server let the quiet room go.
 
 ## [26.10.1] - 2026-10-21
