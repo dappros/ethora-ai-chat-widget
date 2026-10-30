@@ -20,20 +20,21 @@ export interface GreetingInput {
   botXmppUsername: string;
   botName: string;
   botAvatar?: string;
+  roomCreatedAt?: string | null;
+  chatId?: string;
 }
 
 /**
  * Deterministic id. Two things depend on it:
  *  - the slice dedupes by id, so a re-run (StrictMode double-effect, reconnect,
  *    re-render) cannot produce a second greeting;
- *  - `persist:roomMessages` persists the rooms map, so on the next page load
- *    the greeting comes back from storage with the SAME id and the pre-check
- *    below skips re-injecting it.
+ *  - the pre-check skips re-injecting a greeting already in the room.
  */
 const greetingId = (roomJID: string) => `ethora-widget-greeting:${roomJID}`;
 
 /** Per-tab guard so concurrent callers cannot race each other. */
 const injected = new Set<string>();
+const subscriptions = new Map<string, () => void>();
 
 export function isGreetingMessageId(id: unknown): boolean {
   return typeof id === 'string' && id.startsWith('ethora-widget-greeting:');
@@ -45,6 +46,8 @@ export function registerGreeting({
   botXmppUsername,
   botName,
   botAvatar,
+  roomCreatedAt,
+  chatId,
 }: GreetingInput): void {
   const body = (text || '').trim();
   if (!roomJID || !body) return;
@@ -52,10 +55,7 @@ export function registerGreeting({
   // vanishing right after it appeared: the MAM history sync lands a moment
   // after the MUC join, and for a fresh widget room the server's history is
   // empty - the merge replaced the room's messages and wiped the local bubble.
-  // So, like registerWidgetRoom, keep a store subscription that re-asserts the
-  // greeting whenever the room exists and holds no real conversation. The
-  // guards make every pass a no-op once the greeting is present or the visitor
-  // has actually spoken, so it converges instead of looping.
+  // Keep it present across history syncs, with a stable id to prevent duplicates.
   if (injected.has(roomJID)) return;
   injected.add(roomJID);
 
@@ -95,6 +95,14 @@ export function registerGreeting({
     }
     const lastViewed = Number(room?.lastViewedTimestamp) || 0;
     if (lastViewed > 0) knownTimestamps.push(lastViewed);
+    // The room predates every message. Older API versions omit createdAt,
+    // but Mongo ObjectIds encode their creation time in the first four bytes.
+    const created = roomCreatedAt ? Date.parse(roomCreatedAt) : 0;
+    const objectIdTime = chatId && /^[a-f\d]{24}$/i.test(chatId)
+      ? parseInt(chatId.slice(0, 8), 16) * 1000
+      : 0;
+    const roomStart = Number.isFinite(created) && created > 0 ? created : objectIdTime;
+    if (roomStart > 0) knownTimestamps.push(roomStart);
     let backdated = Date.now() - 1000;
     if (knownTimestamps.length) {
       backdated = Math.min(backdated, Math.min(...knownTimestamps) - 1000);
@@ -126,7 +134,7 @@ store.dispatch(
         // message is never going anywhere, so the clock would never clear.
         pending: false,
       } as any,
-      start: false,
+      start: true,
     } as any)
   );
   };
@@ -136,25 +144,11 @@ store.dispatch(
     const room = s2?.rooms?.rooms?.[roomJID];
     if (!room) return;
     const messages: any[] = Array.isArray(room.messages) ? room.messages : [];
-    // Only HUMAN/bot conversation retires the greeting. System messages must
-    // not count: the MUC join immediately stores "<bot> has joined the chat"
-    // (isSystemMessage), which the widget renders as null via
-    // HiddenSystemMessage - so the panel LOOKED empty while this guard saw a
-    // "real" message, unsubscribed, and the greeting never appeared. That was
-    // the actual root cause, found by inspecting the store at runtime.
-    const isReal = (m: any) =>
-      !isGreetingMessageId(m?.id) &&
-      !(m?.isSystemMessage === true || m?.isSystemMessage === 'true');
-    if (messages.some(isReal)) {
-      unsubscribe?.();
-      return;
-    }
     if (messages.some((m) => m?.id === greetingId(roomJID))) return;
     inject();
   };
 
-  let unsubscribe: (() => void) | null = null;
-  unsubscribe = store.subscribe(ensure);
+  subscriptions.set(roomJID, store.subscribe(ensure));
   ensure();
   // Debug hook: lets a host page inspect the engine store the widget runs on.
   try {
@@ -164,5 +158,12 @@ store.dispatch(
   }
 }
 
+/** Release room listeners when the widget is destroyed or reset. */
+export function clearGreetingSubscriptions(): void {
+  subscriptions.forEach((unsubscribe) => unsubscribe());
+  subscriptions.clear();
+  injected.clear();
+}
+
 /** Test seam: forget what has been injected in this tab. */
-export const __resetGreetingGuard = () => injected.clear();
+export const __resetGreetingGuard = clearGreetingSubscriptions;

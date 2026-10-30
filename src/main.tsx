@@ -15,7 +15,8 @@ import {
 } from './utils/provisionWidgetSession';
 import type { EmbedOverrides } from './widget/resolveSession';
 import { readAppearance } from './widget/appearance';
-import { fetchStoredAppearance, type StoredAppearance } from './widget/storedAppearance';
+import { clearGreetingSubscriptions } from './widget/registerGreeting';
+import { cacheAppearance, fetchStoredAppearance, readCachedAppearance, type StoredAppearance } from './widget/storedAppearance';
 import {
   installPublicApi,
   registerTeardown,
@@ -206,11 +207,7 @@ async function bootstrap() {
     return;
   }
 
-  const stored = await fetchStoredAppearance({ appId, apiBase });
-  if (document.getElementById('chat-widget')) return;
-  const cosmeticGet = makeCosmeticGetter(scriptTag, stored);
-  const overrides = readOverrides(cosmeticGet);
-  const appearance = readAppearance(cosmeticGet);
+  const stored = readCachedAppearance(appId, apiBase);
   clearStorageForNewApp(appId);
 
   // Host element + Shadow DOM: the entire widget renders inside the shadow
@@ -246,11 +243,18 @@ async function bootstrap() {
   const provision = () => provisionWidgetSession({ appId, apiBase });
 
   const reactRoot = ReactDOM.createRoot(appRoot);
+  let mounted = true;
   registerTeardown(() => {
+    mounted = false;
+    clearGreetingSubscriptions();
     reactRoot.unmount();
     host.remove();
   });
-  reactRoot.render(
+  const render = (config: StoredAppearance) => {
+    const cosmeticGet = makeCosmeticGetter(scriptTag, config);
+    const overrides = readOverrides(cosmeticGet);
+    const appearance = readAppearance(cosmeticGet);
+    reactRoot.render(
     // Pin chat-component's (single-instance) styled-components into the shadow.
     <StyleSheetManager target={shadow as unknown as HTMLElement}>
       <Assistant
@@ -261,7 +265,14 @@ async function bootstrap() {
         appearance={appearance}
       />
     </StyleSheetManager>
-  );
+    );
+  };
+  render(stored);
+  void fetchStoredAppearance({ appId, apiBase }).then((fresh) => {
+    if (!mounted || fresh === null) return;
+    cacheAppearance(appId, apiBase, fresh);
+    render(fresh);
+  });
 }
 
 bootstrap();

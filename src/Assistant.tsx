@@ -317,7 +317,7 @@ export default function Assistant({
   // runs after registerWidgetRoom's dispatch has flushed, otherwise there is
   // no room to attach it to and it is silently dropped.
   useEffect(() => {
-    if (!hasMounted || !persona.greetingMessage) return;
+    if (!hasMounted || !persona.greetingMessage || !envelope) return;
     const timer = setTimeout(() => {
       registerGreeting({
         roomJID,
@@ -328,13 +328,15 @@ export default function Assistant({
         botXmppUsername: persona.botXmppUsername,
         botName: persona.botName,
         botAvatar: persona.botAvatar,
+        roomCreatedAt: envelope.room.createdAt,
+        chatId: envelope.room.chatId,
       });
     }, 0);
     return () => clearTimeout(timer);
     // uiLocale deliberately not a dependency: the starter bubble is posted once
     // per room, in the language the reader had when the chat opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMounted, roomJID, persona]);
+  }, [hasMounted, roomJID, persona, envelope]);
 
   // When neither the embed nor the Agent named the bot, the header must not
   // sit on the generic fallback while the bot's own replies carry its real

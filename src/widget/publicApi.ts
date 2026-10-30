@@ -41,6 +41,7 @@ declare global {
 export const OWNED_STORAGE_KEYS = [
   'ethora-widget-visitor',
   'ethora-widget-app-id',
+  'ethora-widget-appearance',
   'EthoraAssistantOpen',
   'EthoraAssistantExpanded',
   'EthoraAssistantCtaDismissed',

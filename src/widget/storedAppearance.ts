@@ -17,14 +17,27 @@ const IDENTITY_ATTRIBUTES = new Set(['data-app-id', 'data-api-base', 'data-api-u
 
 export type StoredAppearance = Record<string, string>;
 
-export async function fetchStoredAppearance({ appId, apiBase }: { appId: string; apiBase: string }): Promise<StoredAppearance> {
-  if (!appId || !apiBase || typeof fetch !== 'function') return {};
+const CACHE_KEY = 'ethora-widget-appearance';
+
+export function readCachedAppearance(appId: string, apiBase: string): StoredAppearance {
+  try {
+    const cached = JSON.parse(window.localStorage.getItem(CACHE_KEY) || 'null');
+    return cached?.appId === appId && cached?.apiBase === apiBase && cached.appearance && typeof cached.appearance === 'object' && !Array.isArray(cached.appearance) ? cached.appearance : {};
+  } catch { return {}; }
+}
+
+export function cacheAppearance(appId: string, apiBase: string, appearance: StoredAppearance): void {
+  try { window.localStorage.setItem(CACHE_KEY, JSON.stringify({ appId, apiBase, appearance })); } catch { /* storage unavailable */ }
+}
+
+export async function fetchStoredAppearance({ appId, apiBase }: { appId: string; apiBase: string }): Promise<StoredAppearance | null> {
+  if (!appId || !apiBase || typeof fetch !== 'function') return null;
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), TIMEOUT_MS) : null;
   try {
     const url = `${joinUrl(apiBase, '/v2/widget/config')}?appId=${encodeURIComponent(appId)}`;
     const resp = await fetch(url, { signal: controller?.signal, credentials: 'omit' });
-    if (!resp.ok) return {};
+    if (!resp.ok) return null;
     const body = await resp.json();
     const raw = body && typeof body.appearance === 'object' && body.appearance ? body.appearance : {};
     const out: StoredAppearance = {};
@@ -34,7 +47,7 @@ export async function fetchStoredAppearance({ appId, apiBase }: { appId: string;
     }
     return out;
   } catch {
-    return {};
+    return null;
   } finally {
     if (timer) clearTimeout(timer);
   }
