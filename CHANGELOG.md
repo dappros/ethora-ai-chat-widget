@@ -7,6 +7,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+## [26.10.30] - 2026-10-30
+
 ### Fixed
 
 - Keep the opening greeting once at the beginning when a visitor reloads or moves between pages.
