@@ -7,6 +7,15 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+### Added
+
+- Show an integrated Powered by Ethora attribution in the widget.
+
+### Fixed
+
+- Reject invalid app IDs and limit session retries to avoid repeated requests on client errors or temporary outages.
+- Avoid an unauthorized member lookup for anonymous widget visitors.
+
 ## [26.10.30] - 2026-10-30
 
 ### Fixed
