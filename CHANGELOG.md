@@ -7,6 +7,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+## [26.11.11] - 2026-11-11
+
 ### Added
 
 - Show an integrated Powered by Ethora attribution in the widget.
