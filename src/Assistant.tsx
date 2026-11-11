@@ -160,6 +160,7 @@ function provisionErrorMessage(e: any): string {
   const code = e?.code;
   if (code === 'AI_BOT_NOT_CONFIGURED') return 'AI assistant is not configured for this site yet.';
   if (code === 'APP_NOT_FOUND') return 'Chat configuration error: app not recognised.';
+  if (code === 'INVALID_APP_ID') return 'Chat configuration error: invalid application ID.';
   return 'Chat is temporarily unavailable. Please try again in a moment.';
 }
 
@@ -192,11 +193,19 @@ export default function Assistant({
   // launcher and the panel header need.
   const [envelope, setEnvelope] = useState<WidgetSessionEnvelope | null>(null);
   const [provisionError, setProvisionError] = useState<string | null>(null);
+  const [permanentError, setPermanentError] = useState(false);
+  const [retryReady, setRetryReady] = useState(false);
   const provisionInFlight = useRef<Promise<void> | null>(null);
+  const failedRef = useRef(false);
+  const nextRetryRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const refreshBlockedRef = useRef(false);
   const lastSessionCallAt = useRef(0);
 
-  const startProvision = useCallback(() => {
+  const startProvision = useCallback((manual = false) => {
     if (envelope || provisionInFlight.current) return;
+    if (failedRef.current && (!manual || permanentError || Date.now() < nextRetryRef.current)) return;
+    failedRef.current = false;
     setProvisionError(null);
     lastSessionCallAt.current = Date.now();
     provisionInFlight.current = provision()
@@ -206,12 +215,17 @@ export default function Assistant({
       .catch((e: any) => {
         // eslint-disable-next-line no-console
         console.error('[ethora-widget] session provisioning failed:', e);
+        failedRef.current = true;
+        setPermanentError(e?.status >= 400 && e?.status < 500);
+        nextRetryRef.current = Date.now() + 5000;
+        setRetryReady(false);
+        retryTimerRef.current = setTimeout(() => setRetryReady(true), 5000);
         setProvisionError(provisionErrorMessage(e));
       })
       .finally(() => {
         provisionInFlight.current = null;
       });
-  }, [envelope, provision]);
+  }, [envelope, permanentError, provision]);
 
   // The bot leaves a widget room that has gone quiet (ai-service keeps each
   // bot under ejabberd's per-user room cap) and joins it again on the next
@@ -220,10 +234,11 @@ export default function Assistant({
   // panel, at most every SESSION_REFRESH_MS. The answer is the same visitor
   // and room; only the call's effect matters, so the live session is kept.
   const refreshSession = useCallback(() => {
-    if (!envelope || provisionInFlight.current) return;
+    if (!envelope || provisionInFlight.current || refreshBlockedRef.current) return;
     if (Date.now() - lastSessionCallAt.current < SESSION_REFRESH_MS) return;
     lastSessionCallAt.current = Date.now();
     provision().catch((e: any) => {
+      if (e?.status >= 400 && e?.status < 500) refreshBlockedRef.current = true;
       // eslint-disable-next-line no-console
       console.warn('[ethora-widget] session refresh failed:', e);
     });
@@ -287,6 +302,7 @@ export default function Assistant({
   useEffect(
     () => () => {
       if (closeTimer.current) window.clearTimeout(closeTimer.current);
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     },
     []
   );
@@ -777,6 +793,7 @@ export default function Assistant({
   const glowStrong = `color-mix(in srgb, ${glowColor} 60%, transparent)`;
 
   const panelVisible = open || closing;
+  const showPoweredBy = !(envelope?.branding?.paymentStatus === 'paid' && envelope.branding.showPoweredBy === false);
 
   return (
     <div
@@ -834,8 +851,8 @@ export default function Assistant({
             // Hover / focus is a strong signal a person is about to open the
             // panel; starting the session now hides its round trip behind the
             // click. Crawlers do neither.
-            onMouseEnter={startProvision}
-            onFocus={startProvision}
+            onMouseEnter={() => startProvision()}
+            onFocus={() => startProvision()}
             style={{
               width: launcherSize,
               height: launcherSize,
@@ -986,14 +1003,19 @@ export default function Assistant({
             ) : provisionError ? (
               <div className="ew-status" role="status">
                 <span className="ew-status-title">{provisionError}</span>
-                <button type="button" className="ew-retry" onClick={startProvision}>
+                {!permanentError && <button type="button" className="ew-retry" disabled={!retryReady} onClick={() => startProvision(true)}>
                   Try again
-                </button>
+                </button>}
               </div>
             ) : (
               <StatusScreen color={appearance.primaryColor} mode="connecting" />
             )}
           </div>
+          {showPoweredBy && (
+            <a className="ew-powered-by" href="https://ethora.com" target="_blank" rel="noopener noreferrer nofollow">
+              Powered by <strong>Ethora</strong>
+            </a>
+          )}
         </div>
       )}
     </div>

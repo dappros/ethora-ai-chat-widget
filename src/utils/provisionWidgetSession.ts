@@ -1,3 +1,7 @@
+import { fetchWidgetSession } from './fetchWidgetSession';
+
+export const isValidAppId = (appId: string): boolean => /^[a-f\d]{24}$/i.test(appId);
+
 // AI Widget MUC variant: provision a visitor + room by calling the install's
 // `POST /v2/widget/sessions` endpoint. Replaces the legacy client-side
 // `anon-<uuid>` credential flow that talked 1:1 to the bot JID, visitor
@@ -62,6 +66,7 @@ export interface WidgetSessionEnvelope {
   room: WidgetRoom;
   bot: WidgetBot;
   xmpp?: WidgetSessionXmpp;
+  branding?: { paymentStatus: 'paid' | 'unpaid'; showPoweredBy: boolean };
 }
 
 interface ProvisionWidgetSessionInput {
@@ -146,6 +151,12 @@ export async function provisionWidgetSession(
   if (!appId) {
     throw new Error('provisionWidgetSession: appId is required');
   }
+  if (!isValidAppId(appId)) {
+    const error = new Error('Widget configuration error: appId must be a 24-character application ID.') as Error & { status: number; code: string };
+    error.status = 422;
+    error.code = 'INVALID_APP_ID';
+    throw error;
+  }
   if (!apiBase) {
     throw new Error('provisionWidgetSession: apiBase is required');
   }
@@ -175,7 +186,7 @@ export async function provisionWidgetSession(
     // sandboxed frames can refuse location access; the API falls back to Referer
   }
 
-  const response = await fetch(url, {
+  const response = await fetchWidgetSession(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),

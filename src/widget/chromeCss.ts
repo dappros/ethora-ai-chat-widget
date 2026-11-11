@@ -144,6 +144,26 @@ ${CHROME_KEYFRAMES}
 .ew-dock-left .ew-panel { transform-origin: 0% 100%; }
 .ew-panel.ew-closing { animation: ew-panel-out 180ms ease-in both; }
 .ew-panel.ew-expanded { animation-name: ew-fade-in; animation-duration: 220ms; }
+.ew-powered-by {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 30px;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  text-align: center;
+  color: var(--ew-text-2);
+  background: var(--ew-surface);
+  border-top: 1px solid var(--ew-hair);
+  font-size: 11px;
+  line-height: 17px;
+  text-decoration: none;
+}
+.ew-powered-by strong { color: var(--ew-text); font-weight: 600; }
+.ew-powered-by:hover { color: var(--ew-primary); text-decoration: underline; }
+.ew-powered-by:focus-visible { outline: 2px solid var(--ew-primary); outline-offset: -3px; }
 
 /* Small screens: the panel becomes a bottom sheet across the full width. */
 @media (max-width: 520px) {

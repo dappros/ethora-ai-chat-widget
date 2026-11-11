@@ -7,7 +7,7 @@
 // Read once, before the launcher is drawn, with a short timeout: a slow or
 // failing request only means the widget starts with the snippet's settings,
 // it never holds up or breaks the page.
-import { joinUrl } from '../utils/provisionWidgetSession';
+import { isValidAppId, joinUrl } from '../utils/provisionWidgetSession';
 
 const TIMEOUT_MS = 1500;
 
@@ -31,7 +31,7 @@ export function cacheAppearance(appId: string, apiBase: string, appearance: Stor
 }
 
 export async function fetchStoredAppearance({ appId, apiBase }: { appId: string; apiBase: string }): Promise<StoredAppearance | null> {
-  if (!appId || !apiBase || typeof fetch !== 'function') return null;
+  if (!isValidAppId(appId) || !apiBase || typeof fetch !== 'function') return null;
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), TIMEOUT_MS) : null;
   try {
