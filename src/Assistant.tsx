@@ -338,6 +338,7 @@ export default function Assistant({
       registerGreeting({
         roomJID,
         text:
+          persona.greetingIsDefault ||
           persona.greetingMessage === DEFAULT_COPY.greeting
             ? makeT(uiLocale)('widget.greeting')
             : persona.greetingMessage,

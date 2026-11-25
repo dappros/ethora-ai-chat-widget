@@ -7,6 +7,10 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+### Fixed
+
+- Show the default opening greeting in the reader's language (English, French, Spanish, German, Portuguese, Ukrainian), also when the agent still has the platform template's greeting.
+
 ## [26.11.11] - 2026-11-11
 
 ### Added

@@ -49,6 +49,12 @@ export interface WidgetBot {
   displayName?: string;
   avatarUrl?: string;
   greetingMessage?: string;
+  /**
+   * True when `greetingMessage` is the platform template's line rather than
+   * one the owner wrote; the widget then shows its own greeting in the
+   * reader's language instead. Absent on older servers.
+   */
+  greetingIsDefault?: boolean;
 }
 
 export interface WidgetSessionXmpp {

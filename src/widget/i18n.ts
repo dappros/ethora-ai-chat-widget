@@ -60,6 +60,17 @@ const WIDGET_STRINGS: Record<string, Table> = {
     'widget.emptyBody': 'Suele responder en unos segundos',
     'widget.greeting': '¡Hola! ¿En qué puedo ayudarte hoy?',
   },
+  // Only the opening line so far: a visitor on a page in one of these
+  // languages is greeted in it even though the chrome stays in English.
+  de: {
+    'widget.greeting': 'Hallo! Wie kann ich Ihnen heute helfen?',
+  },
+  pt: {
+    'widget.greeting': 'Olá! Como posso ajudar você hoje?',
+  },
+  uk: {
+    'widget.greeting': 'Вітаю! Чим можу допомогти?',
+  },
 };
 
 /** The English copy the widget ships, to tell "untouched default" from "operator wrote this". */
