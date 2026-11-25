@@ -60,3 +60,67 @@ test('older API sessions use the Mongo chat ID timestamp before history arrives'
   register({ roomJID: 'room', text: 'Welcome', botXmppUsername: 'bot', botName: 'Bot', chatId: '6955b9000000000000000000' });
   assert.ok(room.messages[0].messageTimestampMs < Date.parse('2026-01-02T00:00:00Z'));
 });
+
+// Which opening line the visitor gets: a default nobody wrote for the site
+// (the widget's own, or the platform template's from the server) is marked
+// greetingIsDefault and shown in the reader's language; an owner's line or an
+// embed attribute is shown as written.
+async function loadResolver() {
+  const result = await build({
+    entryPoints: ['src/widget/resolveSession.ts'],
+    bundle: true, platform: 'node', format: 'cjs', write: false,
+    external: ['@ethora/chat-component/i18n/strings'],
+  });
+  const module = { exports: {} };
+  runInNewContext(result.outputFiles[0].text, {
+    module, exports: module.exports,
+    require: () => ({ resolveStringTable: () => ({}), interpolate: (s) => s, toBaseLanguage: (l) => String(l).split('-')[0] }),
+  });
+  const i18n = await build({
+    entryPoints: ['src/widget/i18n.ts'],
+    bundle: true, platform: 'node', format: 'cjs', write: false,
+    external: ['@ethora/chat-component/i18n/strings'],
+  });
+  const i18nModule = { exports: {} };
+  runInNewContext(i18n.outputFiles[0].text, {
+    module: i18nModule, exports: i18nModule.exports,
+    require: () => ({ resolveStringTable: () => ({}), interpolate: (s) => s, toBaseLanguage: (l) => String(l).split('-')[0].toLowerCase() }),
+  });
+  return { resolve: module.exports.resolveSession, makeT: i18nModule.exports.makeT, DEFAULT_COPY: i18nModule.exports.DEFAULT_COPY };
+}
+
+const envelope = (bot) => ({
+  visitor: { xmppUsername: 'app_widget-1', xmppPassword: 'p', uuid: '1' },
+  room: { name: 'room', jid: 'room@conference.x', createdAt: null },
+  bot: { xmppUsername: 'app_bot-bot', ...bot },
+  xmpp: { host: 'x', service: 'wss://x/ws' },
+});
+
+test('no greeting from the server: the widget default, translatable', async () => {
+  const { resolve, DEFAULT_COPY } = await loadResolver();
+  const p = resolve(envelope({}), {}).persona;
+  assert.equal(p.greetingMessage, DEFAULT_COPY.greeting);
+  assert.equal(p.greetingIsDefault, true);
+});
+
+test('the platform template greeting is default, an owner greeting is not', async () => {
+  const { resolve } = await loadResolver();
+  assert.equal(resolve(envelope({ greetingMessage: 'Hi! I am the Support Agent.', greetingIsDefault: true }), {}).persona.greetingIsDefault, true);
+  assert.equal(resolve(envelope({ greetingMessage: 'Welcome to our store!', greetingIsDefault: false }), {}).persona.greetingIsDefault, false);
+  assert.equal(resolve(envelope({ greetingMessage: 'Welcome to our store!' }), {}).persona.greetingIsDefault, false, 'older server: no flag');
+});
+
+test('an embed greeting wins and is never replaced', async () => {
+  const { resolve } = await loadResolver();
+  const p = resolve(envelope({ greetingMessage: 'Hi! I am the Support Agent.', greetingIsDefault: true }), { greetingMessage: 'Bonjour de notre site' }).persona;
+  assert.equal(p.greetingMessage, 'Bonjour de notre site');
+  assert.equal(p.greetingIsDefault, false);
+});
+
+test('the default greeting is translated, English for other languages', async () => {
+  const { makeT } = await loadResolver();
+  assert.equal(makeT('uk-UA')('widget.greeting'), 'Вітаю! Чим можу допомогти?');
+  assert.equal(makeT('de')('widget.greeting'), 'Hallo! Wie kann ich Ihnen heute helfen?');
+  assert.equal(makeT('fr-CA')('widget.greeting'), 'Bonjour ! Comment puis-je vous aider aujourd’hui ?');
+  assert.equal(makeT('az')('widget.greeting'), 'Hi there! What can I help you with today?');
+});

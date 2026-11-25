@@ -13,9 +13,13 @@
 
 import type { WidgetSessionEnvelope } from '../utils/provisionWidgetSession';
 import { VITE_APP_XMPP_BASEDOMAIN } from '../config';
+import { DEFAULT_COPY } from './i18n';
 
-/** Shown when neither the embed nor the Agent supplies an opening line. */
-const DEFAULT_GREETING_MESSAGE = 'Hi, how can I help you?';
+/**
+ * Shown when neither the embed nor the Agent supplies an opening line. The
+ * same text as DEFAULT_COPY.greeting, so it is translated like it.
+ */
+const DEFAULT_GREETING_MESSAGE = DEFAULT_COPY.greeting;
 
 export interface EmbedOverrides {
   botName?: string;
@@ -50,6 +54,12 @@ export interface ResolvedPersona {
   greeting: string;
   /** Opening bot bubble. Empty string means no starter message. */
   greetingMessage: string;
+  /**
+   * True when `greetingMessage` is a default nobody wrote for this site (the
+   * widget's own or the platform template's): the starter bubble then shows
+   * the widget's greeting in the reader's language instead.
+   */
+  greetingIsDefault: boolean;
   /** Bot's xmpp username, needed to attribute the starter bubble to the bot. */
   botXmppUsername: string;
   /**
@@ -172,6 +182,9 @@ export function resolveSession(
   const greetingMessage =
     overrides.greetingMessage ??
     (envelope.bot.greetingMessage || DEFAULT_GREETING_MESSAGE);
+  const greetingIsDefault =
+    overrides.greetingMessage === undefined &&
+    (!envelope.bot.greetingMessage || envelope.bot.greetingIsDefault === true);
 
   return {
     user,
@@ -184,6 +197,7 @@ export function resolveSession(
       greetingTitle,
       greeting,
       greetingMessage,
+      greetingIsDefault,
       botXmppUsername: envelope.bot.xmppUsername,
       botNameExplicit: !!(overrides.botName || envelope.bot.displayName),
       titleExplicit: !!overrides.title,
