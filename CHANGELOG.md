@@ -7,6 +7,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+## [26.11.26] - 2026-11-26
+
 ### Fixed
 
 - Keep the chat header and composer inside the visible mobile viewport when the browser chrome or keyboard changes size.
