@@ -173,6 +173,10 @@ ${CHROME_KEYFRAMES}
 @media (max-width: 520px), (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
   .ew-panel,
   .ew-panel.ew-expanded {
+    --ethora-message-avatar-size: 28px;
+    --ethora-message-list-padding-x: 10px;
+    --ethora-message-bubble-max-width: 84%;
+    overscroll-behavior: contain;
     position: fixed !important;
     inset: var(--ew-viewport-top, 0px) auto auto var(--ew-viewport-left, 0px) !important;
     width: var(--ew-viewport-width, 100%) !important;
@@ -194,6 +198,7 @@ ${CHROME_KEYFRAMES}
   .ew-panel input:not([type]),
   .ew-panel input[type="text"],
   .ew-panel textarea { font-size: 16px !important; }
+  .ew-panel [data-ethora-bubble] { --ethora-font-size-lg: 14px; }
   .ew-panel .message-body { overflow-wrap: anywhere; }
 }
 
