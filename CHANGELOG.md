@@ -7,6 +7,8 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ## [Unreleased]
 
+## [26.11.27] - 2026-11-26
+
 ### Improved
 
 - Use smaller avatars and wider messages on phones. Give quick replies a 44px minimum touch target.
