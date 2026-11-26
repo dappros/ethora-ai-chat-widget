@@ -43,6 +43,9 @@ ${CHIP} {
   text-overflow: clip !important;
   height: auto !important;
 }
+@media (pointer: coarse) {
+  .ew-panel ${CHIP} { min-height: 44px; }
+}
 `;
 
 /**
