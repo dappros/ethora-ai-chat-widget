@@ -35,6 +35,10 @@ export const CHROME_KEYFRAMES = `
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+@keyframes ew-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
 @keyframes ew-msg-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
@@ -165,18 +169,32 @@ ${CHROME_KEYFRAMES}
 .ew-powered-by:hover { color: var(--ew-primary); text-decoration: underline; }
 .ew-powered-by:focus-visible { outline: 2px solid var(--ew-primary); outline-offset: -3px; }
 
-/* Small screens: the panel becomes a bottom sheet across the full width. */
-@media (max-width: 520px) {
-  .ew-panel:not(.ew-expanded) {
+/* Keep both the header and composer inside the visible browser viewport. */
+@media (max-width: 520px), (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  .ew-panel,
+  .ew-panel.ew-expanded {
     position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: auto !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: min(88dvh, calc(100dvh - 16px)) !important;
-    border-radius: 16px 16px 0 0 !important;
+    inset: var(--ew-viewport-top, 0px) auto auto var(--ew-viewport-left, 0px) !important;
+    width: var(--ew-viewport-width, 100%) !important;
+    height: var(--ew-viewport-height, 100vh) !important;
+    height: var(--ew-viewport-height, 100dvh) !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
+    animation-name: ew-fade-in;
+    animation-duration: 180ms;
   }
+  .ew-panel.ew-closing { animation-name: ew-fade-out; }
+  .ew-panel .ew-edge,
+  .ew-panel .ew-iconbtn--expand { display: none; }
+  .ew-panel .ew-iconbtn { min-width: 44px; min-height: 44px; }
+  .ew-panel .ew-header { padding: 4px 8px 4px 12px; }
+  .ew-panel input:not([type]),
+  .ew-panel input[type="text"],
+  .ew-panel textarea { font-size: 16px !important; }
+  .ew-panel .message-body { overflow-wrap: anywhere; }
 }
 
 /* Resize: only the corner that faces into the page. It carries a small
@@ -233,7 +251,6 @@ ${CHROME_KEYFRAMES}
   0%, 100% { opacity: 0.55; }
   50%      { opacity: 1; }
 }
-@media (max-width: 520px) { .ew-edge { display: none; } }
 @media (prefers-reduced-motion: reduce) { .ew-edge::after { animation: none; } }
 
 .ew-header {
