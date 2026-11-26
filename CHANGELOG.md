@@ -9,6 +9,7 @@ The Release workflow moves everything under `[Unreleased]` into a dated section 
 
 ### Fixed
 
+- Keep the chat header and composer inside the visible mobile viewport when the browser chrome or keyboard changes size.
 - Show the default opening greeting in the reader's language (English, French, Spanish, German, Portuguese, Ukrainian), also when the agent still has the platform template's greeting.
 
 ## [26.11.11] - 2026-11-11

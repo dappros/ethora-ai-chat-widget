@@ -794,6 +794,32 @@ export default function Assistant({
   const glowStrong = `color-mix(in srgb, ${glowColor} 60%, transparent)`;
 
   const panelVisible = open || closing;
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const viewport = window.visualViewport;
+    if (!panelVisible || !root || !viewport) return;
+
+    let frame = 0;
+    const sync = () => {
+      root.style.setProperty('--ew-viewport-top', `${viewport.offsetTop}px`);
+      root.style.setProperty('--ew-viewport-left', `${viewport.offsetLeft}px`);
+      root.style.setProperty('--ew-viewport-width', `${viewport.width}px`);
+      root.style.setProperty('--ew-viewport-height', `${viewport.height}px`);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(sync);
+    };
+    sync();
+    viewport.addEventListener('resize', schedule);
+    viewport.addEventListener('scroll', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport.removeEventListener('resize', schedule);
+      viewport.removeEventListener('scroll', schedule);
+    };
+  }, [panelVisible]);
   const showPoweredBy = !(envelope?.branding?.paymentStatus === 'paid' && envelope.branding.showPoweredBy === false);
 
   return (
